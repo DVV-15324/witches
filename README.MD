@@ -1,5 +1,47 @@
-![alt text](logo/logo.svg)
+<div align="center">
 
+<img src="./logo/logo.svg" alt="Witches Logo" width="180"/>
+
+# Witches API
+
+### Fast & Scalable Golang Backend
+
+<p>
+  REST API built with <b>Go</b>, designed for performance,
+  clean architecture, and modern backend development.
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go">
+  <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
+  <img src="https://img.shields.io/badge/SQL-Database-orange?style=for-the-badge&logo=sql">
+  <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
+</p>
+
+</div>
+
+---
+
+## Features
+
+- JWT Authentication
+- Swagger Documentation
+- Database Migration
+- Clean Architecture
+- Docker Support
+- Rate Limiting
+- Redis Cache
+
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/DVV-15324/witches.git
+
+cd witches
+
+go run main.go
 0. cmd
 
 1. database
