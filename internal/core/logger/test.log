@@ -1,0 +1,6 @@
+{"level":"info","ts":1778430650.8115346,"msg":"Hello Sugar"}
+{"level":"info","ts":1778430650.81206,"msg":"Hello","email":"vu@gmail.com"}
+{"level":"warn","ts":1778430650.8125849,"msg":"Hello Sugar"}
+{"level":"warn","ts":1778430650.8125849,"msg":"Hello","email":"vu@gmail.com"}
+{"level":"error","ts":1778430650.8125849,"msg":"Hello Sugar"}
+{"level":"error","ts":1778430650.8125849,"msg":"Hello","email":"vu@gmail.com"}
