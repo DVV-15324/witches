@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./logo/logo.svg" alt="Witches Logo" width="180"/>
+<img src="./logo/logo.png" alt="Witches Logo" width="200"/>
 
 # Witches API
 
@@ -48,18 +48,16 @@ go run main.go
     Link: core-v\internal\core\database
     1.1. Nosql:
         - Redis
-        - Bai Tap Co Ban Redis
     1.2. Sql:
         - PostgreSQL
         - MySQL
         - MSSQL
     1.3. Migration:
-        - Bai Tap Co Ban Migration
-        - core-v\docs => Tạo ra khi bạn tạo docs
+        - Golang-Migrate
 
 2. handle
     Link: core-v\internal\core\handle
-    - Gin
+    - Gin:
 
 3. logger
     Link: core-v\internal\core\logger
