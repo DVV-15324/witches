@@ -1,0 +1,58 @@
+version: "3.9"
+name: "witches-db"
+services:
+  postgres-db:
+    build: ./postgres-db
+    container_name: postgres-db
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: test_db
+    ports:
+      - "1501:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mysql-db:
+    build: ./mysql-db
+    container_name: mysql-db
+    profiles: ["mysql"]
+    environment:
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_DATABASE: test_db
+    ports:
+      - "1502:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mssql-db:
+    build: ./mssql-db
+    container_name: mssql-db
+    profiles: ["mssql"]
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "StrongPass123!"
+    ports:
+      - "1503:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  redis-db:
+    build: ./redis-db
+    container_name: redis-db
+    profiles: ["redis"]
+    ports:
+      - "1504:6379"
+    volumes:
+      - redis_data:/data
+  migrate:
+    build: ./migrate
+    container_name: migrate
+    profiles: ["migrate"]
+
+volumes:
+  postgres_data:
+  mysql_data:
+  mssql_data:
+  redis_data:

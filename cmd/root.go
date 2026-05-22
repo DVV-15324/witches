@@ -1,34 +1,179 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
+	"fmt"
+	"log"
 	"os"
 
+	godotenv "github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
-
-
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "core-v",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Use:   "witches",
+	Short: "Backend Golang nhanh và có khả năng mở rộng",
+	Long: `Witches API được xây dựng bằng Go, được thiết kế để đạt hiệu suất cao,
+kiến trúc gọn gàng và phù hợp với phát triển backend cổ điển, hiện đại.`,
+	Version: "v1.1",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Witches API đang chạy...")
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+var runCmd = &cobra.Command{
+	Use:   "start",
+	Short: "Cài đặt các phụ thuộc cần thiết",
+	Long:  `Cài easyjson && swag && migrate`,
+	Run: func(cmd *cobra.Command, args []string) {
+		WitchesRun()
+	},
+}
+
+var installCmd = &cobra.Command{
+	Use:   "install",
+	Short: "Cài đặt các phụ thuộc cần thiết",
+	Long:  `Cài easyjson && swag && migrate`,
+	Run: func(cmd *cobra.Command, args []string) {
+		WitchesInstall()
+	},
+}
+
+var databaseCmd = &cobra.Command{
+	Use:   "database",
+	Short: "Quản lý database",
+	Long: `Container database:
+			- postgres
+			- mySQL
+			- mSSQL
+			- redis`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_profile := os.Getenv("DB_PROFILE")
+		fmt.Println(db_profile)
+	},
+}
+
+var databaseUpCmd = &cobra.Command{
+	Use:   "up",
+	Short: "Tao database",
+	Long: `Tạo container database:
+			- PostgreSQL
+			- MySQL
+			- MSSQL
+			Defalt:
+			- Migrate
+			- Redis`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_profile := os.Getenv("DB_PROFILE")
+		WitchesDatabaseUp(db_profile)
+	},
+}
+
+var databaseDownCmd = &cobra.Command{
+	Use:   "down",
+	Short: "Tao database",
+	Long: `Tạo container database:
+			- PostgreSQL
+			- MySQL
+			- MSSQL
+			Defalt:
+			- Migrate
+			- Redis`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		WitchesDatabaseDown()
+	},
+}
+
+var migrateCmd = &cobra.Command{
+	Use:   "migrate",
+	Short: "Cai dat Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_url := os.Getenv("DB_URL")
+		fmt.Println(db_url)
+
+	},
+}
+
+var migrateInitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Cai dat Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		WitchesInit()
+	},
+}
+
+var migrateUpCmd = &cobra.Command{
+	Use:   "up",
+	Short: "Up Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_url := os.Getenv("DB_URL")
+		WitchesMigrateUp(db_url)
+	},
+}
+
+var migrateDownCmd = &cobra.Command{
+	Use:   "down",
+	Short: "Down Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_url := os.Getenv("DB_URL")
+		WitchesMigrateDown(db_url)
+	},
+}
+
+var migrateVersionCmd = &cobra.Command{
+	Use:   "force",
+	Short: "Force Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_url := os.Getenv("DB_URL")
+		WitchesMigrateVersion(db_url)
+	},
+}
+var migrateForceCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Version Migrate",
+	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		db_url := os.Getenv("DB_URL")
+		WitchesMigrateForce(db_url)
+	},
+}
+
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -37,15 +182,16 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	rootCmd.AddCommand(installCmd)
+	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(databaseCmd)
+	databaseCmd.AddCommand(databaseUpCmd)
+	databaseCmd.AddCommand(databaseDownCmd)
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.core-v.yaml)")
+	migrateCmd.AddCommand(migrateInitCmd)
+	migrateCmd.AddCommand(migrateUpCmd)
+	migrateCmd.AddCommand(migrateDownCmd)
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	migrateCmd.AddCommand(migrateVersionCmd)
+	migrateCmd.AddCommand(migrateForceCmd)
 }
-
-

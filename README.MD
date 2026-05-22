@@ -12,7 +12,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go">
+  <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
   <img src="https://img.shields.io/badge/SQL-Database-orange?style=for-the-badge&logo=sql">
   <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
@@ -22,7 +22,7 @@
 
 ---
 
-## Features
+# Features
 
 - JWT Authentication
 - Swagger Documentation
@@ -31,52 +31,184 @@
 - Docker Support
 - Rate Limiting
 - Redis Cache
+- Multi Database Support
+- Unit Testing
 
 ---
 
-## Quick Start
+# Supported Databases
+
+## SQL
+- PostgreSQL
+- MySQL
+- MSSQL
+
+## NoSQL
+- Redis
+
+---
+
+# Installation
+
+## Windows
+
+Install `make` using Scoop:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+scoop install make
+```
+
+## Clone Project
 
 ```bash
 git clone https://github.com/DVV-15324/witches.git
-
 cd witches
+```
 
-go run main.go
-0. cmd
+---
 
-1. database
-    Link: core-v\internal\core\database
-    1.1. Nosql:
-        - Redis
-    1.2. Sql:
-        - PostgreSQL
-        - MySQL
-        - MSSQL
-    1.3. Migration:
-        - Golang-Migrate
+# Configuration
 
-2. handle
-    Link: core-v\internal\core\handle
-    - Gin:
+Edit:
 
-3. logger
-    Link: core-v\internal\core\logger
-    - Zap
+```env
+witches.env
+```
 
-4. reponse
-    Link: core-v\internal\core\reponse
+## Database Type
 
-5. sitemap
-    Link: core-v\internal\core\reponse
+Supported values:
 
-6. wagger
-    Link: core-v\internal\core\swagger
+```env
+DB_TYPE=postgres
+```
 
-7. image
-    - RoadMap
-        Link: core-v\image\roadmap.png
-    - Luồng
-        Link: core-v\image\fresher_token.png
+Available:
+- postgres
+- mysql
+- mssql
 
-8. Unit test
-    - Được dùng trên mọi hàm và chức năng
+---
+
+# Start Database
+
+```bash
+witches database up
+```
+
+The command will return a database connection URL.
+
+Example:
+
+```env
+DB_URL=postgres://localhost:5432/test_db
+```
+
+Update `DB_URL` inside:
+
+```env
+witches.env
+```
+
+---
+
+# Database Migration
+
+## Migrate Up
+
+```bash
+witches migrate up
+```
+
+## Migrate Down
+
+```bash
+witches migrate down
+```
+
+Migration is used to manage SQL database schemas.
+
+Recommended:
+- Run migrations in a separate terminal
+- Keep migrations isolated from runtime application processes
+
+---
+
+# Run Application
+
+```bash
+witches run
+```
+
+or:
+
+```bash
+go run .
+```
+
+---
+
+# Project Structure
+
+```text
+internal/
+└── core/
+    ├── cmd/
+    ├── database/
+    │   ├── redis/
+    │   ├── postgres/
+    │   ├── mysql/
+    │   ├── mssql/
+    │   └── migration/
+    ├── handle/
+    ├── logger/
+    ├── response/
+    ├── sitemap/
+    └── swagger/
+```
+
+---
+
+# Technologies
+
+| Component | Technology |
+|---|---|
+| HTTP Framework | Gin |
+| Logger | Zap |
+| Migration | Golang-Migrate |
+| Cache | Redis |
+| Documentation | Swagger |
+| Database | PostgreSQL / MySQL / MSSQL |
+
+---
+
+# Images
+
+## Roadmap
+
+```text
+image/roadmap.png
+```
+
+## Refresh Token Flow
+
+```text
+image/fresher_token.png
+```
+
+---
+
+# Development Notes
+
+- Database lifecycle is managed through Docker Compose
+- Migration should run independently from the runtime application
+- `witches.env` contains all application configuration
+- Unit tests are applied across core functions and modules
+
+---
+
+# License
+
+MIT

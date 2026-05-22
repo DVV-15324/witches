@@ -1,38 +1,42 @@
 package wagger
 
-import (
-	docs "core-v/docs"
-	"github.com/gin-gonic/gin"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"net/http"
-)
+// import (
+// 	docs "core-v/docs"
 
-// @BasePath /api/v1
+// 	"net/http"
 
-// PingExample godoc
-// @Summary ping example
-// @Schemes
-// @Description do ping
-// @Tags example
-// @Accept json
-// @Produce json
-// @Success 200 {string} Helloworld
-// @Router /example/helloworld [get]
-func Helloworld(g *gin.Context) {
-	g.JSON(http.StatusOK, "helloworld")
-}
+// 	"github.com/gin-gonic/gin"
+// 	swaggerFiles "github.com/swaggo/files"
 
-func SwagInit() {
-	r := gin.Default()
-	docs.SwaggerInfo.BasePath = "/"
-	v1 := r.Group("/")
-	{
-		eg := v1.Group("/example")
-		{
-			eg.GET("/helloworld", Helloworld)
-		}
-	}
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.Run(":8080")
-}
+// 	ginSwagger "github.com/swaggo/gin-swagger"
+// )
+
+// // @BasePath /api/v1
+// // @Summary ping example
+// // @Schemes http
+// // @Description do ping
+// // @Tags example
+// // @Accept json
+// // @Produce json
+// // @Success 200 {string} Helloworld
+// // @Failure 404 {string} string "Not found - error message"
+// // @Router /example/helloworld [get]
+// func Helloworld(g *gin.Context) {
+// 	g.JSON(http.StatusOK, "helloworld")
+// }
+
+// func SwagInit() {
+// 	r := gin.Default()
+// 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+// 	docs.SwaggerInfo.BasePath = "/"
+// 	v1 := r.Group("/")
+// 	{
+// 		eg := v1.Group("/example")
+// 		{
+
+// 			eg.GET("/helloworld", Helloworld)
+// 		}
+// 	}
+// 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+// 	r.Run(":8080")
+// }
