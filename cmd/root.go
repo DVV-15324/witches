@@ -110,12 +110,17 @@ var migrateCmd = &cobra.Command{
 	},
 }
 
-var migrateInitCmd = &cobra.Command{
+var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Cai dat Migrate",
 	Long:  `Quan ly cac tac vu thuc hien trong Database`,
 	Run: func(cmd *cobra.Command, args []string) {
-		WitchesInit()
+		if len(args) == 0 {
+			fmt.Println("missing project")
+			return
+		}
+
+		WitchesInit(args[0])
 	},
 }
 
@@ -185,10 +190,11 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(databaseCmd)
+	rootCmd.AddCommand(initCmd)
+
 	databaseCmd.AddCommand(databaseUpCmd)
 	databaseCmd.AddCommand(databaseDownCmd)
 
-	migrateCmd.AddCommand(migrateInitCmd)
 	migrateCmd.AddCommand(migrateUpCmd)
 	migrateCmd.AddCommand(migrateDownCmd)
 

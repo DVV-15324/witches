@@ -18,8 +18,8 @@ run:
 	swag init
 	go run .
 
-migrate-init:
-	@mkdir -p $(PWD)/migrate/migrations
+# migrate-init:
+# 	@mkdir -p $(PWD)/migrate/migrations
 # MIGRATE CONFIG
 DB_URL ?=
 # MIGRATE COMMANDS (DOCKER WAY)
