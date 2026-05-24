@@ -48,8 +48,12 @@ func init() {
 	rootCmd.AddCommand(databaseCmd)
 	// Khoi tao db docker
 
+	rootCmd.AddCommand(migrateCmd)
+
 	databaseCmd.AddCommand(databaseDockerUpCmd)
 	databaseCmd.AddCommand(databaseDockerDownCmd)
+
+	migrateCmd.AddCommand(migrateDropCmd)
 
 	migrateCmd.AddCommand(migrateUpCmd)
 	migrateCmd.AddCommand(migrateDownCmd)

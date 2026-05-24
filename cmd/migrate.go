@@ -22,7 +22,7 @@ var migrateCmd = &cobra.Command{
 	},
 }
 
-var migrateDockerUpCmd = &cobra.Command{
+var migrateDropCmd = &cobra.Command{
 	Use:   "docker-up",
 	Short: "Up Migrate",
 	Long:  `Quan ly cac tac vu thuc hien trong Database`,
@@ -32,7 +32,7 @@ var migrateDockerUpCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateDockerUp(db_url)
+		cmd_migrate.WitchesMigrateDrop(db_url)
 	},
 }
 
@@ -74,7 +74,11 @@ var migrateVersionCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateVersion(db_url)
+		if len(args) < 1 {
+			fmt.Println("missing project")
+			return
+		}
+		cmd_migrate.WitchesMigrateForce(db_url, args[0])
 	},
 }
 var migrateForceCmd = &cobra.Command{
@@ -82,15 +86,12 @@ var migrateForceCmd = &cobra.Command{
 	Short: "Version Migrate",
 	Long:  `Quan ly cac tac vu thuc hien trong Database`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		if len(args) < 1 {
-			fmt.Println("missing project")
-			return
-		}
-		cmd_migrate.WitchesMigrateForce(db_url, args[0])
+		cmd_migrate.WitchesMigrateVersion(db_url)
 	},
 }
