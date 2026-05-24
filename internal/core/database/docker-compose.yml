@@ -6,9 +6,9 @@ services:
     container_name: postgres-db
     profiles: ["postgres"]
     environment:
-      POSTGRES_USER: docker
-      POSTGRES_PASSWORD: docker
-      POSTGRES_DB: test_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DATABASE}
     ports:
       - "1501:5432"
     volumes:
@@ -19,10 +19,11 @@ services:
     container_name: mysql-db
     profiles: ["mysql"]
     environment:
-      MYSQL_ROOT_PASSWORD: docker
-      MYSQL_DATABASE: test_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE}
     ports:
       - "1502:3306"
+
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -32,7 +33,8 @@ services:
     profiles: ["mssql"]
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "StrongPass123!"
+      SA_PASSWORD: ${DB_PASSWORD}
+      MSSQL_DATABASE: ${DATABASE}
     ports:
       - "1503:1433"
     volumes:

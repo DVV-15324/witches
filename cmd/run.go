@@ -1,97 +1,55 @@
 package cmd
 
 import (
-	"log"
-	"os"
-	"os/exec"
-	"path/filepath"
+	cmd_run "core-v/cmd/cmd_run"
+	"fmt"
+	"github.com/spf13/cobra"
 )
 
-func WitchesInit(project string) {
-	projectPath := filepath.Join(".", project)
+var db string
+var runAll bool = false
 
-	err := os.MkdirAll(projectPath, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = os.MkdirAll(filepath.Join(projectPath, "migrate", "migrations"), os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	envPath := filepath.Join(projectPath, "witches.env")
-	// Create witches.env
-	if _, err := os.Stat(envPath); os.IsNotExist(err) {
-		file, err := os.Create(envPath)
-		if err != nil {
-			log.Fatal(err)
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Thiết lập wiches cho dự án",
+	Long: `Thiết lập wiches cho chương trình
+Yêu cầu có ví dụ: --db=mysql | mssql | postgres
+`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			fmt.Println("missing init project")
+			return
 		}
-		defer file.Close()
-
-		_, err = file.WriteString(
-			"DB_URL=LINK_CONNECT_TO_DATABASE\n" +
-				"DB_PROFILE=TYPE_DATABASE\n",
-		)
-		if err != nil {
-			log.Fatal(err)
+		if len(db) < 1 {
+			fmt.Println("missing init project, required --db")
+			return
 		}
-	}
-	mainPath := filepath.Join(projectPath, "main.go")
-	// Create main.go
-	if _, err := os.Stat(mainPath); os.IsNotExist(err) {
-		file, err := os.Create(mainPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer file.Close()
-
-		_, err = file.WriteString(`package main
-
-import "fmt"
-
-func main() {
-	fmt.Println("Hello this is witches")
-}
-`)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	cmdModInit := exec.Command("go", "mod", "init", project)
-	cmdModInit.Stdout = os.Stdout
-	cmdModInit.Stderr = os.Stderr
-	cmdModInit.Dir = projectPath
-	err = cmdModInit.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+		cmd_run.WitchesInit(args[0], db)
+	},
 }
 
-func WitchesInstall() {
-	cmd := exec.Command("make", "install")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// cmdMigrate := exec.Command("make", "migrate-init")
-	// cmdMigrate.Stdout = os.Stdout
-	// cmdMigrate.Stderr = os.Stderr
-	// err = cmd.Run()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+var runCmd = &cobra.Command{
+	Use:   "run",
+	Short: "Chay chuong trinh",
+	Long:  `Chạy chuong trinh`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) > 0 {
+			fmt.Println("missing run project")
+			return
+		}
+		cmd_run.WitchesRun()
+	},
 }
 
-func WitchesRun() {
-	cmd := exec.Command("make", "run")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+var installCmd = &cobra.Command{
+	Use:   "install",
+	Short: "Cài đặt các phụ thuộc cần thiết",
+	Long:  `Cài đặt install easyjson && swag && migrate`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) > 0 {
+			fmt.Println("missing run project")
+			return
+		}
+		cmd_run.WitchesInstall()
+	},
 }

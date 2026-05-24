@@ -212,3 +212,25 @@ image/fresher_token.png
 # License
 
 MIT
+
+
+# Cài đặt tools
+go run ../main.go install
+
+# Tạo project mới
+go run ../main.go init myapp
+
+
+# 
+cd myapp
+
+# Chạy project
+go run ../main.go run myapp
+
+# Database
+go run ../main.go database-up dev
+go run ../main.go database-down
+
+# Migrate
+go run ../main.go migrate-up "postgres://user:pass@localhost/db?sslmode=disable"
+go run ../main.go migrate-down "postgres://user:pass@localhost/db?sslmode=disable"

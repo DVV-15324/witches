@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os"
-
-	godotenv "github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var rootCmd = &cobra.Command{
@@ -16,166 +12,6 @@ var rootCmd = &cobra.Command{
 kiến trúc gọn gàng và phù hợp với phát triển backend cổ điển, hiện đại.`,
 	Version: "v1.1",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Witches API đang chạy...")
-	},
-}
-
-var runCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Cài đặt các phụ thuộc cần thiết",
-	Long:  `Cài easyjson && swag && migrate`,
-	Run: func(cmd *cobra.Command, args []string) {
-		WitchesRun()
-	},
-}
-
-var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Cài đặt các phụ thuộc cần thiết",
-	Long:  `Cài easyjson && swag && migrate`,
-	Run: func(cmd *cobra.Command, args []string) {
-		WitchesInstall()
-	},
-}
-
-var databaseCmd = &cobra.Command{
-	Use:   "database",
-	Short: "Quản lý database",
-	Long: `Container database:
-			- postgres
-			- mySQL
-			- mSSQL
-			- redis`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_profile := os.Getenv("DB_PROFILE")
-		fmt.Println(db_profile)
-	},
-}
-
-var databaseUpCmd = &cobra.Command{
-	Use:   "up",
-	Short: "Tao database",
-	Long: `Tạo container database:
-			- PostgreSQL
-			- MySQL
-			- MSSQL
-			Defalt:
-			- Migrate
-			- Redis`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_profile := os.Getenv("DB_PROFILE")
-		WitchesDatabaseUp(db_profile)
-	},
-}
-
-var databaseDownCmd = &cobra.Command{
-	Use:   "down",
-	Short: "Tao database",
-	Long: `Tạo container database:
-			- PostgreSQL
-			- MySQL
-			- MSSQL
-			Defalt:
-			- Migrate
-			- Redis`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		WitchesDatabaseDown()
-	},
-}
-
-var migrateCmd = &cobra.Command{
-	Use:   "migrate",
-	Short: "Cai dat Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_url := os.Getenv("DB_URL")
-		fmt.Println(db_url)
-
-	},
-}
-
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Cai dat Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("missing project")
-			return
-		}
-
-		WitchesInit(args[0])
-	},
-}
-
-var migrateUpCmd = &cobra.Command{
-	Use:   "up",
-	Short: "Up Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_url := os.Getenv("DB_URL")
-		WitchesMigrateUp(db_url)
-	},
-}
-
-var migrateDownCmd = &cobra.Command{
-	Use:   "down",
-	Short: "Down Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_url := os.Getenv("DB_URL")
-		WitchesMigrateDown(db_url)
-	},
-}
-
-var migrateVersionCmd = &cobra.Command{
-	Use:   "force",
-	Short: "Force Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_url := os.Getenv("DB_URL")
-		WitchesMigrateVersion(db_url)
-	},
-}
-var migrateForceCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Version Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load("witches.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		db_url := os.Getenv("DB_URL")
-		WitchesMigrateForce(db_url)
 	},
 }
 
@@ -187,13 +23,33 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(installCmd)
-	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(databaseCmd)
+	// Scaffold
 	rootCmd.AddCommand(initCmd)
+	initCmd.Flags().StringVar(
+		&db,
+		"db",
+		"",
+		"database type",
+	)
 
-	databaseCmd.AddCommand(databaseUpCmd)
-	databaseCmd.AddCommand(databaseDownCmd)
+	//install tool
+	rootCmd.AddCommand(installCmd)
+
+	//run test
+	rootCmd.AddCommand(runCmd)
+	runCmd.Flags().BoolVarP(
+		&runAll,
+		"all",
+		"a",
+		false,
+		"Chay voi easyjson init && swag init",
+	)
+
+	rootCmd.AddCommand(databaseCmd)
+	// Khoi tao db docker
+
+	databaseCmd.AddCommand(databaseDockerUpCmd)
+	databaseCmd.AddCommand(databaseDockerDownCmd)
 
 	migrateCmd.AddCommand(migrateUpCmd)
 	migrateCmd.AddCommand(migrateDownCmd)
