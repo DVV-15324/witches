@@ -49,10 +49,10 @@
 ---
 
 ## Clone Project
-
-`git clone https://github.com/DVV-15324/witches.git`
-`cd witches`
-
+```text
+git clone https://github.com/DVV-15324/witches.git
+cd witches
+```
 ---
 
 ## Configuration
@@ -60,18 +60,20 @@
 Edit `witches.env` file:
 
 `# Database Type: postgres, mysql, mssql`
-`DB_TYPE=mysql`
+```text
+DB_TYPE=mysql
+```
 
 `# Database Credentials`
-`DB_HOST=localhost`
-`DB_PORT=1502`
-`DB_USER=root`
-`DB_PASSWORD=Your!StrongPassword123`
-`DATABASE=test_db`
-
+```text
+DB_USER=root
+DB_PASSWORD=Your!StrongPassword123
+DATABASE=test_db
+```
 `# Connection URL`
-`DB_URL=mysql://root:Your!StrongPassword123@tcp(localhost:1502)/test_db?charset=utf8mb4&parseTime=True&loc=Local`
-
+```text
+DB_URL=mysql://root:Your!StrongPassword123@tcp(localhost:1502)/test_db?charset=utf8mb4&parseTime=True&loc=Local
+```
 ### Available Database Types
 - `postgres`
 - `mysql`
@@ -82,77 +84,70 @@ Edit `witches.env` file:
 ## Quick Start
 
 ### 1. Initialize Project
-`witches init example`
-`cd example`
-
+```text
+witches init example
+cd example
+```
 ### 2. Install Dependencies
-`witches install`
+```text
+witches install
+```
 
 ### 3. Configure Database
 Edit `witches.env`:
-
-`DB_PASSWORD=Your!StrongPassword123`
-`DATABASE=test_db`
-`DB_PROFILE=mysql`
-`DB_USER=root`
-
+```text
+DB_PASSWORD=Your!StrongPassword123
+DATABASE=test_db
+DB_PROFILE=mysql
+```
 ### 4. Start Database
-`witches database up`
-
+```text
+witches database up
+```
+#### Output:
+```text
+DB_PASSWORD=Your!StrongPassword123
+DATABASE=test_db
+DB_PROFILE=mysql
+DB_USER=root
+DB_URL=mysql://root:Your!StrongPassword123@tcp(localhost:1502)/test_db?charset=utf8mb4&parseTime=True&loc=Local
+```
 ### 5. Run Migrations
-`witches migrate up`
-
-### 6. Start Application
-`witches run`
-
-Or with Swagger and easyjson generation:
-`witches run -all`
-
-Or using Go directly:
-`go run .`
-
----
-
-## Database Migration
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `witches migrate up` | Apply all pending migrations |
-| `witches migrate up 1` | Apply 1 pending migration |
-| `witches migrate down` | Rollback all migrations |
-| `witches migrate down 1` | Rollback 1 migration |
-| `witches migrate version` | Show current migration version |
-| `witches migrate force <version>` | Force set version |
-| `witches migrate drop` | Delete all data |
-
-### Migration Files Structure
-
-migrate/migrations/
-├── 1_init.up.sql      # Forward migration
-├── 1_init.down.sql    # Rollback migration
-├── 2_add_users.up.sql
-└── 2_add_users.down.sql
-
-### Create New Migration
-`witches migrate create -ext sql -dir ./migrate/migrations your_migration_name`
-
-### Migration File Example
-
-**Up migration** (`1_init.up.sql`):
+### Create file:
+**Up migration** (`./migrate/migrations/1_init.up.sql`):
+```text
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-**Down migration** (`1_init.down.sql`):
+```
+**Down migration** (`./migrate/migrations/1_init.down.sql`):
+```text
 DROP TABLE IF EXISTS users;
+```
+### Run:
+
+```text
+witches migrate up
+```
+
+## Migration Commands
+
+| Command | Description |
+|---|---|
+| witches migrate up | Apply all pending migrations |
+| witches migrate up 1 | Apply 1 pending migration |
+| witches migrate down | Rollback all migrations |
+| witches migrate down 1 | Rollback 1 migration |
+| witches migrate version | Show current migration version |
+| witches migrate force <version> | Force set migration version |
+| witches migrate drop | Drop all database tables |
+
+---
 
 ### Best Practices
-
 - Always write both up and down migrations
 - Test migrations in development before production
 - Never edit applied migrations - create new ones
@@ -167,12 +162,22 @@ DROP TABLE IF EXISTS users;
 **Error: "file does not exist"**
 - Check if migration files exist in migrate/migrations/
 - Verify Docker Desktop file sharing settings (Windows)
-
 ---
 
+### 6. Start Application
+```text
+witches run
+```
+### Or with Swagger and easyjson generation:
+```text
+witches run -all
+```
+### Or using Go directly:
+```text
+go run .
+```
+---
 ## Project Structure
-
-
 ```text
 internal/
 └── core/
@@ -189,7 +194,6 @@ internal/
     ├── sitemap/
     └── swagger/
 ```
-
 ---
 
 ## Technologies
