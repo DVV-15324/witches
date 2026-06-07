@@ -14,7 +14,7 @@ func WitchesInstall() {
 	}
 
 	for _, tool := range tools {
-		cmd := exec.Command("go", "get", tool)
+		cmd := exec.Command("go", "install", tool)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
