@@ -23,16 +23,17 @@
 ---
 
 ## Features
-
 - JWT Authentication
 - Swagger Documentation
 - Database Migration
-- Clean Architecture
 - Docker Support
-- Rate Limiting
-- Redis Cache
-- Multi Database Support
-- Unit Testing
+- Hash Utilities
+- Sitemap Support
+- UID Masking
+- Clean Architecture (Coming Soon)
+- Rate Limiting (Coming Soon)
+- Redis Cache (Coming Soon)
+- Multi-Database Support (Coming Soon)
 
 ---
 
