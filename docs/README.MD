@@ -48,7 +48,7 @@
 ### UML (Unified Modeling Language)
 
 <div align="center">
-<img src="../image/uml.png.png"/>
+<img src="../image/uml.png"/>
 </div>
 
 ---
