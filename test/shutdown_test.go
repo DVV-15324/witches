@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"core-v/pkg/core/handle/server"
+	h_w "core-v/pkg/core/handle_swagger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ func TestHttpShutDown(t *testing.T) {
 		w.Write([]byte("hello world"))
 	})
 
-	server.ShadownServer(
+	h_w.ShadownServer(
 		context.Background(),
 		mux,
 		8080,
@@ -33,7 +33,7 @@ func TestGin(t *testing.T) {
 		})
 	})
 
-	server.ShadownServer(
+	h_w.ShadownServer(
 		context.Background(),
 		r,
 		8080,

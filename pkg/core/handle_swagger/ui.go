@@ -1,0 +1,40 @@
+package handle_swagger
+
+import "github.com/gin-gonic/gin"
+
+func SwaggerUI() func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		html := `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>My API - Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: "/swagger.json",
+                dom_id: '#swagger-ui',
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+                layout: "BaseLayout",
+                deepLinking: true,
+                docExpansion: "list",
+                filter: true
+            });
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>`
+		ctx.Header("Content-Type", "text/html")
+		ctx.String(200, html)
+
+	}
+}
