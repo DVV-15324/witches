@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	cmd_run "core-v/cmd/cmd_run"
 	"fmt"
+	cmd_run "github.com/DVV-15324/witches/cmd/cmd_run"
 	"github.com/spf13/cobra"
 )
 

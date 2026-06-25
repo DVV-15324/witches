@@ -1,7 +1,7 @@
 package response_logger
 
 import (
-	"core-v/pkg/core/response_logger/logger"
+	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
 	"net/http"
 	"time"
 

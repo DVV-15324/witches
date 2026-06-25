@@ -1,7 +1,7 @@
 package cmd_migrate
 
 import (
-	utils "core-v/cmd/cmd_utils"
+	utils "github.com/DVV-15324/witches/cmd/cmd_utils"
 	"log"
 	"os"
 	"os/exec"

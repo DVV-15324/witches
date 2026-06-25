@@ -1,4 +1,4 @@
-module core-v
+module github.com/DVV-15324/witches
 
 go 1.25.0
 

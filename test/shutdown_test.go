@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	h_w "core-v/pkg/core/handle_swagger"
+	h_w "github.com/DVV-15324/witches/pkg/core/handle_swagger"
 
 	"github.com/gin-gonic/gin"
 )

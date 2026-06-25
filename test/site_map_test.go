@@ -2,9 +2,9 @@ package test
 
 import (
 	"context"
-	sitemap "core-v/pkg/core/utils"
 	"encoding/xml"
 	"fmt"
+	sitemap "github.com/DVV-15324/witches/pkg/core/utils"
 	"testing"
 	"time"
 )

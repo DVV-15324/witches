@@ -3,7 +3,7 @@ package cmd
 import (
 	//"fmt"
 
-	cmd_database "core-v/cmd/cmd_database"
+	cmd_database "github.com/DVV-15324/witches/cmd/cmd_database"
 	godotenv "github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"log"

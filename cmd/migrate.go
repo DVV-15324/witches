@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	cmd_migrate "core-v/cmd/cmd_migrate"
 	"fmt"
+	cmd_migrate "github.com/DVV-15324/witches/cmd/cmd_migrate"
 	godotenv "github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"log"

@@ -1,9 +1,9 @@
 package test
 
 import (
-	resp "core-v/pkg/core/response_logger"
-	logger "core-v/pkg/core/response_logger/logger"
 	"errors"
+	resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	logger "github.com/DVV-15324/witches/pkg/core/response_logger/logger"
 	"testing"
 	"time"
 

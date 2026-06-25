@@ -1,8 +1,8 @@
 package test
 
 import (
-	h_s "core-v/pkg/core/handle_swagger"
 	"fmt"
+	h_s "github.com/DVV-15324/witches/pkg/core/handle_swagger"
 	"testing"
 
 	"github.com/gin-gonic/gin"

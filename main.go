@@ -1,7 +1,7 @@
 package main
 
 import (
-	cmd "core-v/cmd"
+	cmd "github.com/DVV-15324/witches/cmd"
 )
 
 // Start
