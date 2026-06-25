@@ -1,4 +1,4 @@
-package server
+package handle_swagger
 
 import (
 	"context"

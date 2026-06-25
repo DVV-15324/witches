@@ -1,7 +1,7 @@
 package test
 
 import (
-	logger "core-v/pkg/core/logger"
+	logger "core-v/pkg/core/response_logger/logger"
 	"go.uber.org/zap"
 	"testing"
 )

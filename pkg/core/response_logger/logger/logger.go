@@ -14,83 +14,83 @@ type EntityLogger struct {
 	Sugar *zap.SugaredLogger
 }
 
-// INFO: Khi chương trình kết thúc log có thể chưa kịp ghi ra
+// Khi chương trình kết thúc log có thể chưa kịp ghi ra
 // Sync có nhiệm vụ đẩy(flush) dữ liệu được lưu trong buffer
 // Đảm bảo dự liệu chắc chắn được lưu
 func (l *EntityLogger) Sync() error {
 	return l.Log.Sync()
 }
 
-// INFO: Hiển thị thông tin msg của log
+// Hiển thị thông tin msg của log
 func (l *EntityLogger) Info(msg string) {
 	l.Log.Info(msg)
 }
 
-// INFO: Hiển thị thông tin msg của log với level Warn
+// Hiển thị thông tin msg của log với level Warn
 func (l *EntityLogger) Warn(msg string) {
 	l.Log.Warn(msg)
 }
 
-// INFO: Hiển thị thông tin msg của log với level Error
+// Hiển thị thông tin msg của log với level Error
 func (l *EntityLogger) Error(msg string) {
 	l.Log.Error(msg)
 }
 
-// INFO:Thêm ngữ cảnh khi log [ví dụ]:
+// Thêm ngữ cảnh khi log [ví dụ]:
 // logger.InfoWithFields("user login", zap.String("email", "vu@gmail.com"), zap.Int("user_id", 1),)
 func (l *EntityLogger) InfoWithFields(msg string, fields ...zap.Field) {
 	l.Log.Info(msg, fields...)
 }
 
-// INFO:Thêm ngữ cảnh khi log với level Warn [ví dụ]:
+// Thêm ngữ cảnh khi log với level Warn [ví dụ]:
 // logger.InfoWithFields("user login", zap.String("email", "vu@gmail.com"), zap.Int("user_id", 1),)
 func (l *EntityLogger) WarnWithFields(msg string, fields ...zap.Field) {
 	l.Log.Warn(msg, fields...)
 }
 
-// INFO:Thêm ngữ cảnh khi log với level Error [ví dụ]:
+// Thêm ngữ cảnh khi log với level Error [ví dụ]:
 // logger.InfoWithFields("user login", zap.String("email", "vu@gmail.com"), zap.Int("user_id", 1),)
 func (l *EntityLogger) ErrorWithFields(msg string, fields ...zap.Field) {
 	l.Log.Error(msg, fields...)
 }
 
-// INFO:Thêm chèn định dạng văn bản(format) vào msg log [ví dụ]:
+// Thêm chèn định dạng văn bản(format) vào msg log [ví dụ]:
 // logger.SugarInfo("user login %v", "vu@gmail.com")
 func (l *EntityLogger) SugarInfof(msg string, args ...interface{}) {
 	l.Sugar.Infof(msg, args...)
 }
 
-// INFO:Thêm chèn định dạng văn bản(format) vào msg log với level Warn [ví dụ]:
+// Thêm chèn định dạng văn bản(format) vào msg log với level Warn [ví dụ]:
 // logger.SugarInfo("user login %v", "vu@gmail.com")
 func (l *EntityLogger) SugarWarnf(msg string, args ...interface{}) {
 	l.Sugar.Warnf(msg, args...)
 }
 
-// INFO:Thêm chèn định dạng văn bản(format) vào msg log với level Error [ví dụ]:
+// Thêm chèn định dạng văn bản(format) vào msg log với level Error [ví dụ]:
 // logger.SugarInfo("user login %v", "vu@gmail.com")
 func (l *EntityLogger) SugarErrorf(msg string, args ...interface{}) {
 	l.Sugar.Errorf(msg, args...)
 }
 
-// INFO:Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES [ví dụ]:
+// Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES [ví dụ]:
 // logger.SugarInfo("user login","email", "vu@gmail.com", "user_id", 1")
 func (l *EntityLogger) SugarInfoWithFields(msg string, keysAndValues ...interface{}) {
 	l.Sugar.Infow(msg, keysAndValues...)
 }
 
-// INFO:Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES với level Warn [ví dụ]:
+// Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES với level Warn [ví dụ]:
 // logger.SugarInfo("user login","email", "vu@gmail.com", "user_id", 1")
 func (l *EntityLogger) SugarWarnWithFields(msg string, keysAndValues ...interface{}) {
 	l.Sugar.Warnw(msg, keysAndValues...)
 }
 
-// INFO:Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES với level Error [ví dụ]:
+// Thêm ngữ cảnh vào msg log theo kiểu KEYS và VALUES với level Error [ví dụ]:
 // logger.SugarInfo("user login","email", "vu@gmail.com", "user_id", 1")
 func (l *EntityLogger) SugarErrorWithFields(msg string, keysAndValues ...interface{}) {
 	l.Sugar.Errorw(msg, keysAndValues...)
 }
 
-// INFO: Terminal (stdout) dễ debug
+// Terminal (stdout) dễ debug
 func NewDeloperLogger() (*EntityLogger, error) {
 
 	logger, err := zap.NewDevelopment()
@@ -104,7 +104,7 @@ func NewDeloperLogger() (*EntityLogger, error) {
 	}, nil
 }
 
-// InFO: Ghi file .log dạng JSON
+// Ghi file .log dạng JSON
 // os.O_APPEND: ghi thêm vào cuối file (không ghi đè)
 // os.O_CREATE: nếu file chưa tồn tại thì tạo mới
 // os.O_WRONLY: chỉ cho phép ghi (write only)
@@ -152,7 +152,12 @@ func NewFileLogger(filePath string, maxSize int, maxBackUps int, maxAge int) (*E
 	)
 
 	// Logger thật sự bắt đầu
-	logger := zap.New(core)
+	logger := zap.New(
+		core,
+		zap.AddCaller(),
+		zap.AddCallerSkip(1),
+		zap.AddStacktrace(zap.ErrorLevel),
+	)
 
 	return &EntityLogger{
 		Log:   logger,
@@ -160,7 +165,7 @@ func NewFileLogger(filePath string, maxSize int, maxBackUps int, maxAge int) (*E
 	}, nil
 }
 
-// INFO: Stdout (Docker/K8s) hoặc gửi qua hệ thống log (ELK/Loki)
+// Stdout (Docker/K8s) hoặc gửi qua hệ thống log (ELK/Loki)
 func NewProductionLogger() (*EntityLogger, error) {
 
 	logger, err := zap.NewProduction()

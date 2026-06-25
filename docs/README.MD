@@ -170,7 +170,7 @@ go install https://github.com/DVV-15324/witches.git
 ---
 
 ```text
-witches init --db=mysql
+witches init example --db=mysql
 cd example
 ```
 
@@ -341,23 +341,15 @@ go run .
 │       │   ├───mysql-db
 │       │   ├───postgres-db
 │       │   └───redis-db
-│       ├───easyjson
-│       ├───handle
-│       │   ├───client
-│       │   │   └───example
-│       │   │       └───http
-│       │   └───server
-│       │       └───example
-│       │           ├───gin
-│       │           └───http
+│       ├───gen_easyjson
+│       │   └───generator
+│       ├───handle_swagger
 │       ├───jwt
-│       ├───logger
-│       ├───reponse
-│       ├───utils
-│       └───wagger
-│           ├───docs
-│           └───example
+│       ├───response_logger
+│       │   └───logger
+│       └───utils
 └───test
+    └───swagger
 ```
 
 ---
