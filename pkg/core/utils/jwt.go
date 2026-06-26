@@ -3,22 +3,31 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"sigs.k8s.io/kind/pkg/errors"
+
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/pkg/errors"
 )
 
 type Token struct {
 	Token    string `json:"token"`
 	ExpireAt int    `json:"expire_at"`
 }
-
 type TokenResponse struct {
 	AccessToken Token  `json:"access_token"`
 	RefeshToken *Token `json:"refesh_token"`
 }
 
+type Role string
+
+const (
+	RoleAdmin Role = "admin"
+	RoleUser  Role = "user"
+)
+
 type JwtClaims struct {
+	Role string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -34,28 +43,35 @@ type JwtService struct {
 	expireAt  int
 }
 
-func (j *JwtService) IssueToken(cxt context.Context, sub string, tid string) *TokenResponse {
+func (j *JwtService) IssueToken(ctx context.Context, sub string, tid string, role Role) (*TokenResponse, error) {
+
 	now := time.Now()
 
-	c := JwtClaims{
-		jwt.RegisteredClaims{
+	claims := JwtClaims{
+		Role: string(role),
+		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        tid,
 			Subject:   sub,
-			NotBefore: jwt.NewNumericDate(now),
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(j.expireAt) * time.Second)),
+			NotBefore: jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(
+				now.Add(time.Duration(j.expireAt) * time.Second),
+			),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	signedToken, _ := token.SignedString([]byte(j.secretKey))
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		return nil, err
+	}
 
 	return &TokenResponse{
 		AccessToken: Token{
 			Token:    signedToken,
 			ExpireAt: j.expireAt,
 		},
-		RefeshToken: nil,
-	}
+	}, nil
 }
 
 func (j JwtService) ParseToken(ctx context.Context, tokenStr string) (*JwtClaims, error) {
@@ -67,7 +83,7 @@ func (j JwtService) ParseToken(ctx context.Context, tokenStr string) (*JwtClaims
 		return []byte(j.secretKey), nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(fmt.Errorf("Phiên của bạn đã hết vui lòng đăng nhập lại"))
 	}
 	if !token.Valid {
 		return nil, errors.WithStack(fmt.Errorf("invalid token"))
