@@ -1,7 +1,7 @@
 package test
 
 import (
-	logger "core-v/pkg/core/response_logger/logger"
+	logger "github.com/DVV-15324/witches/pkg/core/response_logger/logger"
 	"go.uber.org/zap"
 	"testing"
 )
