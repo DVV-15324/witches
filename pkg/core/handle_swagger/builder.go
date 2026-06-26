@@ -7,15 +7,21 @@ import (
 )
 
 type RouteBuilder struct {
-	gen     *SwaggerGenerator
-	method  string
-	path    string
-	op      Operation
-	handler gin.HandlerFunc
+	gen         *SwaggerGenerator
+	method      string
+	path        string
+	op          Operation
+	handler     gin.HandlerFunc
+	middlewares []gin.HandlerFunc
 }
 
 func (b *RouteBuilder) Summary(s string) *RouteBuilder {
 	b.op.Summary = s
+	return b
+}
+
+func (b *RouteBuilder) Use(middlewares ...gin.HandlerFunc) *RouteBuilder {
+	b.middlewares = append(b.middlewares, middlewares...)
 	return b
 }
 
@@ -119,32 +125,52 @@ func (b *RouteBuilder) Public() *RouteBuilder {
 	b.op.Security = []SecurityRequirement{}
 	return b
 }
+
+// Handler gán handler
 func (b *RouteBuilder) Handler(h gin.HandlerFunc) *RouteBuilder {
 	b.handler = h
-
-	// Tạo fullPath = BasePath + path
-	fullPath := b.gen.doc.BasePath + b.path
-
-	switch b.method {
-	case "get":
-		b.gen.engine.GET(fullPath, h)
-	case "post":
-		b.gen.engine.POST(fullPath, h)
-	case "put":
-		b.gen.engine.PUT(fullPath, h)
-	case "delete":
-		b.gen.engine.DELETE(fullPath, h)
-	case "patch":
-		b.gen.engine.PATCH(fullPath, h)
-	case "options":
-		b.gen.engine.OPTIONS(fullPath, h)
-	}
-
 	return b
 }
 
-// Build hoàn tất route
+// Build hoàn tất route với tất cả middleware đã được thêm
 func (b *RouteBuilder) Build() {
+	fullPath := b.gen.doc.BasePath + b.path
+
+	// Gom tất cả handlers: middlewares + handler
+	var handlers []gin.HandlerFunc
+
+	// Thêm global middlewares từ generator
+	if b.gen.globalSecurity != nil {
+		handlers = append(handlers, b.gen.globalMiddlewares...)
+	}
+
+	// Thêm route-specific middlewares
+	if len(b.middlewares) > 0 {
+		handlers = append(handlers, b.middlewares...)
+	}
+
+	// Thêm handler cuối cùng
+	if b.handler != nil {
+		handlers = append(handlers, b.handler)
+	}
+
+	// Register vào Gin
+	switch b.method {
+	case "get":
+		b.gen.engine.GET(fullPath, handlers...)
+	case "post":
+		b.gen.engine.POST(fullPath, handlers...)
+	case "put":
+		b.gen.engine.PUT(fullPath, handlers...)
+	case "delete":
+		b.gen.engine.DELETE(fullPath, handlers...)
+	case "patch":
+		b.gen.engine.PATCH(fullPath, handlers...)
+	case "options":
+		b.gen.engine.OPTIONS(fullPath, handlers...)
+	}
+
+	// Add vào Swagger doc
 	if b.gen.doc.Paths[b.path] == nil {
 		b.gen.doc.Paths[b.path] = make(PathItem)
 	}

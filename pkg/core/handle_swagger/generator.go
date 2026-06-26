@@ -9,11 +9,11 @@ import (
 )
 
 type SwaggerGenerator struct {
-	doc         *SwaggerDoc
-	modelParser *ModelParser
-	engine      *gin.Engine
-
-	globalSecurity []SecurityRequirement
+	doc               *SwaggerDoc
+	modelParser       *ModelParser
+	engine            *gin.Engine
+	globalMiddlewares []gin.HandlerFunc
+	globalSecurity    []SecurityRequirement
 }
 
 func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerator {
@@ -32,8 +32,9 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 			SecurityDefinitions: make(map[string]SecurityScheme),
 			Tags:                []Tag{},
 		},
-		globalSecurity: []SecurityRequirement{},
-		modelParser:    NewModelParser(),
+		globalSecurity:    []SecurityRequirement{},
+		modelParser:       NewModelParser(),
+		globalMiddlewares: []gin.HandlerFunc{},
 	}
 }
 
@@ -44,9 +45,12 @@ func (g *SwaggerGenerator) SetEngine(engine *gin.Engine) *SwaggerGenerator {
 	return g
 }
 
-// Use thêm middleware vào group hiện tại
-func (g *SwaggerGenerator) Use(middleware ...gin.HandlerFunc) *SwaggerGenerator {
-	g.engine.Use(middleware...)
+// Use thêm middleware global
+func (g *SwaggerGenerator) Use(middlewares ...gin.HandlerFunc) *SwaggerGenerator {
+	g.globalMiddlewares = append(g.globalMiddlewares, middlewares...)
+	if g.engine != nil {
+		g.engine.Use(middlewares...)
+	}
 	return g
 }
 
