@@ -127,12 +127,12 @@ DROP TABLE IF EXISTS users;
 
 **Run:**
 ```bash
-witches migrate docker-up
+witches migrate up
 ```
 
 **Rollback:**
 ```bash
-witches migrate docker-down
+witches migrate down
 ```
 
 ---
