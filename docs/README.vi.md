@@ -40,6 +40,11 @@
 go install github.com/DVV-15324/witches@latest
 ```
 
+### kiểm tra phiên bản Witches hiện tại
+```bash
+witches version
+```
+
 ### Tạo dự án mới
 ```bash
 witches create example --db=mysql

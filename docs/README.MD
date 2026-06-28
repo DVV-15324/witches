@@ -41,6 +41,11 @@
 go install github.com/DVV-15324/witches@latest
 ```
 
+### Witches version
+```bash
+witches version
+```
+
 ### Create new project
 ```bash
 witches create example --db=mysql
