@@ -1,0 +1,18 @@
+package user
+
+import (
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	"time"
+
+	entityUser "{{.ModuleName}}/internal/entity/user"
+	"context"
+)
+
+func (u *UsecaseUser) UsecaseCreateUser(ctx context.Context, user *entityUser.User) (int, *u_response.ErrorResponse) {
+	uid, err := u.ReponsitoryUser.CreateUser(ctx, user)
+	if err != nil {
+		resp := u_response.NewErrorResponse(500, err, time.Now())
+		return 0, resp
+	}
+	return uid, nil
+}

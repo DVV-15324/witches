@@ -42,7 +42,7 @@ var databaseDockerUpCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 
-		cmd_database.WitchesDatabaseDockerUp(os.Getenv("DB_PROFILE"))
+		cmd_database.WitchesDatabaseDockerUp(os.Getenv("DB_DRIVER"))
 	},
 }
 

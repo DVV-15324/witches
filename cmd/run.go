@@ -2,15 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	cmd_run "github.com/DVV-15324/witches/cmd/cmd_run"
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
 var db string
-var runAll bool = false
 
-var initCmd = &cobra.Command{
-	Use:   "init",
+// var runAll bool = false
+
+var createCmd = &cobra.Command{
+	Use:   "create",
 	Short: "Thiết lập wiches cho dự án",
 	Long: `Thiết lập wiches cho chương trình
 Yêu cầu có ví dụ: --db=mysql | mssql | postgres
@@ -24,7 +29,7 @@ Yêu cầu có ví dụ: --db=mysql | mssql | postgres
 			fmt.Println("missing init project, required --db")
 			return
 		}
-		cmd_run.WitchesInit(args[0], db)
+		cmd_run.WitchesCreate(args[0], db)
 	},
 }
 
@@ -38,6 +43,23 @@ var runCmd = &cobra.Command{
 			return
 		}
 		cmd_run.WitchesRun()
+	},
+}
+
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Chay chuong trinh",
+	Long:  `Chạy chuong trinh`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) > 0 {
+			fmt.Println("missing run project")
+			return
+		}
+		err := godotenv.Load("witches.env")
+		if err != nil {
+			log.Fatal("missing load")
+		}
+		cmd_run.WitchesInit(os.Getenv("DB_URL"))
 	},
 }
 

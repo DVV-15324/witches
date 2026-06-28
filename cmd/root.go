@@ -24,8 +24,8 @@ func Execute() {
 
 func init() {
 	// Scaffold
-	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().StringVar(
+	rootCmd.AddCommand(createCmd)
+	createCmd.Flags().StringVar(
 		&db,
 		"db",
 		"",
@@ -35,15 +35,17 @@ func init() {
 	//install tool
 	rootCmd.AddCommand(installCmd)
 
+	rootCmd.AddCommand(initCmd)
+
 	//run test
 	rootCmd.AddCommand(runCmd)
-	runCmd.Flags().BoolVarP(
-		&runAll,
-		"all",
-		"a",
-		false,
-		"Chay voi easyjson init && swag init",
-	)
+	// runCmd.Flags().BoolVarP(
+	// 	&runAll,
+	// 	"all",
+	// 	"a",
+	// 	false,
+	// 	"Chay voi easyjson init && swag init",
+	// )
 
 	rootCmd.AddCommand(databaseCmd)
 	// Khoi tao db docker

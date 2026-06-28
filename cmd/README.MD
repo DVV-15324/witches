@@ -3,12 +3,22 @@ Vấn đề:
         + Ta có thể sử dụng filepath:
             - join: đường dẫn đến điểm đích dùng cho đa hệ điều hành đa nền tảng
         
-witches init example --db=mysql
+witches create example --db=mysql
+// Có Folder chứa file .env file cấu hình DB đơn giản 
+    example 
+        example/.env
 
-cd example
-
-witches install
+cd example 
+// Sửa .env
 
 witches database docker-up
 
-witches database docker-down
+witches init
+
+// Tạo Templates
+
+witches install
+// Chạy migrate đầu
+// Cài các dependency
+
+

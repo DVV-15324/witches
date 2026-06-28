@@ -1,13 +1,9 @@
 package main
 
 import (
-	core "core-v/pkg/core/jwt"
-	"fmt"
+	server "example/cmd"
 )
 
 func main() {
-	fmt.Println("Hello this is witches")
-	c := core.Token{}
-	fmt.Println(c)
-
+	server.GetExcute().Execute()
 }

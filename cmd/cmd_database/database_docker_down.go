@@ -13,7 +13,7 @@ func WitchesDatabaseDockerDown() {
 	// Lấy đường dẫn tài nguyên của framework đang lưu trong máy của người dùng
 	// Tái sử dụng ở máy người dùng
 	frameworkPath := utils.GetFrameworkPath()
-	dockerPath := filepath.Join(frameworkPath, "internal", "core", "database")
+	dockerPath := filepath.Join(frameworkPath, "pkg", "core", "database")
 	// Kiểm tra thư mục tồn tại
 	if _, err := os.Stat(dockerPath); os.IsNotExist(err) {
 		log.Fatalf("Docker config not found at: %s\nPlease ensure witches is installed correctly.", dockerPath)

@@ -9,8 +9,14 @@ import (
 func WitchesInstall() {
 	tools := []string{
 		"github.com/mailru/easyjson/...@latest",
-		"github.com/swaggo/swag/cmd/swag@latest",
-		"github.com/golang-migrate/migrate/v4/cmd/migrate@latest",
+	}
+
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Printf("Warning: failed to installcd  %v", err)
 	}
 
 	for _, tool := range tools {

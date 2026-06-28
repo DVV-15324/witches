@@ -23,7 +23,7 @@ var migrateCmd = &cobra.Command{
 }
 
 var migrateDropCmd = &cobra.Command{
-	Use:   "docker-up",
+	Use:   "drop",
 	Short: "Up Migrate",
 	Long:  `Quan ly cac tac vu thuc hien trong Database`,
 	Run: func(cmd *cobra.Command, args []string) {

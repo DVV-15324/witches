@@ -1,0 +1,78 @@
+package routes
+
+import (
+	config "example/cmd/server/config"
+	handleAuth "example/internal/handler/auth"
+	handleUser "example/internal/handler/user"
+	responsitoryAuth "example/internal/repository/auth"
+	responsitoryUser "example/internal/repository/user"
+	usecaseAuth "example/internal/usecase/auth"
+	usecaseUser "example/internal/usecase/user"
+	u_db "example/internal/utils"
+	"context"
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+	u_hash "github.com/DVV-15324/witches/pkg/core/utils"
+	u_jwt "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+)
+
+type UsecaseAuth interface {
+	UsecaseIntrospectToken(ctx context.Context, accessToken string) (*u_jwt.JwtClaims, error)
+}
+
+type IHandleAuth interface {
+	HandleLogin() func(c *gin.Context)
+	HandleRegister() func(c *gin.Context)
+}
+type IHandleUser interface {
+	HandleGetAllUser() func(c *gin.Context)
+	HandleGetUserById() func(c *gin.Context)
+}
+
+type HandleServices struct {
+	UsecaseAuth UsecaseAuth
+	HandleAuth  IHandleAuth
+	HandleUser  IHandleUser
+	Logger      *logger.EntityLogger
+}
+
+func Services() *HandleServices {
+	config := config.Load()
+
+	DB_URL := config.DBURL
+	db, err := u_db.ConnectSQL(config.DBDriver,DB_URL)
+
+	if err != nil {
+		log.Println("loi connect database")
+	}
+	currentPath, _ := os.Getwd()
+	path := filepath.Join(currentPath, "logs", "logs.log")
+
+	logg, err := logger.NewFileLogger(path, 1, 20, 30)
+	if err != nil {
+		log.Println(err)
+	}
+
+	rAuth := responsitoryAuth.NewRepositoryAuth(db)
+	rUser := responsitoryUser.NewRepositoryUser(db)
+	// usecase
+	jwt := u_jwt.NewJwtServer("vu-dep-trai-nhat-the-gioi", 604800)
+	hash := new(u_hash.Hash)
+	usecaseUser := usecaseUser.NewUsecaseUser(rUser)
+	usecaseAuth := usecaseAuth.NewUsecaseAuth(jwt, usecaseUser, hash, rAuth)
+
+	// handle
+	handleUser := handleUser.NewHandleUser(usecaseUser, logg)
+	handleAuth := handleAuth.NewHandleUser(usecaseAuth, logg)
+
+	return &HandleServices{
+		UsecaseAuth: usecaseAuth,
+		HandleAuth:  handleAuth,
+		HandleUser:  handleUser,
+		Logger:      logg,
+	}
+}
