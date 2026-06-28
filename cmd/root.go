@@ -8,7 +8,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "witches",
 	Short: "Backend Golang nhanh và có khả năng mở rộng",
-	Long: `Witches API được xây dựng bằng Go, được thiết kế để đạt hiệu suất cao,
+	Long: `Witches API được xây dựng bằng Go, được thiết kế để
 kiến trúc gọn gàng và phù hợp với phát triển backend cổ điển, hiện đại.`,
 	Version: "v1.1",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -37,18 +37,10 @@ func init() {
 
 	rootCmd.AddCommand(initCmd)
 
-	//run test
 	rootCmd.AddCommand(runCmd)
-	// runCmd.Flags().BoolVarP(
-	// 	&runAll,
-	// 	"all",
-	// 	"a",
-	// 	false,
-	// 	"Chay voi easyjson init && swag init",
-	// )
+	rootCmd.AddCommand(versionCmd)
 
 	rootCmd.AddCommand(databaseCmd)
-	// Khoi tao db docker
 
 	rootCmd.AddCommand(migrateCmd)
 

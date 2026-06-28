@@ -75,3 +75,12 @@ var installCmd = &cobra.Command{
 		cmd_run.WitchesInstall()
 	},
 }
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Hiển thị phiên bản của Witches",
+	Long:  `Hiển thị phiên bản hiện tại của công cụ Witches CLI.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Witches version v1.0.0")
+	},
+}
