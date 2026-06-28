@@ -1,4 +1,4 @@
-[🇻🇳 Tiếng Việt](./README.vi.md) | [🇬🇧 English](./README.md)
+[Tiếng Việt](./README.vi.md) | [English](./README.md)
 <div align="center">
 
 <img src="../logo/logo.png" alt="Witches Logo" width="200"/>
