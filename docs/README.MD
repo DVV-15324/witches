@@ -1,6 +1,5 @@
-[🇻🇳 Tiếng Việt](./README.vi.md) | [🇬🇧 English](./README.md)
+[🇻🇳 Tiếng Việt](./docs/README.vi.md) | [🇬🇧 English](./docs/README.md)
 
-```markdown
 <div align="center">
 
 <img src="../logo/logo.png" alt="Witches Logo" width="200"/>
