@@ -47,12 +47,12 @@ witches create example --db=mysql
 
 #### Kết quả: `example/witches.env`
 ```env
-APP_PORT=8080
-DB_PASSWORD=your_password
-DB_NAME=your_database
-DB_HOST=localhost
-DB_PORT=3306
-REDIS_PORT=6379
+APP_PORT=YOUR_PORT_APP
+DB_PASSWORD=YOUR_PASSWORD
+DB_NAME=YOUR_DATABASE
+DB_HOST=DB_HOST
+DB_PORT=YOUR_PORT_APP
+REDIS_PORT=REDIS_PORT
 DB_DRIVER=mysql
 ```
 
