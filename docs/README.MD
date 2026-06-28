@@ -65,20 +65,7 @@ DB_DRIVER=mysql
 ```bash
 cd example
 ```
-
-## 2. Install Dependencies & Init Templates
-
-### Init Templates
-```bash
-witches init
-```
-
-### Install Dependencies
-```bash
-witches install
-```
-
-## 3. Configure Database
+## 2. Configure Database
 Edit `witches.env`:
 ```env
 APP_PORT=3000
@@ -90,7 +77,7 @@ REDIS_PORT=1504
 DB_DRIVER=mysql
 ```
 
-## 4. Start Database
+## 3. Start Database
 ```bash
 witches database docker-up
 ```
@@ -105,6 +92,18 @@ DB_PORT=3307
 REDIS_PORT=1504
 DB_DRIVER=mysql
 DB_URL=mysql://root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
+```
+
+## 4. Install Dependencies & Init Templates
+
+### Init Templates
+```bash
+witches init
+```
+
+### Install Dependencies
+```bash
+witches install
 ```
 
 ## 5. Run Migrations

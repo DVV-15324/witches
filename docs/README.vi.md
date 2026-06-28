@@ -65,19 +65,8 @@ DB_DRIVER=mysql
 cd example
 ```
 
-## 2. Cài đặt dependencies và khởi tạo templates
 
-### Khởi tạo templates
-```bash
-witches init
-```
-
-### Cài đặt dependencies
-```bash
-witches install
-```
-
-## 3. Cấu hình Database
+## 2. Cấu hình Database
 Sửa file `witches.env`:
 ```env
 APP_PORT=3000
@@ -89,7 +78,7 @@ REDIS_PORT=1504
 DB_DRIVER=mysql
 ```
 
-## 4. Khởi động Database
+## 3. Khởi động Database
 ```bash
 witches database docker-up
 ```
@@ -104,6 +93,18 @@ DB_PORT=3307
 REDIS_PORT=1504
 DB_DRIVER=mysql
 DB_URL=mysql://root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
+```
+
+## 4. Cài đặt dependencies và khởi tạo templates
+
+### Khởi tạo templates
+```bash
+witches init
+```
+
+### Cài đặt dependencies
+```bash
+witches install
 ```
 
 ## 5. Chạy Migration
