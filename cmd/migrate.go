@@ -9,11 +9,16 @@ import (
 	"os"
 )
 
+// En: Migrate command group
+// Vi: Nhóm lệnh quản lý Migrate
+
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
-	Short: "Cai dat Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Migrate management Vi: Chức năng Migrate",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
@@ -24,9 +29,11 @@ var migrateCmd = &cobra.Command{
 
 var migrateDropCmd = &cobra.Command{
 	Use:   "drop",
-	Short: "Up Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Drop 1 migrate Vi: Xóa toàn bộ migrate",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
@@ -38,9 +45,11 @@ var migrateDropCmd = &cobra.Command{
 
 var migrateUpCmd = &cobra.Command{
 	Use:   "up",
-	Short: "Up Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Up 1 migrate Vi: Triển khai migrate up 1",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
@@ -52,9 +61,11 @@ var migrateUpCmd = &cobra.Command{
 
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
-	Short: "Down Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Down 1 migrate Vi: Triển khai migrate down 1",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
@@ -66,9 +77,11 @@ var migrateDownCmd = &cobra.Command{
 
 var migrateVersionCmd = &cobra.Command{
 	Use:   "force",
-	Short: "Force Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Force migrate Vi: Thiết lập phiên bản Migrate",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
@@ -83,10 +96,11 @@ var migrateVersionCmd = &cobra.Command{
 }
 var migrateForceCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Version Migrate",
-	Long:  `Quan ly cac tac vu thuc hien trong Database`,
+	Short: "En: Version migrate Vi: Hàm hiển thị version migrate hiện tại",
+	Long:  `En: Manage migration execution tasks Vi: Quản lý các tác vụ thực thi migrate`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		// En: Load environment variables from witches.env
+		// Vi: Kiểm tra biến môi trường từ file witches.env
 		err := godotenv.Load("witches.env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
