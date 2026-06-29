@@ -9,19 +9,30 @@ import (
 	"path/filepath"
 )
 
+// En: Function to stop database containers
+// Vi: Chắc năng dừng database containers
 func WitchesDatabaseDockerDown() {
-	// Lấy đường dẫn tài nguyên của framework đang lưu trong máy của người dùng
-	// Tái sử dụng ở máy người dùng
+	//En: Get the resource path of the framework
+	//Vi: Lấy đường dẫn tài nguyên của framework
 	frameworkPath := utils.GetFrameworkPath()
+
+	//En: Get the path to the framework database
+	//Vi: Lấy đường dẫn đến framework database
 	dockerPath := filepath.Join(frameworkPath, "pkg", "core", "database")
-	// Kiểm tra thư mục tồn tại
+
+	//En: Check if the folder exists.
+	//Vi: Kiểm tra thư mục tồn tại
 	if _, err := os.Stat(dockerPath); os.IsNotExist(err) {
-		log.Fatalf("Docker config not found at: %s\nPlease ensure witches is installed correctly.", dockerPath)
+		log.Fatalf("Error: docker config not found")
 	}
+
+	//En: Start executing
+	//Vi: Bắt đầu thực thi
 	cmd := exec.Command("docker", "compose", "down")
 	cmd.Dir = dockerPath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)

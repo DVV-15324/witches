@@ -6,6 +6,15 @@ import (
 	"path/filepath"
 )
 
+// Lấy đường dẫn hiện tại của dự án đã tạo của người dùng
+func GetCurrentPath() string {
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return path
+}
+
 // Lấy đường dẫn của migrate/migrations/ của bên người dùng
 func GetMigrationsPath() string {
 	pwd, err := os.Getwd()
