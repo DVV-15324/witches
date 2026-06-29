@@ -141,10 +141,8 @@ witches migrate down
 
 | Command | Description |
 |---------|-------------|
-| `witches migrate up` | Apply all pending migrations |
-| `witches migrate up 1` | Apply 1 pending migration |
-| `witches migrate down` | Rollback all migrations |
-| `witches migrate down 1` | Rollback 1 migration |
+| `witches migrate up` | Apply 1 pending migrations |
+| `witches migrate down` | Rollback 1 migrations |
 | `witches migrate version` | Show current migration version |
 | `witches migrate force <version>` | Force set migration version |
 | `witches migrate drop` | Drop all database tables |

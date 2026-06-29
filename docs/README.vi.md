@@ -142,10 +142,8 @@ witches migrate down
 
 | Lệnh | Mô tả |
 |------|-------|
-| `witches migrate up` | Áp dụng tất cả migration đang chờ |
-| `witches migrate up 1` | Áp dụng 1 migration đang chờ |
-| `witches migrate down` | Rollback tất cả migration |
-| `witches migrate down 1` | Rollback 1 migration |
+| `witches migrate up` | Áp dụng 1 migration đang chờ |
+| `witches migrate down` | Rollback 1 migration |
 | `witches migrate version` | Hiển thị phiên bản migration hiện tại |
 | `witches migrate force <version>` | Gán phiên bản migration |
 | `witches migrate drop` | Xóa tất cả bảng trong database |
