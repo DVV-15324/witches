@@ -10,7 +10,7 @@ import (
 )
 
 // En: Function to stop database containers
-// Vi: Chắc năng dừng database containers
+// Vi: Chức năng dừng database containers
 func WitchesDatabaseDockerDown() {
 	//En: Get the resource path of the framework
 	//Vi: Lấy đường dẫn tài nguyên của framework
