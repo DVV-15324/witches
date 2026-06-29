@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// En: Get the current path of the user's created project.
+// En: Get the current path of the user's created project
 // Vi: Lấy đường dẫn hiện tại của dự án đã tạo của người dùng
 func GetCurrentPath() string {
 	path, err := os.Getwd()
@@ -16,7 +16,7 @@ func GetCurrentPath() string {
 	return path
 }
 
-// En: Get the path to migrate/migrations/ from the user side.
+// En: Get the path to migrate/migrations/ from the user side
 // Vi: Lấy đường dẫn của migrate/migrations/ của bên người dùng
 func GetMigrationsPath() string {
 	pwd, err := os.Getwd()
