@@ -7,13 +7,14 @@ import (
 	"os/exec"
 )
 
+// En: This function will clear the database
+// Vi: Chức năng này sẽ xóa sạch database
 func WitchesMigrateDrop(DB_URL string) {
-	// Lấy đường dẫn đến folder migrate/migrations/
+	//En: Get the path to the migrate/migrations/ folder
+	//Vi: Lấy đường dẫn đến folder migrate/migrations/
 	migratePath := utils.GetMigrationsPath()
-	// copy file khi init của người dùng migrate/migrations -> /migrations của docker
-	// --rm: Chạy xong xóa
-	// ảnh migrate/migrate có sẵn trên docker hub
-	// up 1
+	//En: Start executing
+	//Vi: Bắt đầu thực thi
 	cmd := exec.Command("docker", "run", "--rm",
 		"-v", migratePath+":/migrations",
 		"--network", "host",

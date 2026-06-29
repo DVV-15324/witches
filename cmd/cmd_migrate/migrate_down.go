@@ -7,13 +7,15 @@ import (
 	"os/exec"
 )
 
+// En: Rollback Migrate function
+// Vi: Chức năng rollback Migrate
 func WitchesMigrateDown(DB_URL string) {
-	// Lấy đường dẫn đến folder migrate/migrations/
+	//En: Get the path to the migrate/migrations/ folder.
+	//Vi: Lấy đường dẫn đến folder migrate/migrations/
 	migratePath := utils.GetMigrationsPath()
-	// copy file khi init của người dùng migrate/migrations -> /migrations của docker
-	// --rm: Chạy xong xóa
-	// ảnh migrate/migrate có sẵn trên docker hub
-	// up 1
+
+	//En: Start executing
+	//Vi: Bắt đầu thực thi
 	cmd := exec.Command("docker", "run", "--rm",
 		"-v", migratePath+":/migrations",
 		"--network", "host",
@@ -21,6 +23,7 @@ func WitchesMigrateDown(DB_URL string) {
 		"-path=/migrations",
 		"-database", DB_URL,
 		"down", "1")
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

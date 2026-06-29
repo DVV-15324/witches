@@ -7,8 +7,14 @@ import (
 	"os/exec"
 )
 
+// En: This function displays the current Migrate version.
+// Vi: Hàm hiển thị version Migrate hiện tại
 func WitchesMigrateVersion(DB_URL string) {
+	//En: Get the path to the migrate/migrations/ folder
+	//Vi: Lấy đường dẫn đến folder migrate/migrations/
 	migratePath := utils.GetMigrationsPath()
+	//En: Start executing
+	//Vi: Bắt đầu thực thi
 	cmd := exec.Command("docker", "run", "--rm",
 		"-v", migratePath+":/migrations",
 		"--network", "host",
