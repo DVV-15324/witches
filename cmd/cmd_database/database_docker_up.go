@@ -11,7 +11,7 @@ import (
 )
 
 // En: Function to create database containers
-// Vi: Chắc năng tạo database containers
+// Vi: Chức năng tạo database containers
 func WitchesDatabaseDockerUp(DB_DRIVER string) {
 	//En: Get the current path
 	//Vi: Lấy đường dẫn hiện tại
