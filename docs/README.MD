@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="../logo/logo_3.png" alt="Witches Logo" width="300"/>
+<img src="../logo/logo_3.png" alt="Witches Logo" width="250"/>
 
 ### Fast & Scalable Golang Backend
 
