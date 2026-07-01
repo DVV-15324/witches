@@ -1,7 +1,7 @@
 [Tiếng Việt](./README.vi.md) | [English](./README.md)
 <div align="center">
 
-<img src="../logo/logo_3.png" alt="Witches Logo" width="200"/>
+<img src="../logo/logo_3.png" alt="Witches Logo" width="300"/>
 
 ### Backend Golang Nhanh & Mở Rộng
 
