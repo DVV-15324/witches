@@ -48,7 +48,7 @@ witches version
 
 ### Create new project
 ```bash
-witches create example --db=mysql
+witches create example --db=mysql --type=access
 ```
 
 #### Output: `example/witches.env`
@@ -57,8 +57,7 @@ APP_PORT=YOUR_PORT_APP
 DB_PASSWORD=YOUR_PASSWORD
 DB_NAME=YOUR_DATABASE
 DB_HOST=DB_HOST
-DB_PORT=YOUR_PORT_APP
-REDIS_PORT=REDIS_PORT
+DB_PORT=YOUR_PORT_AP
 DB_DRIVER=mysql
 ```
 
@@ -73,7 +72,6 @@ DB_PASSWORD=123
 DB_NAME=test
 DB_HOST=localhost
 DB_PORT=3307
-REDIS_PORT=1504
 DB_DRIVER=mysql
 ```
 
@@ -88,8 +86,7 @@ APP_PORT=3000
 DB_PASSWORD=123
 DB_NAME=test
 DB_HOST=localhost
-DB_PORT=3307
-REDIS_PORT=1504
+DB_PORT=33074
 DB_DRIVER=mysql
 DB_URL=mysql://root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
 ```
