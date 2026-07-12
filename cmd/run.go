@@ -17,8 +17,8 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "En: Create a project Vi: Tạo chương trình",
 	Long: `En: Create a new project with database configuration Vi: Tạo chương trình"
-En: Required: --db=mysql | mssql | postgres
-Vi: Yêu cầu: --db=mysql | mssql | postgres
+En: Required: --db=mysql | mssql | postgres --type=access | refresh 
+Vi: Yêu cầu: --db=mysql | mssql | postgres  --type=access | refresh
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
