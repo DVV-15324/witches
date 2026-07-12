@@ -31,7 +31,13 @@ func init() {
 		"",
 		"database type",
 	)
-
+	createCmd.Flags().StringVarP(
+		&projectType,
+		"type",
+		"t",
+		"",
+		"Project type: access or refresh (required)",
+	)
 	rootCmd.AddCommand(installCmd)
 
 	rootCmd.AddCommand(initCmd)
