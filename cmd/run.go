@@ -11,6 +11,7 @@ import (
 )
 
 var db string
+var projectType string
 
 var createCmd = &cobra.Command{
 	Use:   "create",
@@ -25,10 +26,14 @@ Vi: Yêu cầu: --db=mysql | mssql | postgres
 			return
 		}
 		if len(db) < 1 {
+			fmt.Println("Error: missing init project, required --type")
+			return
+		}
+		if len(db) < 2 {
 			fmt.Println("Error: missing init project, required --db")
 			return
 		}
-		cmd_run.WitchesCreate(args[0], db)
+		cmd_run.WitchesCreate(args[0], projectType, db)
 	},
 }
 
@@ -60,7 +65,7 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Error: missing load")
 		}
-		cmd_run.WitchesInit(os.Getenv("DB_URL"))
+		cmd_run.WitchesInit(os.Getenv("TYPE"))
 	},
 }
 
