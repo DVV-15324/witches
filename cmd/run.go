@@ -87,6 +87,6 @@ var versionCmd = &cobra.Command{
 	Short: "En: Display the version of The Witch Vi: Hiển thị phiên bản của Witches",
 	Long:  "En: Display the version of The Witch Vi: Hiển thị phiên bản của Witches",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Witches version v1.0.2")
+		fmt.Println("Witches version v1.0.3")
 	},
 }
