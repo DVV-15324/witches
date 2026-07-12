@@ -1,0 +1,16 @@
+package ratelimit
+
+import "time"
+
+// Limiter là interface chung cho tất cả rate limiter
+type Limiter interface {
+	Allow(key string) (bool, error)
+	Reset(key string) error
+}
+
+// Config chứa thông số rate limit
+type Config struct {
+	Limit  int
+	TTL    time.Duration
+	Driver string // "memory" hoặc "redis"
+}

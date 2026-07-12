@@ -1,0 +1,82 @@
+// internal/usecase/auth/auth.go
+package auth
+
+import (
+	"context"
+	"{{.ModuleName}}//cmd/server/config"
+	entityAuth "{{.ModuleName}}//internal/entity/auth"
+	entityRefresh "{{.ModuleName}}//internal/entity/refresh"
+	entityUser "{{.ModuleName}}//internal/entity/user"
+	"{{.ModuleName}}//internal/utils"
+
+	u_jwt "{{.ModuleName}}//internal/utils"
+
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	u_tx "github.com/DVV-15324/witches/pkg/core/utils"
+)
+
+type IAuthReponsitory interface {
+	CreateAuth(ctx context.Context, auth *entityAuth.Auth) error
+	GetAuthByEmail(ctx context.Context, email string) (*entityAuth.Auth, error)
+	GetAuthByUserId(ctx context.Context, userID uint32) (*entityAuth.Auth, error)
+}
+type IRefreshTokenUsecase interface {
+	Create(ctx context.Context, token *entityRefresh.RefreshToken) *u_response.ErrorResponse
+	GetByToken(ctx context.Context, token string) (*entityRefresh.RefreshToken, *u_response.ErrorResponse)
+	Revoke(ctx context.Context, token string, reason string, deviceID string) *u_response.ErrorResponse
+}
+
+type IHash interface {
+	GenerateFromPassword(password string, salt string) (string, error)
+	CompareHashAndPassword(passwordStr string, password string, salt string) bool
+}
+
+type IUserUseCase interface {
+	CreateUser(ctx context.Context, user *entityUser.User) (int, *u_response.ErrorResponse)
+	GetUserById(ctx context.Context, id int) (*entityUser.User, *u_response.ErrorResponse)
+}
+
+type IJwt interface {
+	ParseToken(ctx context.Context, tokenStr string) (*u_jwt.JwtClaims, error)
+	IssueAccessToken(ctx context.Context, sub string, tid string, role u_jwt.Role) (*u_jwt.Token, error)
+	IssueRefreshToken(ctx context.Context, sub string, tid string, role u_jwt.Role) (*u_jwt.Token, error)
+	IssueTokenPair(ctx context.Context, sub string, tid string, role u_jwt.Role) (*u_jwt.TokenResponse, error)
+}
+
+type AuthUseCase struct {
+	Config              *config.Config
+	TxManager           u_tx.TxManager
+	Jwt                 IJwt
+	UserUseCase         IUserUseCase
+	Hash                IHash
+	AuthReponsitory     IAuthReponsitory
+	RefreshTokenUseCase IRefreshTokenUsecase
+
+	SessionService   *utils.SessionService
+	BlacklistService *utils.BlacklistService
+}
+
+func NewAuthUseCase(
+	jwt IJwt,
+	userUseCase IUserUseCase,
+	hash IHash,
+	authReponsitory IAuthReponsitory,
+	refreshTokenUseCase IRefreshTokenUsecase,
+	txManager u_tx.TxManager,
+	sessionService *utils.SessionService,
+	blacklistService *utils.BlacklistService,
+	config *config.Config,
+) *AuthUseCase {
+	return &AuthUseCase{
+		Config:              config,
+		Jwt:                 jwt,
+		UserUseCase:         userUseCase,
+		Hash:                hash,
+		AuthReponsitory:     authReponsitory,
+		RefreshTokenUseCase: refreshTokenUseCase,
+		TxManager:           txManager,
+
+		SessionService:   sessionService,
+		BlacklistService: blacklistService,
+	}
+}

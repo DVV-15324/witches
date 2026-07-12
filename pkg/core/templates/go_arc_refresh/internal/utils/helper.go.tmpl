@@ -1,0 +1,37 @@
+package utils
+
+import (
+	"crypto/md5"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
+
+// GetDeviceInfo extracts device information from request
+// Nếu đã có trong context thì lấy từ context, không thì lấy từ header
+func GetDeviceInfo(c *gin.Context) (deviceID, deviceName, ipAddress, userAgent string) {
+	// Thử lấy từ context trước
+	reqCtx := GetRequestContext(c.Request.Context())
+	if reqCtx.DeviceID != "" {
+		return reqCtx.DeviceID, reqCtx.DeviceName, reqCtx.IPAddress, reqCtx.UserAgent
+	}
+
+	// Fallback: lấy từ header
+	deviceID = c.GetHeader("X-Device-ID")
+	if deviceID == "" {
+		deviceID = generateDeviceID(c.ClientIP(), c.GetHeader("User-Agent"))
+	}
+	deviceName = c.GetHeader("X-Device-Name")
+	if deviceName == "" {
+		deviceName = "unknown"
+	}
+	ipAddress = c.ClientIP()
+	userAgent = c.GetHeader("User-Agent")
+	return
+}
+
+// generateDeviceID - Tạo deviceID từ IP + User-Agent
+func generateDeviceID(ip, userAgent string) string {
+	data := fmt.Sprintf("%s|%s", ip, userAgent)
+	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
+}

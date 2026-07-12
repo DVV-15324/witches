@@ -1,0 +1,128 @@
+package utils
+
+import (
+	"context"
+)
+
+// RequestContext chứa tất cả thông tin của request
+type RequestContext struct {
+	Sub        string // Subject/User ID
+	Tid        string // Trace ID
+	DeviceID   string // Device ID
+	DeviceName string // Device Name
+	IPAddress  string // Client IP
+	UserAgent  string // User Agent
+	SessionID  string // Session ID
+	RequestID  string // Request ID
+	Platform   string // Platform: web, ios, android, etc.
+	Locale     string // Locale/Language
+	Timezone   string // Timezone
+}
+
+// NewRequestContext tạo mới RequestContext
+func NewRequestContext(sub, tid, deviceID, deviceName, ipAddress, userAgent string) *RequestContext {
+	return &RequestContext{
+		Sub:        sub,
+		Tid:        tid,
+		DeviceID:   deviceID,
+		DeviceName: deviceName,
+		IPAddress:  ipAddress,
+		UserAgent:  userAgent,
+	}
+}
+
+// NewRequestContextFull tạo mới RequestContext với đầy đủ thông tin
+func NewRequestContextFull(
+	sub, tid, deviceID, deviceName, ipAddress, userAgent,
+	shardID, sessionID, requestID, platform, appVersion, locale, timezone string,
+) *RequestContext {
+	return &RequestContext{
+		Sub:        sub,
+		Tid:        tid,
+		DeviceID:   deviceID,
+		DeviceName: deviceName,
+		IPAddress:  ipAddress,
+		UserAgent:  userAgent,
+		SessionID:  sessionID,
+		RequestID:  requestID,
+		Platform:   platform,
+		Locale:     locale,
+		Timezone:   timezone,
+	}
+}
+
+type keyContext string
+
+var KeyReq keyContext = "request_context"
+
+// SaveRequestContext lưu RequestContext vào context
+func SaveRequestContext(ctx context.Context, reqCtx *RequestContext) context.Context {
+	return context.WithValue(ctx, KeyReq, reqCtx)
+}
+
+// GetRequestContext lấy RequestContext từ context
+func GetRequestContext(ctx context.Context) *RequestContext {
+	val := ctx.Value(KeyReq)
+	if val == nil {
+		return &RequestContext{}
+	}
+	r, ok := val.(*RequestContext)
+	if !ok {
+		return &RequestContext{}
+	}
+	return r
+}
+
+// GetSub lấy Subject từ context
+func GetSub(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.Sub
+}
+
+// GetTid lấy Trace ID từ context
+func GetTid(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.Tid
+}
+
+// GetDeviceID lấy Device ID từ context
+func GetDeviceID(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.DeviceID
+}
+
+// GetSessionID lấy Session ID từ context
+func GetSessionID(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.SessionID
+}
+
+// GetIPAddress lấy IP Address từ context
+func GetIPAddress(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.IPAddress
+}
+
+// GetUserAgent lấy User Agent từ context
+func GetUserAgent(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.UserAgent
+}
+
+// GetPlatform lấy Platform từ context
+func GetPlatform(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.Platform
+}
+
+// GetLocale lấy Locale từ context
+func GetLocale(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.Locale
+}
+
+// GetTimezone lấy Timezone từ context
+func GetTimezone(ctx context.Context) string {
+	reqCtx := GetRequestContext(ctx)
+	return reqCtx.Timezone
+}

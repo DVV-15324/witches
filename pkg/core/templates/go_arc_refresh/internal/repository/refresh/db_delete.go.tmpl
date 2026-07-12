@@ -1,0 +1,15 @@
+package refresh
+
+import (
+	"context"
+
+	"time"
+
+	entity "{{.ModuleName}}//internal/entity/refresh"
+)
+
+func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) error {
+	return r.db.WithContext(ctx).
+		Where("expires_at < ?", time.Now()).
+		Delete(&entity.RefreshToken{}).Error
+}

@@ -1,0 +1,35 @@
+package user
+
+import (
+	"context"
+	"errors"
+
+	entity "{{.ModuleName}}//internal/entity/user"
+
+	"gorm.io/gorm"
+)
+
+func (u *UserRepository) GetAllUser(ctx context.Context) ([]*entity.User, error) {
+	var users []*entity.User
+
+	err := u.db.WithContext(ctx).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (u *UserRepository) GetUserById(ctx context.Context, id int) (*entity.User, error) {
+	var data entity.User
+
+	err := u.db.WithContext(ctx).First(&data, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &data, nil
+}

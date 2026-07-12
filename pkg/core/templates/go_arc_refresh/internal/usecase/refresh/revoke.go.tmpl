@@ -1,0 +1,78 @@
+package refresh
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+)
+
+// Revoke - Thu hồi refresh token
+func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason string, deviceID string) *u_response.ErrorResponse {
+	if token == "" {
+		return u_response.NewErrorResponse(400, errors.New("token cannot be empty"), time.Now())
+	}
+
+	// Get token trước để biết userID
+	storedToken, err := uc.RefreshTokenRepo.GetByToken(ctx, token)
+	if err != nil {
+		return u_response.NewErrorResponse(500, err, time.Now())
+	}
+	if storedToken == nil {
+		return u_response.NewErrorResponse(404, errors.New("token not found"), time.Now())
+	}
+
+	// Revoke trong repository (xóa cache)
+	if err := uc.RefreshTokenRepo.Revoke(ctx, token, reason); err != nil {
+		return u_response.NewErrorResponse(500, err, time.Now())
+	}
+
+	// Blacklist token
+	if err := uc.BlacklistService.BlacklistToken(ctx, token); err != nil {
+		// Log but don't fail
+	}
+
+	// Delete session của user đó
+	if storedToken.UserID > 0 {
+		uc.SessionService.DeleteSession(ctx, storedToken.UserID, deviceID)
+	}
+
+	return nil
+}
+
+// // RevokeAllByUser - Thu hồi tất cả refresh token của user
+// func (uc *RefreshUseCase) RevokeAllByUser(ctx context.Context, userID uint32, reason string) *u_response.ErrorResponse {
+// 	if userID == 0 {
+// 		return u_response.NewErrorResponse(400, errors.New("user_id cannot be 0"), time.Now())
+// 	}
+
+// 	// Get all active tokens
+// 	tokens, err := uc.RefreshTokenRepo.GetActiveByUserID(ctx, userID)
+// 	if err != nil {
+// 		return u_response.NewErrorResponse(500, err, time.Now())
+// 	}
+
+// 	// Revoke all trong repository
+// 	if err := uc.RefreshTokenRepo.RevokeAllByUser(ctx, userID, reason); err != nil {
+// 		return u_response.NewErrorResponse(500, err, time.Now())
+// 	}
+
+// 	// Blacklist all tokens
+// 	var tokenStrings []string
+// 	for _, t := range tokens {
+// 		tokenStrings = append(tokenStrings, t.Token)
+// 	}
+// 	if len(tokenStrings) > 0 {
+// 		if err := uc.BlacklistService.BlacklistAllUserTokens(ctx, userID, tokenStrings); err != nil {
+// 			// Log but don't fail
+// 		}
+// 	}
+
+// 	// Delete session
+// 	if err := uc.SessionService.DeleteSession(ctx, userID); err != nil {
+// 		// Log but don't fail
+// 	}
+
+// 	return nil
+// }

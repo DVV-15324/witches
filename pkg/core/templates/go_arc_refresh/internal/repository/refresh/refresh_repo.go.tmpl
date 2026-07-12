@@ -1,0 +1,15 @@
+package refresh
+
+import (
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+)
+
+type RefreshTokenRepository struct {
+	db    *gorm.DB
+	redis *redis.Client
+}
+
+func NewRefreshTokenRepository(db *gorm.DB, redis *redis.Client) *RefreshTokenRepository {
+	return &RefreshTokenRepository{db: db, redis: redis}
+}

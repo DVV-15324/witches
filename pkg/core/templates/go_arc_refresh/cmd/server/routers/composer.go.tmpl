@@ -1,0 +1,155 @@
+package routes
+
+import (
+	"context"
+	config "example/cmd/server/config"
+	handleAuth "example/internal/handler/auth"
+	handleRefresh "example/internal/handler/refresh"
+	handleUser "example/internal/handler/user"
+	responsitoryAuth "example/internal/repository/auth"
+	responsitoryRefresh "example/internal/repository/refresh"
+	responsitoryUser "example/internal/repository/user"
+	usecaseAuth "example/internal/usecase/auth"
+	usecaseRefresh "example/internal/usecase/refresh"
+	usecaseUser "example/internal/usecase/user"
+	"example/internal/utils"
+	u_jwt "example/internal/utils"
+	"example/internal/utils/ratelimit"
+	u_pkg "example/pkg/redis"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
+	i_db "github.com/DVV-15324/witches/pkg/core/database/connect/sql"
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+	u_hash "github.com/DVV-15324/witches/pkg/core/utils"
+	u_tx "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+)
+
+type IRefreshUseCase interface {
+	IntrospectToken(ctx context.Context, accessToken string) (*u_jwt.JwtClaims, *u_response.ErrorResponse)
+}
+
+type IRefreshHandle interface {
+	HandleRefreshToken() func(c *gin.Context)
+}
+
+type IAuthHandle interface {
+	HandleLogin() func(c *gin.Context)
+	HandleRegister() func(c *gin.Context)
+	HandleLogout() func(c *gin.Context)
+	HandleGoogleLogin() func(c *gin.Context)
+}
+type IUserHandle interface {
+	HandleGetAllUser() func(c *gin.Context)
+	HandleGetUserById() func(c *gin.Context)
+}
+
+type HandleServices struct {
+	UsecaseRefresh IRefreshUseCase
+	HandleRefresh  IRefreshHandle
+	HandleAuth     IAuthHandle
+	HandleUser     IUserHandle
+	Logger         *logger.EntityLogger
+	Session        *u_jwt.SessionService
+	Blacklist      *u_jwt.BlacklistService
+	RateLimit      ratelimit.Limiter
+}
+
+// En: The constructor in routes is responsible for creating and connecting all the application components together.
+//
+// Vi: Hàm khởi tạo trong routes, có nhiệm vụ tạo và kết nối tất cả các thành phần của ứng dụng lại với nhau.
+func Services() *HandleServices {
+	// 1.
+	// En: Load configuration from the .env file.
+	// Vi: Nạp cấu hình từ file .env
+	config := config.Load()
+
+	// 2.
+	// En: Get current path
+	// Vi: Lấy đường dẫn thư mục hiện tại
+	currentPath, _ := os.Getwd()
+
+	// 3.
+	// En: Combine the following paths: ./logs/logs.log
+	// Vi: Ghép đường dẫn: ./logs/logs.log
+	path := filepath.Join(currentPath, "logs", "logs.log")
+
+	// 4.
+	// En: Create a file logger with rotation (1MB, 20 backups, 30 days)
+	// Vi: Tạo file logger với rotation (1MB, 20 backups, 30 ngày)
+	logg, err := logger.NewFileLogger(path, 1, 20, 30)
+	if err != nil {
+		log.Println(err)
+	}
+
+	DB_URL := config.DBURL
+
+	// 5.
+	// En: Connect the database to the driver and DNS.
+	// Vi: Kết nối database với driver và DSN
+	db, err := i_db.InitDatabase(config.DBDriver, DB_URL, logg, 2*time.Second)
+
+	// 6.1
+	// En: Connect to Redis cache
+	// Vi: Kết nối Redis cache
+	redis, err := u_pkg.NewRedisClient(config.RedisHost, config.RedisPassword)
+	if err != nil {
+		log.Println("Error: Connect database fail")
+	}
+	//6.2
+	rateLimiter := ratelimit.NewLimiter(ratelimit.Config{
+		Limit:  100,
+		TTL:    1 * time.Minute,
+		Driver: config.RateLimitdRiver,
+	}, redis.GetClient())
+
+	// 7.
+	// En: Create services session and blacklist
+	// Vi: Tạo services session và blacklist
+	sessionService := utils.NewSessionService(redis.GetClient(), config.SessionTTL, config.IdleTimeout)
+	blacklistService := utils.NewBlacklistService(redis.GetClient(), config.RevokedTTL)
+
+	//8.
+	// En: Create transaction manager
+	// Vi: Tạo transaction manager
+	tx := u_tx.NewTxManager(db.DB)
+
+	// 9.
+	// En: Create repositories
+	// Vi: Tạo repositories
+	rAuth := responsitoryAuth.NewAuthRepository(db.DB, tx, redis.GetClient())
+	rUser := responsitoryUser.NewUserRepository(db.DB, tx)
+	rRefresh := responsitoryRefresh.NewRefreshTokenRepository(db.DB, redis.GetClient())
+
+	// 10.
+	// En: Create usecase
+	// Vi: Tạo usecase
+	jwt := u_jwt.NewJwtService("vu-dep-trai-nhat-the-gioi", 900, 604800)
+	hash := new(u_hash.Hash)
+	usecaseUser := usecaseUser.NewUserUsecase(rUser, tx)
+	usecaseRefresh := usecaseRefresh.NewRefreshUseCase(usecaseUser, rRefresh, jwt, sessionService, blacklistService, config)
+	usecaseAuth := usecaseAuth.NewAuthUseCase(jwt, usecaseUser, hash, rAuth, usecaseRefresh, tx, sessionService, blacklistService, config)
+	usecaseRefresh.SetAuthUseCase(usecaseAuth)
+
+	// 11.
+	// En: Create handle
+	// Vi: Tạo handle
+	handleUser := handleUser.NewUserHandle(usecaseUser, logg)
+	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg)
+	handleRefresh := handleRefresh.NewRefreshHandle(usecaseRefresh, logg)
+
+	return &HandleServices{
+		HandleRefresh:  handleRefresh,
+		HandleAuth:     handleAuth,
+		HandleUser:     handleUser,
+		Logger:         logg,
+		UsecaseRefresh: usecaseRefresh,
+		Blacklist:      blacklistService,
+		Session:        sessionService,
+		RateLimit:      rateLimiter,
+	}
+}

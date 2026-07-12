@@ -1,0 +1,20 @@
+package user
+
+import (
+	"context"
+	entity "{{.ModuleName}}//internal/entity/user"
+)
+
+// Tạo User
+func (u *UserRepository) CreateUser(ctx context.Context, user *entity.User) (int, error) {
+	// Gán role mặc định
+	user.Role = "user"
+	// Tạo mới với GORM
+	result := u.db.WithContext(ctx).Select("email", "name", "role").Create(user)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	// Lấy ID vừa tạo
+	return int(user.Id), nil
+}

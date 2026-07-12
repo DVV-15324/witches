@@ -1,0 +1,22 @@
+package auth
+
+import (
+	"context"
+	entity "{{.ModuleName}}//internal/entity/auth"
+)
+
+func (r *AuthRepository) CreateAuth(ctx context.Context, auth *entity.Auth) error {
+	auth.Banned = false
+	auth.AuthType = "user"
+
+	result := r.db.WithContext(ctx).
+		Select("email", "password", "user_id", "salt", "banned", "auth_type").
+		Create(auth)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Cache auth mới
+	go r.cacheAuth(context.Background(), auth)
+	return nil
+}

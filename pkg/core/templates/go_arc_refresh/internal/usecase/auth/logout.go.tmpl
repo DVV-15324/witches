@@ -1,0 +1,55 @@
+// internal/usecase/auth/logout.go
+package auth
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+)
+
+func (a *AuthUseCase) Logout(ctx context.Context, accessToken, refreshTokenStr string, deviceID string) *u_response.ErrorResponse {
+	// 1. Get refresh token info
+	token, err := a.RefreshTokenUseCase.GetByToken(ctx, refreshTokenStr)
+	if err != nil {
+		return err
+	}
+	if token == nil {
+		return u_response.NewErrorResponse(500, errors.New("refresh token không hợp lệ"), time.Now())
+	}
+
+	// 2. Revoke refresh token trong DB (CHỈ CẦN NÀY LÀ ĐỦ CHO REFRESH TOKEN)
+	if err := a.RefreshTokenUseCase.Revoke(ctx, refreshTokenStr, "user logout", deviceID); err != nil {
+		return err
+	}
+	// 3. Blacklist access token
+	a.BlacklistService.BlacklistToken(ctx, accessToken)
+	// 4. Delete session
+	a.SessionService.DeleteSession(ctx, token.UserID, deviceID)
+
+	return nil
+}
+
+// func (a *AuthUseCase) LogoutAllDevices(ctx context.Context, userID uint32) *u_response.ErrorResponse {
+// 	// 1. Get all active tokens để blacklist
+// 	tokens, err := a.RefreshTokenUseCase.GetActiveByUserID(ctx, userID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// 2. Revoke all in DB
+// 	if err := a.RefreshTokenUseCase.RevokeAllByUser(ctx, userID, "logout all devices"); err != nil {
+// 		return err
+// 	}
+
+// 	// 3. Blacklist all tokens
+// 	for _, t := range tokens {
+// 		a.BlacklistService.BlacklistToken(ctx, t.Token)
+// 	}
+
+// 	// 4. Delete session
+// 	a.SessionService.DeleteSession(ctx, userID)
+
+// 	return nil
+// }

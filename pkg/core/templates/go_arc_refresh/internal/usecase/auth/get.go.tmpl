@@ -1,0 +1,28 @@
+package auth
+
+import (
+	"context"
+	entityAuth "{{.ModuleName}}//internal/entity/auth"
+	"time"
+
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+)
+
+func (a *AuthUseCase) GetAuthByEmail(ctx context.Context, email string) (*entityAuth.Auth, *u_response.ErrorResponse) {
+
+	users, err := a.AuthReponsitory.GetAuthByEmail(ctx, email)
+	if err != nil {
+		resp := u_response.NewErrorResponse(500, err, time.Now())
+		return nil, resp
+	}
+	return users, nil
+}
+
+func (a *AuthUseCase) GetAuthByUserId(ctx context.Context, userId int) (*entityAuth.Auth, *u_response.ErrorResponse) {
+	users, err := a.AuthReponsitory.GetAuthByUserId(ctx, uint32(userId))
+	if err != nil {
+		resp := u_response.NewErrorResponse(500, err, time.Now())
+		return nil, resp
+	}
+	return users, nil
+}

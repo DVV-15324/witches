@@ -1,0 +1,97 @@
+package auth
+
+import (
+	"context"
+	"errors"
+	entityAuth "{{.ModuleName}}//internal/entity/auth"
+	entityToken "{{.ModuleName}}//internal/entity/refresh"
+	"time"
+
+	u_jwt "{{.ModuleName}}//internal/utils"
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	u_uid "github.com/DVV-15324/witches/pkg/core/utils"
+
+	"github.com/google/uuid"
+)
+
+// Login chỉ đọc không cần transaction - tiết kiệm tài nguyên
+func (a *AuthUseCase) Login(ctx context.Context, au *entityAuth.Auth, DeviceID string, DeviceName string, IPAddress string, UserAgent string) (*u_jwt.TokenResponse, *u_response.ErrorResponse) {
+	// 1. Check user
+	auth, err := a.AuthReponsitory.GetAuthByEmail(ctx, au.Email)
+	if err != nil {
+		resp := u_response.NewErrorResponse(500, err, time.Now())
+		return nil, resp
+	}
+	if auth == nil {
+		resp := u_response.NewErrorResponse(500, errors.New("email không tồn tại"), time.Now())
+		return nil, resp
+	}
+	user, err_user := a.UserUseCase.GetUserById(ctx, auth.UserId)
+	if err_user != nil {
+		return nil, err_user
+	}
+
+	// 2. Check banned
+	if auth.Banned {
+		resp := u_response.NewErrorResponse(500, errors.New("tài khoản đã bị khóa"), time.Now())
+		return nil, resp
+	}
+
+	// 3. Verify password
+	if !a.Hash.CompareHashAndPassword(auth.Password, au.Password, auth.Salt) {
+		resp := u_response.NewErrorResponse(500, errors.New("email hoặc mật khẩu không đúng"), time.Now())
+		return nil, resp
+	}
+
+	//Tạo tid, sub
+	s := u_uid.NewUID(uint32(auth.UserId), 1)
+	// Mã hóa Base58
+	sub := s.ToBase58()
+	// Tạo mã định danh cho token
+	tid := uuid.New().String()
+
+	//4. Tạo Access Token
+	accessToken, err_access_token := a.Jwt.IssueAccessToken(ctx, sub, tid, u_jwt.Role(user.Role))
+	if err_access_token != nil {
+		resp := u_response.NewErrorResponse(500, err_access_token, time.Now())
+		return nil, resp
+	}
+	// 5. Create Refresh Token
+	refreshTokenStr, err_refresh_token := a.Jwt.IssueRefreshToken(ctx, sub, tid, u_jwt.Role(user.Role))
+	if err_refresh_token != nil {
+		resp := u_response.NewErrorResponse(500, err_refresh_token, time.Now())
+		return nil, resp
+	}
+	refreshToken := &entityToken.RefreshToken{
+		ID:         uuid.New().String(),
+		UserID:     uint32(auth.UserId),
+		Token:      refreshTokenStr.Token,
+		DeviceID:   DeviceID,
+		DeviceName: DeviceName,
+		IPAddress:  IPAddress,
+		UserAgent:  UserAgent,
+		ExpiresAt:  a.Config.RefreshTokenTTL,
+	}
+	if err := a.RefreshTokenUseCase.Create(ctx, refreshToken); err != nil {
+		return nil, err
+	}
+
+	// 7. Cache session
+	session := &u_jwt.SessionCache{
+		UserID:      uint32(auth.UserId),
+		Email:       auth.Email,
+		Role:        user.Role,
+		DeviceID:    DeviceID,
+		DeviceName:  DeviceName,
+		IPAddress:   IPAddress,
+		UserAgent:   UserAgent,
+		AccessToken: accessToken.Token,
+		LoginAt:     time.Now().Unix(),
+	}
+	_ = a.SessionService.CreateSession(ctx, session)
+
+	return &u_jwt.TokenResponse{
+		AccessToken:  *accessToken,
+		RefreshToken: *refreshTokenStr,
+	}, nil
+}

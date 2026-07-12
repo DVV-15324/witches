@@ -1,0 +1,47 @@
+package middleware
+
+import (
+	"net/http"
+	"time"
+
+	ratelimit "{{.ModuleName}}//internal/utils/ratelimit"
+
+	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+)
+
+// RateLimiter trả về middleware Gin từ interface Limiter
+func RateLimiter(limiter ratelimit.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+
+		allowed, err := limiter.Allow(ip)
+		if err != nil {
+			// Nếu lỗi, vẫn cho request đi (fail-open)
+			c.Next()
+			return
+		}
+
+		if !allowed {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"error":   "Quá nhiều yêu cầu, vui lòng thử lại sau.",
+				"message": "Too many requests. Please try again later.",
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// RateLimiterMemory là factory cho memory mode
+func RateLimiterMemory(limit int, ttl time.Duration) gin.HandlerFunc {
+	limiter := ratelimit.NewMemoryRateLimiter(limit, ttl)
+	return RateLimiter(limiter)
+}
+
+// RateLimiterRedis là factory cho redis mode
+func RateLimiterRedis(client *redis.Client, limit int, ttl time.Duration) gin.HandlerFunc {
+	limiter := ratelimit.NewRedisRateLimiter(client, limit, ttl)
+	return RateLimiter(limiter)
+}

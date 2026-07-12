@@ -1,0 +1,26 @@
+package user
+
+import (
+	"context"
+	entityUser "{{.ModuleName}}//internal/entity/user"
+	u_tx "github.com/DVV-15324/witches/pkg/core/utils"
+)
+
+// interface
+type IUserResponsitory interface {
+	CreateUser(cxt context.Context, user *entityUser.User) (int, error)
+	GetUserById(ctx context.Context, id int) (*entityUser.User, error)
+	GetAllUser(ctx context.Context) ([]*entityUser.User, error)
+}
+
+type UserUseCase struct {
+	TxManager        u_tx.TxManager
+	UserResponsitory IUserResponsitory
+}
+
+func NewUserUsecase(UserResponsitory IUserResponsitory, txManager u_tx.TxManager) *UserUseCase {
+	return &UserUseCase{
+		UserResponsitory: UserResponsitory,
+		TxManager:        txManager,
+	}
+}

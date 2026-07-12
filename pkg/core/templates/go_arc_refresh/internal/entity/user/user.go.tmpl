@@ -1,0 +1,17 @@
+// internal/entity/user/user.go
+package user
+
+import "time"
+
+type User struct {
+	Id        int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name      string    `gorm:"not null" json:"name"`
+	Role      string    `gorm:"default:user" json:"role"`
+	Email     string    `gorm:"unique;not null" json:"email"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+}
+
+func (User) TableName() string {
+	return "users"
+}

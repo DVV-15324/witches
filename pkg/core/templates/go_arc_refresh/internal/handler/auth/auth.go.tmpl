@@ -1,0 +1,28 @@
+package auth
+
+import (
+	u_jwt "{{.ModuleName}}//internal/utils"
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+
+	"context"
+	entityAuth "{{.ModuleName}}//internal/entity/auth"
+)
+
+type IUsecaseAuth interface {
+	Login(ctx context.Context, au *entityAuth.Auth, DeviceID string, DeviceName string, IPAddress string, UserAgent string) (*u_jwt.TokenResponse, *u_response.ErrorResponse)
+	Register(ctx context.Context, auth *entityAuth.Auth, name string) *u_response.ErrorResponse
+	LoginWithGoogle(ctx context.Context, accessToken string, deviceID string, deviceName string, ipAddress string, userAgent string) (*u_jwt.TokenResponse, *u_response.ErrorResponse)
+	Logout(ctx context.Context, accessToken, refreshTokenStr string, deviceID string) *u_response.ErrorResponse
+}
+type AuthHandle struct {
+	Log         *logger.EntityLogger
+	UsecaseAuth IUsecaseAuth
+}
+
+func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.EntityLogger) *AuthHandle {
+	return &AuthHandle{
+		UsecaseAuth: authUseCase,
+		Log:         log,
+	}
+}
