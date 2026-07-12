@@ -1,0 +1,48 @@
+package auth
+
+import (
+	entityAuth "{{.ModuleName}}/internal/entity/auth"
+	"context"
+	"errors"
+	"time"
+
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	u_jwt "github.com/DVV-15324/witches/pkg/core/utils"
+	u_uid "github.com/DVV-15324/witches/pkg/core/utils"
+
+	"github.com/google/uuid"
+)
+
+func (a *UsecaseAuth) UsecaseLogin(ctx context.Context, au *entityAuth.Auth) (*u_jwt.TokenResponse, *u_response.ErrorResponse) {
+	//Check tai khoan ko ton tai
+	auth, err_auth := a.ReponsitoryAuth.GetAuthByEmail(ctx, au.Email)
+	if err_auth != nil {
+		resp := u_response.NewErrorResponse(404, err_auth, time.Now())
+		return nil, resp
+	}
+	//Kiểm tra banned
+	if auth.Banned != false {
+		app := u_response.NewErrorResponse(401, errors.New("tai khoan cua ban da bi khoa"), time.Now())
+		return nil, app
+	}
+	//So sánh Hash Password
+	ss := a.Hash.CompareHashAndPassword(auth.Password, au.Password, auth.Salt)
+	if !ss {
+		resp := u_response.NewErrorResponse(404, err_auth, time.Now())
+		return nil, resp
+	}
+	//Tạo token
+	s := u_uid.NewUID(uint32(auth.UserId), 1)
+	// Mã hóa Base58
+	sub := s.ToBase58()
+	// Tạo mã định danh cho token
+	tid := uuid.New().String()
+
+	//Tạo token
+	token, err_token := a.Jwt.IssueToken(ctx, sub, tid, u_jwt.Role(auth.Role))
+	if err_token != nil {
+		resp := u_response.NewErrorResponse(500, err_token, time.Now())
+		return nil, resp
+	}
+	return token, nil
+}

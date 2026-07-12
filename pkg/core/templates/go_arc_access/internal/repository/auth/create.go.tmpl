@@ -1,0 +1,24 @@
+package auth
+
+import (
+	entity "{{.ModuleName}}/internal/entity/auth"
+	"context"
+)
+
+// tạo auth
+func (u *RepositoryAuth) CreateAuth(cxt context.Context, auth *entity.Auth) error {
+	query := `INSERT INTO auths(salt, email, password, user_id, role, banned)
+			VALUES (?, ?, ?, ?, ?, ?)`
+	_, err := u.db.ExecContext(cxt, query,
+		auth.Salt,
+		auth.Email,
+		auth.Password,
+		auth.UserId,
+		"user",
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}

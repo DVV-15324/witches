@@ -1,0 +1,27 @@
+package user
+
+import (
+	u_response "github.com/DVV-15324/witches/pkg/core/response_logger"
+	"time"
+
+	entityUser "{{.ModuleName}}/internal/entity/user"
+	"context"
+)
+
+func (u *UsecaseUser) UsecaseGetAllUser(ctx context.Context) ([]*entityUser.User, *u_response.ErrorResponse) {
+	users, err := u.ReponsitoryUser.GetAllUser(ctx)
+	if err != nil {
+		resp := u_response.NewErrorResponse(500, err, time.Now())
+		return nil, resp
+	}
+	return users, nil
+}
+
+func (u *UsecaseUser) UsecaseGetUserById(ctx context.Context, id int) (*entityUser.User, *u_response.ErrorResponse) {
+	user, err := u.ReponsitoryUser.GetUserById(ctx, id)
+	if err != nil {
+		resp := u_response.NewErrorResponse(404, err, time.Now())
+		return nil, resp
+	}
+	return user, nil
+}
