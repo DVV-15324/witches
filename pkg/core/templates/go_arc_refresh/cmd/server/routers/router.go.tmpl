@@ -1,8 +1,8 @@
 package routes
 
 import (
-	dtoAuth "example/internal/dto/auth/request"
-	dtoRefresh "example/internal/dto/refresh/request"
+	dtoAuth "{{.ModuleName}}/internal/dto/auth/request"
+	dtoRefresh "{{.ModuleName}}/internal/dto/refresh/request"
 
 	"log"
 
@@ -41,7 +41,7 @@ func Start(r *gin.Engine) {
 }
 
 func initSwagger(r *gin.Engine) *h_s.SwaggerGenerator {
-	gen := h_s.NewSwaggerGenerator("Example API", "1.0", "localhost:8080", "/api")
+	gen := h_s.NewSwaggerGenerator("{{.ModuleName}} API", "1.0", "localhost:8080", "/api")
 	gen.SetEngine(r)
 
 	// Security scheme
@@ -51,7 +51,7 @@ func initSwagger(r *gin.Engine) *h_s.SwaggerGenerator {
 			Type:        "apiKey",
 			Name:        "Authorization",
 			In:          "header",
-			Description: "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+			Description: "JWT Authorization header using the Bearer scheme. {{.ModuleName}}: 'Bearer {token}'",
 		},
 	)
 
