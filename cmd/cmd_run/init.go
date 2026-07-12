@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -9,12 +10,19 @@ import (
 
 // En: This function creates template for project
 // Vi : Hàm tạo templates cho dự án
-func WitchesInit(DB_URL string) {
+func WitchesInit(TYPE string) {
 	projectPath, _ := os.Getwd()
 	//Vi: Kiểm tra thư mục hiện tại và tên dự án
 	//En: Check the current directory and project name
 	moduleName := filepath.Base(projectPath)
 	// n: Execute template
 	//Vi: Thực thi template
-	templates.TemplatesCreate(moduleName)
+	if TYPE == "access" {
+		templates.CreateGoArcAccess(moduleName)
+	} else if TYPE == "refresh" {
+		templates.CreateGoArcRefresh(moduleName)
+	} else {
+		fmt.Println("Error: missing init project")
+	}
+
 }
