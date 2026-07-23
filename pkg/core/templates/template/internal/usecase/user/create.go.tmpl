@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"context"
-	entityUser "{{.ModuleName}}//internal/entity/user"
+	entityUser "{{.ModuleName}}/internal/entity/user"
 )
 
 func (u *UserUseCase) CreateUser(ctx context.Context, user *entityUser.User) (int, *u_response.ErrorResponse) {

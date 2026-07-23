@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"context"
-	entityUser "{{.ModuleName}}//internal/entity/user"
+	entityUser "{{.ModuleName}}/internal/entity/user"
 )
 
 func (u *UserUseCase) GetAllUser(ctx context.Context) ([]*entityUser.User, *u_response.ErrorResponse) {
