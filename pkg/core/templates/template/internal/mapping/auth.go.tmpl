@@ -1,8 +1,8 @@
 package mapping
 
 import (
-	dtoAuth "{{.ModuleName}}//internal/dto/auth/request"
-	entityAuth "{{.ModuleName}}//internal/entity/auth"
+	dtoAuth "{{.ModuleName}}/internal/dto/auth/request"
+	entityAuth "{{.ModuleName}}/internal/entity/auth"
 )
 
 func FromRegisterToEntityAuth(dtoAuth *dtoAuth.Register) *entityAuth.Auth {
