@@ -1,7 +1,0 @@
-MinIO:
-
-Chỉ cần nhớ 3 thứ:
-
-Bucket = thư mục lớn
-Object = file
-Policy = quyền truy cập
