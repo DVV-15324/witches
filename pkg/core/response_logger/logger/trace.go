@@ -79,13 +79,4 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		)
 		return
 	}
-
-	// Log thông thường
-	if l.LogLevel >= gormlogger.Info {
-		l.zapLogger.InfoWithFields("SQL QUERY",
-			zap.String("sql", sql),
-			zap.Duration("duration", elapsed),
-			zap.Int64("rows", rows),
-		)
-	}
 }
