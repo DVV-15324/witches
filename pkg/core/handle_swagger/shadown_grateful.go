@@ -10,23 +10,25 @@ import (
 	"time"
 )
 
-func ShadownServer(ctx context.Context, engine http.Handler, port int) {
+func ShutdownServer(ctx context.Context, engine http.Handler, address string, port string) {
+	// Tạo addr = address:port
+	addr := fmt.Sprintf("%s:%d", address, port)
 
 	// Create HTTP server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    addr,
 		Handler: engine,
 	}
 
 	// Run server in goroutine
 	go func() {
-		log.Printf("Server running on :%d\n", port)
+		log.Printf("Server running on http://%s\n", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
 
-	// Wait for interrupt signal (Ctrl + C)
+	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
