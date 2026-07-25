@@ -2,18 +2,29 @@ package handle_swagger
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+	"github.com/ulule/limiter/v3"
+	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
+type IRateLimitMiddleware interface {
+	CreateRateLimitMiddleware(rateLimit *limiter.Limiter) gin.HandlerFunc
+}
+
 type SwaggerGenerator struct {
-	doc               *SwaggerDoc
-	modelParser       *ModelParser
-	engine            *gin.Engine
-	globalMiddlewares []gin.HandlerFunc
-	globalSecurity    []SecurityRequirement
+	doc                 *SwaggerDoc
+	modelParser         *ModelParser
+	engine              *gin.Engine
+	globalMiddlewares   []gin.HandlerFunc
+	globalSecurity      []SecurityRequirement
+	storeFactory        func() (limiter.Store, error)
+	redisClient         *redis.Client
+	rateLimitMiddleware IRateLimitMiddleware
 }
 
 func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerator {
@@ -38,10 +49,28 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 	}
 }
 
-// SetEngine gán engine và tạo group mặc định
-func (g *SwaggerGenerator) SetEngine(engine *gin.Engine) *SwaggerGenerator {
+// SetEngine gán engine và redis client
+func (g *SwaggerGenerator) SetEngine(engine *gin.Engine, redisClient *redis.Client) *SwaggerGenerator {
 	g.engine = engine
+	g.redisClient = redisClient
+	g.storeFactory = func() (limiter.Store, error) {
+		if redisClient == nil {
+			return nil, fmt.Errorf("redis client not configured")
+		}
+		return sredis.NewStore(redisClient)
+	}
+	return g
+}
 
+// SetRedisClient set redis client (nếu không dùng SetEngine)
+func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGenerator {
+	g.redisClient = redisClient
+	g.storeFactory = func() (limiter.Store, error) {
+		if redisClient == nil {
+			return nil, fmt.Errorf("redis client not configured")
+		}
+		return sredis.NewStore(redisClient)
+	}
 	return g
 }
 

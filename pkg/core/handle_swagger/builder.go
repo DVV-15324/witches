@@ -2,8 +2,8 @@ package handle_swagger
 
 import (
 	"fmt"
-
 	"github.com/gin-gonic/gin"
+	"github.com/ulule/limiter/v3"
 )
 
 type RouteBuilder struct {
@@ -13,6 +13,29 @@ type RouteBuilder struct {
 	op          Operation
 	handler     gin.HandlerFunc
 	middlewares []gin.HandlerFunc
+	rateLimit   *limiter.Limiter
+}
+
+// RateLimit thêm rate limit cho route với headers tự động
+func (b *RouteBuilder) RateLimit(rate limiter.Rate) *RouteBuilder {
+	store, err := b.gen.storeFactory()
+	if err != nil {
+		fmt.Printf("Failed to create rate limit store: %v\n", err)
+		return b
+	}
+
+	b.rateLimit = limiter.New(store, rate)
+	return b
+}
+
+// RateLimitFromString thêm rate limit từ string (VD: "100-M", "4-H")
+func (b *RouteBuilder) RateLimitFromString(rateStr string) *RouteBuilder {
+	rate, err := limiter.NewRateFromFormatted(rateStr)
+	if err != nil {
+		fmt.Printf("Invalid rate limit format: %v\n", err)
+		return b
+	}
+	return b.RateLimit(rate)
 }
 
 func (b *RouteBuilder) Summary(s string) *RouteBuilder {
@@ -143,7 +166,11 @@ func (b *RouteBuilder) Build() {
 	if b.gen.globalSecurity != nil {
 		handlers = append(handlers, b.gen.globalMiddlewares...)
 	}
-
+	// Thêm rate limit middleware với headers (nếu có)
+	if b.rateLimit != nil {
+		rateLimitHandler := b.gen.rateLimitMiddleware.CreateRateLimitMiddleware(b.rateLimit)
+		handlers = append(handlers, rateLimitHandler)
+	}
 	// Thêm route-specific middlewares
 	if len(b.middlewares) > 0 {
 		handlers = append(handlers, b.middlewares...)
