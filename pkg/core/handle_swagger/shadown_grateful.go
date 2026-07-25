@@ -12,7 +12,7 @@ import (
 
 func ShutdownServer(ctx context.Context, engine http.Handler, address string, port string) {
 	// Tạo addr = address:port
-	addr := fmt.Sprintf("%s:%d", address, port)
+	addr := fmt.Sprintf("%s:%s", address, port)
 
 	// Create HTTP server
 	srv := &http.Server{
