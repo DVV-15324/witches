@@ -43,9 +43,10 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 			SecurityDefinitions: make(map[string]SecurityScheme),
 			Tags:                []Tag{},
 		},
-		globalSecurity:    []SecurityRequirement{},
-		modelParser:       NewModelParser(),
-		globalMiddlewares: []gin.HandlerFunc{},
+		globalSecurity:      []SecurityRequirement{},
+		modelParser:         NewModelParser(),
+		globalMiddlewares:   []gin.HandlerFunc{},
+		rateLimitMiddleware: nil, // mặc định không có
 	}
 }
 
@@ -62,16 +63,15 @@ func (g *SwaggerGenerator) SetEngine(engine *gin.Engine, redisClient *redis.Clie
 	return g
 }
 
-// SetRedisClient set redis client (nếu không dùng SetEngine)
-func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGenerator {
-	g.redisClient = redisClient
-	g.storeFactory = func() (limiter.Store, error) {
-		if redisClient == nil {
-			return nil, fmt.Errorf("redis client not configured")
-		}
-		return sredis.NewStore(redisClient)
-	}
+// SetRateLimitMiddleware set middleware rate limit cho generator
+func (g *SwaggerGenerator) SetRateLimitMiddleware(middleware IRateLimitMiddleware) *SwaggerGenerator {
+	g.rateLimitMiddleware = middleware
 	return g
+}
+
+// GetRateLimitMiddleware lấy middleware hiện tại
+func (g *SwaggerGenerator) GetRateLimitMiddleware() IRateLimitMiddleware {
+	return g.rateLimitMiddleware
 }
 
 // Use thêm middleware global
