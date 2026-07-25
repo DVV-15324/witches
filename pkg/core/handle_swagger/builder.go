@@ -28,16 +28,6 @@ func (b *RouteBuilder) RateLimit(rate limiter.Rate) *RouteBuilder {
 	return b
 }
 
-// RateLimitFromString thêm rate limit từ string (VD: "100-M", "4-H")
-func (b *RouteBuilder) RateLimitFromString(rateStr string) *RouteBuilder {
-	rate, err := limiter.NewRateFromFormatted(rateStr)
-	if err != nil {
-		fmt.Printf("Invalid rate limit format: %v\n", err)
-		return b
-	}
-	return b.RateLimit(rate)
-}
-
 func (b *RouteBuilder) Summary(s string) *RouteBuilder {
 	b.op.Summary = s
 	return b
