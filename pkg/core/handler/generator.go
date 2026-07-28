@@ -50,9 +50,14 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 	}
 }
 
-// SetEngine gán engine và redis client
-func (g *SwaggerGenerator) SetEngine(engine *gin.Engine, redisClient *redis.Client) *SwaggerGenerator {
+// SetEngine gán engine
+func (g *SwaggerGenerator) SetEngine(engine *gin.Engine) *SwaggerGenerator {
 	g.engine = engine
+	return g
+}
+
+// SetRedisClient gán redis client
+func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGenerator {
 	g.redisClient = redisClient
 	g.storeFactory = func() (limiter.Store, error) {
 		if redisClient == nil {
