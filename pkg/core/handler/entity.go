@@ -1,4 +1,4 @@
-package handle_swagger
+package handle
 
 // Nguồn chi tiết
 //https://swagger.io/specification/v2/
