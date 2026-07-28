@@ -1,17 +1,17 @@
-package response_logger
+package response
 
 import (
 	"time"
 )
 
-type ErrorResponse struct {
+type AppError struct {
 	Status    int
 	Error     error
 	TimeStamp time.Time
 }
 
-func NewErrorResponse(status int, Error error, timeStamp time.Time) *ErrorResponse {
-	return &ErrorResponse{
+func NewErrorResponse(status int, Error error, timeStamp time.Time) *AppError {
+	return &AppError{
 		Status:    status,
 		Error:     Error,
 		TimeStamp: timeStamp,
