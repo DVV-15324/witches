@@ -114,7 +114,7 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 			prop.Enum = strings.Split(enum, ",")
 		}
 
-		// ✅ Nếu field là slice, set items
+		//  Nếu field là slice, set items
 		if field.Type.Kind() == reflect.Slice || field.Type.Kind() == reflect.Array {
 			elemType := field.Type.Elem()
 			if elemType.Kind() == reflect.Struct {
