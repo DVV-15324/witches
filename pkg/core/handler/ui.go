@@ -1,4 +1,4 @@
-package handle_swagger
+package handle
 
 import "github.com/gin-gonic/gin"
 
