@@ -1,4 +1,4 @@
-package handle_swagger
+package handle
 
 import (
 	"fmt"
