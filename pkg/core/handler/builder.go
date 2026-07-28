@@ -48,24 +48,6 @@ func (b *RouteBuilder) Tags(tags ...string) *RouteBuilder {
 	return b
 }
 
-// Security với scopes (cho OAuth2)
-func (b *RouteBuilder) Security(name string, scopes ...string) *RouteBuilder {
-	security := make(SecurityRequirement)
-	security[name] = scopes
-
-	b.op.Security = append(b.op.Security, security)
-	return b
-}
-
-// BearerAuth tiện lợi cho Bearer token
-func (b *RouteBuilder) BearerAuth() *RouteBuilder {
-	security := make(SecurityRequirement)
-	security["BearerAuth"] = []string{} // Không có scope cho Bearer token
-
-	b.op.Security = append(b.op.Security, security)
-	return b
-}
-
 func (b *RouteBuilder) PathParam(name, desc string, required bool) *RouteBuilder {
 	b.op.Parameters = append(b.op.Parameters, Parameter{
 		Name:        name,
@@ -129,13 +111,6 @@ func (b *RouteBuilder) Response(code int, model interface{}, desc string) *Route
 	}
 
 	b.op.Responses[fmt.Sprintf("%d", code)] = resp
-	return b
-}
-
-// Public đánh dấu route không cần authentication
-func (b *RouteBuilder) Public() *RouteBuilder {
-	// Security trống sẽ override global security
-	b.op.Security = []SecurityRequirement{}
 	return b
 }
 
