@@ -1,7 +1,7 @@
 package sql
 
 import (
-	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
