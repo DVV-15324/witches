@@ -33,7 +33,6 @@ import (
 //go:embed template/internal/usecase/refresh/*.tmpl
 //go:embed template/internal/usecase/user/*.tmpl
 //go:embed template/internal/utils/*.tmpl
-//go:embed template/internal/utils/ratelimit/*.tmpl
 //go:embed template/logs/*.tmpl
 //go:embed template/migrate/migrations/*.tmpl
 //go:embed template/pkg/redis/*.tmpl
@@ -59,7 +58,6 @@ func CreateGoArcRefresh(projectName string) {
 	}
 
 	fmt.Println("Project created successfully!")
-	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("  witches install\n")
 	fmt.Printf("  witches run\n")
@@ -126,7 +124,7 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 		"template/cmd/server/routers/composer.go.tmpl":  "cmd/server/routers/composer.go",
 		"template/cmd/server/routers/protected.go.tmpl": "cmd/server/routers/protected.go",
 		"template/cmd/server/routers/public.go.tmpl":    "cmd/server/routers/public.go",
-		"template/cmd/server/routers/router.go.tmpl":    "cmd/server/routers/router.go",
+		"template/cmd/server/routers/routers.go.tmpl":   "cmd/server/routers/routers.go",
 
 		// DTO AUTH REQUEST
 		"template/internal/dto/auth/request/login.go.tmpl":    "internal/dto/auth/request/login.go",
@@ -157,7 +155,6 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 
 		// ENTITY REFRESH
 		"template/internal/entity/refresh/refesh_token.go.tmpl": "internal/entity/refresh/refesh_token.go",
-		"template/internal/entity/refresh/session.go.tmpl":      "internal/entity/refresh/session.go",
 
 		// ENTITY USER
 		"template/internal/entity/user/user.go.tmpl": "internal/entity/user/user.go",
@@ -185,7 +182,8 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 		// MIDDLEWARE
 		"template/internal/middleware/cors.go.tmpl":       "internal/middleware/cors.go",
 		"template/internal/middleware/middleware.go.tmpl": "internal/middleware/middleware.go",
-		"template/internal/middleware/rate_limit.go.tmpl": "internal/middleware/rate_limit.go",
+		"template/internal/middleware/limit.go.tmpl":      "internal/middleware/limit.go",
+		"template/internal/middleware/timing.go.tmpl":     "internal/middleware/timing.go",
 
 		// REPOSITORY AUTH
 		"template/internal/repository/auth/auth_repo.go.tmpl":   "internal/repository/auth/auth_repo.go",
@@ -197,7 +195,6 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 
 		// REPOSITORY REFRESH
 		"template/internal/repository/refresh/db_create.go.tmpl":    "internal/repository/refresh/db_create.go",
-		"template/internal/repository/refresh/db_delete.go.tmpl":    "internal/repository/refresh/db_delete.go",
 		"template/internal/repository/refresh/db_get.go.tmpl":       "internal/repository/refresh/db_get.go",
 		"template/internal/repository/refresh/db_revoke.go.tmpl":    "internal/repository/refresh/db_revoke.go",
 		"template/internal/repository/refresh/redis_cache.go.tmpl":  "internal/repository/refresh/redis_cache.go",
@@ -220,7 +217,6 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 
 		// USECASE REFRESH
 		"template/internal/usecase/refresh/create.go.tmpl":        "internal/usecase/refresh/create.go",
-		"template/internal/usecase/refresh/delete.go.tmpl":        "internal/usecase/refresh/delete.go",
 		"template/internal/usecase/refresh/get.go.tmpl":           "internal/usecase/refresh/get.go",
 		"template/internal/usecase/refresh/refresh.go.tmpl":       "internal/usecase/refresh/refresh.go",
 		"template/internal/usecase/refresh/refresh_token.go.tmpl": "internal/usecase/refresh/refresh_token.go",
@@ -233,17 +229,9 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 		"template/internal/usecase/user/user.go.tmpl":   "internal/usecase/user/user.go",
 
 		// UTILS
-		"template/internal/utils/blacklist.go.tmpl": "internal/utils/blacklist.go",
-		"template/internal/utils/context.go.tmpl":   "internal/utils/context.go",
-		"template/internal/utils/helper.go.tmpl":    "internal/utils/helper.go",
-		"template/internal/utils/jwt.go.tmpl":       "internal/utils/jwt.go",
-		"template/internal/utils/session.go.tmpl":   "internal/utils/session.go",
-
-		// UTILS RATELIMIT
-		"template/internal/utils/ratelimit/factory.go.tmpl":   "internal/utils/ratelimit/factory.go",
-		"template/internal/utils/ratelimit/interface.go.tmpl": "internal/utils/ratelimit/interface.go",
-		"template/internal/utils/ratelimit/memory.go.tmpl":    "internal/utils/ratelimit/memory.go",
-		"template/internal/utils/ratelimit/redis.go.tmpl":     "internal/utils/ratelimit/redis.go",
+		"template/internal/utils/key_req.go.tmpl": "internal/utils/key_req.go",
+		"template/internal/utils/helper.go.tmpl":  "internal/utils/helper.go",
+		"template/internal/utils/uid.go.tmpl":     "internal/utils/uid.go",
 
 		// LOGS
 		"template/logs/logs.log.tmpl": "logs/logs.log",
