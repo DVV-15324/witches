@@ -45,7 +45,7 @@ func Start(r *gin.Engine, host string, cfg *config.Config) {
 	}
 
 	// 5. Swagger UI
-	r.GET("/swagger/*any", handl.SwaggerUI())
+	r.GET("/swagger/*any", w_handl.SwaggerUI())
 	r.GET("/swagger.json", func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
 		c.String(200, gen.GenerateJSON())
@@ -53,8 +53,9 @@ func Start(r *gin.Engine, host string, cfg *config.Config) {
 }
 
 func initSwagger(r *gin.Engine, redisClient *redis.Client, rateLimitMiddleware w_handl.IRateLimitMiddleware, host string) *w_handl.SwaggerGenerator {
-	gen := handl.NewSwaggerGenerator("API", "1.0", host, "/")
+	gen := w_handl.NewSwaggerGenerator("API", "1.0", host, "/")
 	gen.SetEngine(r, redisClient)
+	gen.SetRedisClient(redisClient)
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
 	// Tags
 	gen.AddTag("v1", "API Version 1")
@@ -66,7 +67,7 @@ func initSwagger(r *gin.Engine, redisClient *redis.Client, rateLimitMiddleware w
 	gen.RegisterModel(dtoAuth.Register{})
 	gen.RegisterModel(dtoRefresh.RefreshTokenRequest{})
 
-	gen.RegisterModel(w_resp.ResponseHandle{})
+	gen.RegisterModel(w_resp.AppResponse{})
 
 	return gen
 }
