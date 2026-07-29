@@ -1,9 +1,9 @@
 package auth
 
 import (
-	dtoAuth "example_2/internal/dto/auth/request"
-	mapping "example_2/internal/mapping"
-	utils "example_2/internal/utils"
+	dtoAuth "{{.ModuleName}}/internal/dto/auth/request"
+	mapping "{{.ModuleName}}/internal/mapping"
+	utils "{{.ModuleName}}/internal/utils"
 	"time"
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
@@ -18,7 +18,7 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 		// Bind JSON first
 		err := c.ShouldBindJSON(&data)
 		if err != nil {
-			resq := w_resp.NewErrorResponse(400, err, time.Now())
+			resq := w_resp.NewAppError(400, err, time.Now())
 			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
 			return
 		}
@@ -26,7 +26,7 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 		// Then validate
 		err_valid := data.Validate()
 		if err_valid != nil {
-			resq := w_resp.NewErrorResponse(401, err_valid, time.Now())
+			resq := w_resp.NewAppError(401, err_valid, time.Now())
 			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
 			return // Added missing return
 		}
