@@ -4,10 +4,8 @@ import (
 	"context"
 	"{{.ModuleName}}/cmd/server/config"
 	routes "{{.ModuleName}}/cmd/server/routers"
-
 	"fmt"
-
-	w_handl "github.com/DVV-15324/witches/pkg/core/handle"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +18,7 @@ var root = &cobra.Command{
 		config := config.Load()
 		host := fmt.Sprintf("%s:%s", config.Host, config.Port)
 		routes.Start(r, host, config)
-		w_handl.ShutdownServer(context.Background(), r, config.Host, config.Port)
+		w_utils.ShutdownServer(context.Background(), r, config.Host, config.Port)
 	},
 }
 
