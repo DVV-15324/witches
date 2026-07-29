@@ -2,7 +2,7 @@ package auth
 
 import (
 	"errors"
-	utils "example_2/internal/utils"
+	utils "{{.ModuleName}}/internal/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
 	"strings"
@@ -18,7 +18,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 		var req LogoutRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			w_resp.WriteError(c, h.Log, w_resp.NewErrorResponse(400, errors.New("invalid request body"), time.Now()))
+			w_resp.WriteError(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 
@@ -30,7 +30,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 		}
 
 		if accessToken == "" {
-			w_resp.WriteError(c, h.Log, w_resp.NewErrorResponse(401, errors.New("access token is required"), time.Now()))
+			w_resp.WriteError(c, h.Log, w_resp.NewAppError(401, errors.New("access token is required"), time.Now()))
 			return
 		}
 
