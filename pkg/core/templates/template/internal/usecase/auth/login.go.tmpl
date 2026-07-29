@@ -48,7 +48,7 @@ func (a *AuthUseCase) Login(ctx context.Context, au *entityAuth.Auth, DeviceID s
 	}
 
 	//Tạo tid, sub
-	s := u_uid.NewUID(uint32(auth.UserId), 1)
+	s := utils.NewUID(uint32(auth.UserId), 1)
 	// Mã hóa Base58
 	sub := s.ToBase58()
 	// Tạo mã định danh cho token
