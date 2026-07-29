@@ -8,9 +8,29 @@ import (
 
 // En: This function installs dependencies
 // Vi: Hàm cài đặt các thư viện cần dùng
-func WitchesInstall() {
+func WitchesInstall(DB_DRIVER string) {
 	tools := []string{
 		"github.com/mailru/easyjson/...@latest",
+	}
+	dbTools := map[string][]string{
+		"mysql": {
+			"github.com/golang-migrate/migrate/v4/database/mysql@latest",
+		},
+		"postgres": {
+			"github.com/golang-migrate/migrate/v4/database/postgres@latest",
+		},
+		"postgresql": {
+			"github.com/golang-migrate/migrate/v4/database/postgres@latest",
+		},
+		"mssql": {
+			"github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
+		},
+		"sqlserver": {
+			"github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
+		},
+	}
+	if driverTools, ok := dbTools[DB_DRIVER]; ok {
+		tools = append(tools, driverTools...)
 	}
 	//En: Start executing
 	//Vi: Bắt đầu thực thi
