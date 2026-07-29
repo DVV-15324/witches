@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-type Database struct {
+type DatabaseInstance struct {
 	DB  *gorm.DB
 	Log *logger.EntityLogger
 }
 
-func InitDatabase(Type string, dsn string, log *logger.EntityLogger, slowThreshold time.Duration) (*Database, error) {
+func NewDatabaseInstance(Type string, dsn string, log *logger.EntityLogger, slowThreshold time.Duration) (*DatabaseInstance, error) {
 	// Tạo GORM Logger từ Zap
 	gormLogger := logger.NewGormLogger(log, slowThreshold)
 
@@ -24,7 +24,7 @@ func InitDatabase(Type string, dsn string, log *logger.EntityLogger, slowThresho
 	switch Type {
 	case "mysql":
 		dialector = mysql.Open(dsn)
-	case "postgres", "psql", "postgresql":
+	case "postgres", "postgresql":
 		dialector = postgres.Open(dsn)
 	case "sqlserver", "mssql":
 		dialector = sqlserver.Open(dsn)
@@ -45,7 +45,7 @@ func InitDatabase(Type string, dsn string, log *logger.EntityLogger, slowThresho
 		return nil, err
 	}
 
-	return &Database{
+	return &DatabaseInstance{
 		DB:  db,
 		Log: log,
 	}, nil
