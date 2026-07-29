@@ -24,8 +24,8 @@ func setupPublicRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, 
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*limiterRate).
 		Body(dtoAuth.Login{}, "Login credentials").
-		Response(200, w_resp.ResponseHandle{}, "Login successful").
-		Response(401, w_resp.ResponseHandle{}, "Unauthorized").
+		Response(200, w_resp.AppResponse{}, "Login successful").
+		Response(401, w_resp.AppResponse{}, "Unauthorized").
 		Handler(services.HandleAuth.HandleLogin()).
 		Build()
 
@@ -40,8 +40,8 @@ func setupPublicRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, 
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*limiterRate).
 		Body(dtoAuth.GoogleLoginRequest{}, "Google ID token").
-		Response(200, w_resp.ResponseHandle{}, "Login successful").
-		Response(401, w_resp.ResponseHandle{}, "Unauthorized").
+		Response(200, w_resp.AppResponse{}, "Login successful").
+		Response(401, w_resp.AppResponse{}, "Unauthorized").
 		Handler(services.HandleAuth.HandleGoogleLogin()).
 		Build()
 
@@ -56,8 +56,8 @@ func setupPublicRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, 
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*limiterRate).
 		Body(dtoAuth.Register{}, "User registration data").
-		Response(201, w_resp.ResponseHandle{}, "Registration successful").
-		Response(400, w_resp.ResponseHandle{}, "Bad request").
+		Response(201, w_resp.AppResponse{}, "Registration successful").
+		Response(400, w_resp.AppResponse{}, "Bad request").
 		Handler(services.HandleAuth.HandleRegister()).
 		Build()
 
@@ -72,8 +72,8 @@ func setupPublicRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, 
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*limiterRate).
 		Body(dtoRefresh.RefreshTokenRequest{}, "Refresh token").
-		Response(200, w_resp.ResponseHandle{}, "Token refreshed successfully").
-		Response(401, w_resp.ResponseHandle{}, "Invalid or expired refresh token").
+		Response(200, w_resp.AppResponse{}, "Token refreshed successfully").
+		Response(401, w_resp.AppResponse{}, "Invalid or expired refresh token").
 		Handler(services.HandleRefresh.HandleRefreshToken()).
 		Build()
 }
