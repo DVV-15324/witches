@@ -1,4 +1,4 @@
-package cmd_utils
+package utils
 
 import (
 	"log"
@@ -34,4 +34,12 @@ func GetFrameworkPath() string {
 		log.Fatal(err)
 	}
 	return filepath.Dir(exe)
+}
+
+// En: Get URL path for migrate command (dùng cho exec.Command migrate)
+// Vi: Lấy đường dẫn URL cho migrate command (dùng cho exec.Command migrate)
+func GetMigrationsURL() string {
+	pwd, _ := os.Getwd()
+	path := filepath.ToSlash(filepath.Join(pwd, "migrate", "migrations"))
+	return path // có 3 dấu /
 }
