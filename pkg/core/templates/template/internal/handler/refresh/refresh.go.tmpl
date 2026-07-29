@@ -9,7 +9,7 @@ import (
 )
 
 type IRefreshUseCase interface {
-	Refresh(ctx context.Context, refreshTokenStr, deviceID string) (*w_utils.Token, *w_resp.ErrorResponse)
+	Refresh(ctx context.Context, refreshTokenStr, deviceID string) (*w_utils.Token, *w_resp.AppError)
 }
 type RefreshHandle struct {
 	Log            *w_logger.EntityLogger
