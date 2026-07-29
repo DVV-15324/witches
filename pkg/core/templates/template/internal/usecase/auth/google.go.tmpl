@@ -103,7 +103,7 @@ func (a *AuthUseCase) LoginWithGoogle(
 }
 
 // getGoogleUserInfo - Gọi Google API lấy user info
-func (a *AuthUseCase) getGoogleUserInfo(accessToken string) (map[string]interface{}, *w_resp.ErrorResponse) {
+func (a *AuthUseCase) getGoogleUserInfo(accessToken string) (map[string]interface{}, *w_resp.AppError) {
 	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
 	if err != nil {
 		return nil, w_resp.NewAppError(500, errors.New("failed to create request"), time.Now())
@@ -143,7 +143,7 @@ func (a *AuthUseCase) generateTokenResponse(
 	userAgent string,
 	TimeZone string,
 	Locale string,
-) (*w_utils.TokenResponse, *w_resp.ErrorResponse) {
+) (*w_utils.TokenResponse, *w_resp.AppError) {
 
 	//  1. Lấy thông tin user (role)
 	user, err := a.UserUseCase.GetUserById(ctx, auth.UserId)
@@ -152,14 +152,14 @@ func (a *AuthUseCase) generateTokenResponse(
 	}
 
 	//  2. Tạo UID (User ID) encode Base58
-	s := uid.NewUID(uint32(auth.UserId), 1)
+	s := utils.NewUID(uint32(auth.UserId), 1)
 	sub := s.ToBase58()
 	tid := uuid.New().String()
 
 	//  3. Tạo Access Token (JWT)
 	accessToken, err_t := a.Jwt.IssueAccessToken(ctx, sub, tid)
 	if err_t != nil {
-		return nil, w_resp.NewErrorResponse(500,
+		return nil, w_resp.NewAppError(500,
 			errors.New("failed to issue access token: "+err_t.Error()),
 			time.Now(),
 		)
@@ -168,7 +168,7 @@ func (a *AuthUseCase) generateTokenResponse(
 	//  4. Tạo Refresh Token (UUID)
 	refreshTokenStr, err_t := a.Jwt.IssueRefreshToken(ctx, sub, tid)
 	if err_t != nil {
-		return nil, w_resp.NewErrorResponse(500,
+		return nil, w_resp.NewAppError(500,
 			errors.New("failed to issue refresh token"),
 			time.Now(),
 		)
@@ -190,7 +190,7 @@ func (a *AuthUseCase) generateTokenResponse(
 		// Log lỗi nhưng không fail login (token vẫn trả về client)
 		// Nhưng nếu lưu DB fail thì refresh sau này sẽ không dùng được
 		// Nên vẫn phải return error
-		return nil, w_resp.NewErrorResponse(500,
+		return nil, w_resp.NewAppError(500,
 			errors.New("failed to save refresh token"),
 			time.Now(),
 		)
