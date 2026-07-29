@@ -21,7 +21,7 @@ import (
 
 	w_db "github.com/DVV-15324/witches/pkg/core/database/connect/sql"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -30,7 +30,7 @@ import (
 )
 
 type IRefreshUseCase interface {
-	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *resp.ErrorResponse)
+	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.AppError)
 }
 
 type IRefreshHandle interface {
@@ -90,7 +90,7 @@ func Services() *HandleServices {
 	// 5.
 	// En: Connect the database to the driver and DNS.
 	// Vi: Kết nối database với driver và DSN
-	db, err := w_db.InitDatabase(config.DBDriver, config.DBURL, logg, 2*time.Second)
+	db, err := w_db.NewDatabaseInstance(config.DBDriver, config.DBURL, logg, 2*time.Second)
 
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
@@ -130,7 +130,7 @@ func Services() *HandleServices {
 	//8.
 	// En: Create transaction manager
 	// Vi: Tạo transaction manager
-	tx := u_tx.NewTxManager(db.DB)
+	tx := w_utils.NewTxManager(db.DB)
 
 	// 9.
 	// En: Create repositories
@@ -142,8 +142,8 @@ func Services() *HandleServices {
 	// 10.
 	// En: Create usecase
 	// Vi: Tạo usecase
-	jwt := u_jwt.NewJwtService("vu-dep-trai-nhat-the-gioi", 900, 604800)
-	hash := new(u_hash.Hash)
+	jwt := w_utils.NewJwtService("vu-dep-trai-nhat-the-gioi", 900, 604800)
+	hash := new(w_utils.Hash)
 	usecaseUser := usecaseUser.NewUserUsecase(rUser, tx)
 	usecaseRefresh := usecaseRefresh.NewRefreshUseCase(usecaseUser, rRefresh, jwt, sessionService, blacklistService, config)
 	usecaseAuth := usecaseAuth.NewAuthUseCase(jwt, usecaseUser, hash, rAuth, usecaseRefresh, tx, sessionService, blacklistService, config)
