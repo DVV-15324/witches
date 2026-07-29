@@ -10,7 +10,7 @@ type AppError struct {
 	TimeStamp time.Time
 }
 
-func NewErrorResponse(status int, Error error, timeStamp time.Time) *AppError {
+func NewAppError(status int, Error error, timeStamp time.Time) *AppError {
 	return &AppError{
 		Status:    status,
 		Error:     Error,
