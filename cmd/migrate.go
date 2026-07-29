@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	cmd_migrate "github.com/DVV-15324/witches/cmd/cmd_migrate"
+	cmd_migrate "github.com/DVV-15324/witches/cmd/migrate"
 	godotenv "github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"log"
@@ -39,7 +39,8 @@ var migrateDropCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateDrop(db_url)
+		db_driver := os.Getenv("DB_DRIVER")
+		cmd_migrate.WitchesMigrateDrop(db_url, db_driver)
 	},
 }
 
@@ -55,7 +56,8 @@ var migrateUpCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateUp(db_url)
+		db_driver := os.Getenv("DB_DRIVER")
+		cmd_migrate.WitchesMigrateUp(db_url, db_driver)
 	},
 }
 
@@ -71,7 +73,8 @@ var migrateDownCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateDown(db_url)
+		db_driver := os.Getenv("DB_DRIVER")
+		cmd_migrate.WitchesMigrateDown(db_url, db_driver)
 	},
 }
 
@@ -91,7 +94,8 @@ var migrateVersionCmd = &cobra.Command{
 			fmt.Println("missing project")
 			return
 		}
-		cmd_migrate.WitchesMigrateForce(db_url, args[0])
+		db_driver := os.Getenv("DB_DRIVER")
+		cmd_migrate.WitchesMigrateForce(db_url, db_driver, args[0])
 	},
 }
 var migrateForceCmd = &cobra.Command{
@@ -106,6 +110,7 @@ var migrateForceCmd = &cobra.Command{
 			log.Fatal("Error loading .env file")
 		}
 		db_url := os.Getenv("DB_URL")
-		cmd_migrate.WitchesMigrateVersion(db_url)
+		db_driver := os.Getenv("DB_DRIVER")
+		cmd_migrate.WitchesMigrateVersion(db_url, db_driver)
 	},
 }
