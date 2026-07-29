@@ -1,0 +1,27 @@
+package refresh
+
+import (
+	"context"
+	"errors"
+	"time"
+	entityRefresh "{{.ModuleName}}/internal/entity/refresh"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+)
+
+// GetByToken - Lấy refresh token theo token string
+func (uc *RefreshUseCase) GetByToken(ctx context.Context, token string) (*entityRefresh.RefreshToken, *w_resp.AppError) {
+	if token == "" {
+		return nil, w_resp.NewAppError(400, errors.New("token cannot be empty"), time.Now())
+	}
+	// Get from repository (có cache)
+	storedToken, err := uc.RefreshTokenRepo.GetByToken(ctx, token)
+	if err != nil {
+		return nil, w_resp.NewAppError(500, err, time.Now())
+	}
+	if storedToken == nil {
+		return nil, w_resp.NewAppError(404, errors.New("token not found"), time.Now())
+	}
+
+	return storedToken, nil
+}

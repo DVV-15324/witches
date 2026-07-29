@@ -1,0 +1,89 @@
+package refresh
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/google/uuid"
+	"time"
+)
+
+// Refresh - Refresh access token
+// Lưu ý: API này KHÔNG sử dụng AuthMiddleware vì:
+// - Client gọi khi access_token đã hết hạn
+// - Xác thực bằng refresh_token (lưu trong DB)
+// - Không cần access_token trong header
+
+func (uc *RefreshUseCase) Refresh(ctx context.Context, refreshTokenStr, deviceID string) (*w_utils.Token, *w_resp.AppError) {
+	// 1. Get stored token
+	storedToken, err := uc.RefreshTokenRepo.GetByToken(ctx, refreshTokenStr)
+	if err != nil {
+		resp := w_resp.NewAppError(500, err, time.Now())
+		return nil, resp
+	}
+	if storedToken == nil {
+		resp := w_resp.NewAppError(404, errors.New("refresh token không hợp lệ"), time.Now())
+		return nil, resp
+	}
+
+	// 3. Validate token (trường hợp có người khác biết token khi người dùng logout)
+	if storedToken.Revoked {
+		resp := w_resp.NewAppError(401, errors.New("refresh token đã bị thu hồi"), time.Now())
+		return nil, resp
+	}
+	// Kiểm tra hạn refresh token
+	if time.Now().Unix() > storedToken.ExpiresAt {
+		//uc.BlacklistService.BlacklistToken(ctx, refreshTokenStr)
+		resp := w_resp.NewAppError(401, errors.New("refresh token đã hết hạn"), time.Now())
+		return nil, resp
+	}
+	// Nếu cố tình dùng refresh token ở thiết bị khác lúc đăng nhập
+	if storedToken.DeviceID != deviceID && deviceID != "" {
+		uc.RefreshTokenRepo.Revoke(ctx, refreshTokenStr, "device mismatch")
+		resp := w_resp.NewAppError(401, errors.New("thiết bị không khớp"), time.Now())
+		return nil, resp
+	}
+
+	//Qua hết 3 bước  check xong ok thì refresh access_token mới cho user
+
+	// 4. Get thông tin auth
+	auth, errResp := uc.AuthUsecase.GetAuthByUserId(ctx, int(storedToken.UserID))
+	if errResp != nil {
+		return nil, errResp
+	}
+	if auth == nil {
+		resp := w_resp.NewAppError(404, errors.New("user not found"), time.Now())
+		return nil, resp
+	}
+
+	if auth.Banned {
+		resp := w_resp.NewAppError(403, errors.New("user is banned"), time.Now())
+		return nil, resp
+	}
+
+	// 5. Generate new token pair
+	userID := storedToken.UserID
+	sub := fmt.Sprintf("%d", userID)
+	tid := uuid.New().String()
+
+	// Tạo token
+	access_token, err := uc.Jwt.IssueAccessToken(ctx, sub, tid)
+	if err != nil {
+		resp := w_resp.NewAppError(500, err, time.Now())
+		return nil, resp
+	}
+
+	// 6. Update session
+	// Cập nhật phiên
+	if err := uc.SessionService.UpdateSession(ctx, userID, deviceID, access_token.Token); err != nil {
+		// Log error but don't fail
+		fmt.Printf("Failed to update session: %v\n", err)
+	}
+
+	// 7. Return response access_token
+	return &w_utils.Token{
+		Token: access_token.Token,
+	}, nil
+}

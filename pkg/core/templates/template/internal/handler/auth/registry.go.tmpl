@@ -1,0 +1,46 @@
+package auth
+
+import (
+	dtoAuth "example_2/internal/dto/auth/request"
+	mapping "example_2/internal/mapping"
+	utils "example_2/internal/utils"
+	"time"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+
+	"github.com/gin-gonic/gin"
+)
+
+func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var data dtoAuth.Register
+
+		// Bind JSON first
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			resq := w_resp.NewErrorResponse(400, err, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+
+		// Then validate
+		err_valid := data.Validate()
+		if err_valid != nil {
+			resq := w_resp.NewErrorResponse(401, err_valid, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return // Added missing return
+		}
+
+		// Fixed: Use the data variable, not an empty struct
+		entity := mapping.FromRegisterToEntityAuth(&data)
+		nameUser := data.Name
+
+		// Register
+		resq := h.UsecaseAuth.Register(c.Request.Context(), entity, nameUser)
+		if resq != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+		w_resp.WriteSuccess(c, "Dang ki thanh cong")
+	}
+}

@@ -1,0 +1,60 @@
+package auth
+
+import (
+	"context"
+	"time"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	entityAuth "{{.ModuleName}}/internal/entity/auth"
+	"{{.ModuleName}}/internal/entity/user"
+)
+
+func (a *AuthUseCase) Register(ctx context.Context, auth *entityAuth.Auth, name string) *w_resp.AppError {
+	err := a.TxManager.WithinTransaction(ctx, func(ctx context.Context) error {
+		// check tài khoản tồn tại
+		authEmail, err := a.AuthReponsitory.GetAuthByEmail(ctx, auth.Email)
+		if authEmail != nil {
+			return ErrorEmailIsExisted
+		}
+		if err != nil {
+			return err
+		}
+		//Hash Password
+		randomString, err := w_utils.RandomStr(16)
+		if err != nil {
+			return err
+		}
+
+		hash, err := a.Hash.GenerateFromPassword(auth.Password, randomString)
+		if err != nil {
+			return err
+		}
+
+		// Tạo User
+		userUid, _ := a.UserUseCase.CreateUser(ctx, &user.User{
+			Email: auth.Email,
+			Name:  name,
+		})
+
+		// Tạo Auth
+		err_auth := a.AuthReponsitory.CreateAuth(ctx, &entityAuth.Auth{
+			Salt:     randomString,
+			Email:    auth.Email,
+			Password: hash,
+			UserId:   userUid,
+		})
+		if err_auth != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		if err == ErrorEmailIsExisted {
+			return w_resp.NewAppError(409, err, time.Now())
+		}
+		return w_resp.NewAppError(500, err, time.Now())
+	}
+
+	return nil
+}

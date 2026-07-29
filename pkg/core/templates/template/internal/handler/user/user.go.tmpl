@@ -1,0 +1,26 @@
+package user
+
+import (
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
+
+	"context"
+	entityUser "{{.ModuleName}}/internal/entity/user"
+)
+
+type IUserUseCase interface {
+	//UsecaseCreateUser(ctx context.Context, user *entityUser.User) (int, *c_response.Response)
+	GetAllUser(ctx context.Context) ([]*entityUser.User, *w_resp.ErrorResponse)
+	GetUserById(ctx context.Context, id int) (*entityUser.User, *w_resp.ErrorResponse)
+}
+type UserHandle struct {
+	Log         *logger.EntityLogger
+	UserUseCase IUserUseCase
+}
+
+func NewUserHandle(userUseCase IUserUseCase, log *logger.EntityLogger) *UserHandle {
+	return &UserHandle{
+		Log:         log,
+		UserUseCase: userUseCase,
+	}
+}

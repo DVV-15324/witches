@@ -1,0 +1,50 @@
+package auth
+
+import (
+	"context"
+	"errors"
+	"gorm.io/gorm"
+	entityAuth "{{.ModuleName}}/internal/entity/auth"
+)
+
+func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*entityAuth.Auth, error) {
+	// 1. Check cache
+	auth, err := r.getAuthFromCacheByEmail(ctx, email)
+	if err == nil && auth != nil {
+		return auth, nil
+	}
+
+	// 2. Query DB
+	var data entityAuth.Auth
+	err = r.db.WithContext(ctx).Where("email = ?", email).First(&data).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+
+	}
+	r.cacheAuth(ctx, &data)
+	return &data, nil
+}
+func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*entityAuth.Auth, error) {
+	// 1. Check cache
+	auth, err := r.getAuthFromCacheByUserID(ctx, userID)
+	if err == nil && auth != nil {
+		return auth, nil
+	} else {
+		// 2. Query DB
+		var data entityAuth.Auth
+		err = r.db.WithContext(ctx).Where("user_id = ?", userID).First(&data).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+
+				return nil, nil
+			}
+			return nil, err
+		}
+		r.cacheAuth(ctx, &data)
+		return &data, nil
+	}
+
+}

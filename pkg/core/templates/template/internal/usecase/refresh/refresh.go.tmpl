@@ -1,0 +1,62 @@
+package refresh
+
+import (
+	"context"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"{{.ModuleName}}/cmd/server/config"
+	entityAuth "{{.ModuleName}}/internal/entity/auth"
+	entityRefresh "{{.ModuleName}}/internal/entity/refresh"
+	entityUser "{{.ModuleName}}/internal/entity/user"
+)
+
+type IRefreshTokenRepository interface {
+	Create(ctx context.Context, token *entityRefresh.RefreshToken) error
+	GetByToken(ctx context.Context, token string) (*entityRefresh.RefreshToken, error)
+	GetActiveByUserID(ctx context.Context, userID uint32) ([]*entityRefresh.RefreshToken, error)
+	Revoke(ctx context.Context, token string, reason string) error
+}
+type IJwt interface {
+	ParseToken(ctx context.Context, tokenStr string) (*w_utils.JwtClaims, error)
+	IssueAccessToken(ctx context.Context, sub string, tid string) (*w_utils.Token, error)
+	IssueRefreshToken(ctx context.Context, sub string, tid string) (*w_utils.Token, error)
+	IssueTokenPair(ctx context.Context, sub string, tid string) (*w_utils.TokenResponse, error)
+}
+
+type IAuthUsecase interface {
+	GetAuthByUserId(ctx context.Context, userId int) (*entityAuth.Auth, *w_resp.AppError)
+	GetAuthByEmail(ctx context.Context, email string) (*entityAuth.Auth, *w_resp.AppError)
+}
+
+type IUserUseCase interface {
+	CreateUser(ctx context.Context, user *entityUser.User) (int, *w_resp.AppError)
+	GetUserById(ctx context.Context, id int) (*entityUser.User, *w_resp.AppError)
+}
+
+type RefreshUseCase struct {
+	Jwt              IJwt
+	AuthUsecase      IAuthUsecase
+	RefreshTokenRepo IRefreshTokenRepository
+	UserUseCase      IUserUseCase
+	SessionService   *u_sesion.SessionService
+	BlacklistService *w_utils.BlacklistService
+	Config           *config.Config
+}
+
+func NewRefreshUseCase(userUseCase IUserUseCase, refreshTokenRepo IRefreshTokenRepository, jwt IJwt, sessionService *w_utils.SessionService,
+	blacklistService *w_utils.BlacklistService, config *config.Config) *RefreshUseCase {
+	return &RefreshUseCase{
+		UserUseCase:      userUseCase,
+		Jwt:              jwt,
+		RefreshTokenRepo: refreshTokenRepo,
+		SessionService:   sessionService,
+		BlacklistService: blacklistService,
+		Config:           config,
+	}
+}
+
+func (r *RefreshUseCase) SetAuthUseCase(authUsecase IAuthUsecase) *RefreshUseCase {
+	return &RefreshUseCase{
+		AuthUsecase: authUsecase,
+	}
+}

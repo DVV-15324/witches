@@ -1,0 +1,19 @@
+package mapping
+
+import (
+	dtoUser "{{.ModuleName}}/internal/dto/user/response"
+
+	entityUser "{{.ModuleName}}/internal/entity/user"
+	utils "{{.ModuleName}}/internal/utils"
+)
+
+func FromEntityToDtoUser(entityUser *entityUser.User) *dtoUser.User {
+	return &dtoUser.User{
+		Id:        utils.NewUID(uint32(entityUser.Id), objectUser).ToBase58(),
+		Name:      entityUser.Name,
+		Role:      entityUser.Role,
+		Email:     entityUser.Email,
+		CreatedAt: entityUser.CreatedAt,
+		UpdatedAt: entityUser.UpdatedAt,
+	}
+}

@@ -1,0 +1,13 @@
+package refresh
+
+import (
+	"context"
+	entityRefresh "{{.ModuleName}}/internal/entity/refresh"
+)
+
+func (r *RefreshTokenRepository) Create(ctx context.Context, token *entityRefresh.RefreshToken) error {
+	if err := r.db.WithContext(ctx).Create(token).Error; err != nil {
+		return err
+	}
+	return r.cacheToken(ctx, token)
+}
