@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	entityAuth "{{.ModuleName}}/internal/entity/auth"
-	"{{.ModuleName}}/internal/entity/user"
+	entityUser "{{.ModuleName}}/internal/entity/user"
 )
 
 func (a *AuthUseCase) Register(ctx context.Context, auth *entityAuth.Auth, name string) *w_resp.AppError {
@@ -32,7 +32,7 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *entityAuth.Auth, name 
 		}
 
 		// Tạo User
-		userUid, _ := a.UserUseCase.CreateUser(ctx, &user.User{
+		userUid, _ := a.UserUseCase.CreateUser(ctx, &entityUser.User{
 			Email: auth.Email,
 			Name:  name,
 		})
