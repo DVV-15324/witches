@@ -2,7 +2,7 @@ package refresh
 
 import (
 	"errors"
-	dtoRefresh "example_2/internal/dto/refresh/request"
+	dtoRefresh "{{.ModuleName}}/internal/dto/refresh/request"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -14,7 +14,7 @@ func (h *RefreshHandle) HandleRefreshToken() func(c *gin.Context) {
 
 		// Bind request
 		if err := c.ShouldBindJSON(&req); err != nil {
-			w_resp.WriteError(c, h.Log, w_resp.NewErrorResponse(400, errors.New("invalid request body"), time.Now()))
+			w_resp.WriteError(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 
