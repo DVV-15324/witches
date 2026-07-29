@@ -3,8 +3,8 @@ package middleware
 import (
 	"context"
 	"errors"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
-	"github.com/DVV-15324/witches/pkg/core/response_logger/logger"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -12,7 +12,7 @@ import (
 )
 
 type UsecaseAuth interface {
-	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.ErrorResponse)
+	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.AppError)
 }
 
 func AuthMiddleware(
@@ -23,7 +23,7 @@ func AuthMiddleware(
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lấy tid từ RequestContext
-		tid := u_ctx.GetTid(c.Request.Context(), utils.ReqKey)
+		tid := w_utils.GetTid(c.Request.Context(), utils.ReqKey)
 		if tid == "" {
 			// Fallback: lấy từ Gin context
 			if val, exists := c.Get("tid"); exists {
@@ -35,7 +35,7 @@ func AuthMiddleware(
 		// Vi: Trích xuất mã Token
 		token, err := utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
 		if err != nil {
-			resp := w_resp.NewErrorResponse(401, err, time.Now())
+			resp := w_resp.NewAppError(401, err, time.Now())
 			w_resp.WriteError(c, log, resp)
 			c.Abort()
 			return
@@ -49,7 +49,7 @@ func AuthMiddleware(
 		// Vi: Kiểm tra blacklist
 		isBlacklisted := blacklistSvc.IsTokenBlacklisted(c.Request.Context(), token)
 		if isBlacklisted {
-			resp := w_resp.NewErrorResponse(401, errors.New("Error: token has been revoked"), time.Now())
+			resp := w_resp.NewAppError(401, errors.New("Error: token has been revoked"), time.Now())
 			w_resp.WriteError(c, log, resp)
 			c.Abort()
 			return
@@ -68,11 +68,11 @@ func AuthMiddleware(
 		// 4.
 		// En: Get userID from claims
 		// Vi: Lấy userID từ claims
-		UID := u_uid.DecodeFromBase58(claims.Subject)
+		UID := utils.DecodeFromBase58(claims.Subject)
 		userID := UID.LocalID
 
 		if userID == 0 {
-			resp := w_resp.NewErrorResponse(401, errors.New("Error: invalid user ID in token"), time.Now())
+			resp := w_resp.NewAppError(401, errors.New("Error: invalid user ID in token"), time.Now())
 			w_resp.WriteError(c, log, resp)
 			c.Abort()
 			return
@@ -81,13 +81,13 @@ func AuthMiddleware(
 		// 5.
 		// En: Get request context
 		// Vi: Lấy request context
-		reqCtx := u_ctx.GetRequestContext(c.Request.Context(), utils.ReqKey)
+		reqCtx := w_utils.GetRequestContext(c.Request.Context(), utils.ReqKey)
 
 		session, err := sessionSvc.ValidateSession(c.Request.Context(), userID, deviceID, token)
 		if err != nil {
 			// Session không hợp lệ → blacklist token để tránh dùng lại
 			blacklistSvc.BlacklistToken(c.Request.Context(), token)
-			resp := w_resp.NewErrorResponse(401, err, time.Now())
+			resp := w_resp.NewAppError(401, err, time.Now())
 			w_resp.WriteError(c, log, resp)
 			c.Abort()
 			return
@@ -101,7 +101,7 @@ func AuthMiddleware(
 		reqCtx.UserAgent = userAgent
 		reqCtx.Locale = locale
 		reqCtx.Timezone = timeZone
-		ctx := u_ctx.SaveRequestContext(c.Request.Context(), reqCtx, utils.ReqKey)
+		ctx := w_utils.SaveRequestContext(c.Request.Context(), reqCtx, utils.ReqKey)
 		c.Request = c.Request.WithContext(ctx)
 
 		//6.1: RBAC kiểm tra role của token
