@@ -2,7 +2,7 @@ package refresh
 
 import (
 	"context"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response_logger"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"{{.ModuleName}}/cmd/server/config"
 	entityAuth "{{.ModuleName}}/internal/entity/auth"
@@ -38,7 +38,7 @@ type RefreshUseCase struct {
 	AuthUsecase      IAuthUsecase
 	RefreshTokenRepo IRefreshTokenRepository
 	UserUseCase      IUserUseCase
-	SessionService   *u_sesion.SessionService
+	SessionService   *w_utils.SessionService
 	BlacklistService *w_utils.BlacklistService
 	Config           *config.Config
 }
