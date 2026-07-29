@@ -10,9 +10,8 @@ var rootCmd = &cobra.Command{
 	Short: "En: Fast and Scalable Golang Backend Vi: Backend Golang nhanh và có khả năng mở rộng",
 	Long: `En: The Witches API is built using Go, designed for a clean architecture and suitable for classic, modern backend development.
 Vi: Witches API được xây dựng bằng Go, được thiết kế để kiến trúc gọn gàng và phù hợp với phát triển backend cổ điển, hiện đại.`,
-	Version: "v1.0.2",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
+	Version: "v1.0.5",
+	Run:     func(cmd *cobra.Command, args []string) {},
 }
 
 func Execute() {
@@ -23,34 +22,18 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	// Scaffold
 	rootCmd.AddCommand(createCmd)
-	createCmd.Flags().StringVar(
-		&db,
-		"db",
-		"",
-		"database type",
-	)
-	createCmd.Flags().StringVarP(
-		&projectType,
-		"type",
-		"t",
-		"",
-		"Project type: access or refresh (required)",
-	)
+
 	rootCmd.AddCommand(installCmd)
 
 	rootCmd.AddCommand(initCmd)
 
 	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(versionCmd)
-
 	rootCmd.AddCommand(databaseCmd)
 
 	rootCmd.AddCommand(migrateCmd)
-
-	databaseCmd.AddCommand(databaseDockerUpCmd)
-	databaseCmd.AddCommand(databaseDockerDownCmd)
 
 	migrateCmd.AddCommand(migrateDropCmd)
 
