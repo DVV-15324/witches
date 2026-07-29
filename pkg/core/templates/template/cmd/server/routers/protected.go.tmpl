@@ -32,8 +32,8 @@ func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleService
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*limiterRate).
 		HeaderParam("Authorization", "Bearer token for authentication", false).
-		Response(200, w_resp.ResponseHandle{}, "Logout successful").
-		Response(401, w_resp.ResponseHandle{}, "Unauthorized").
+		Response(200, w_resp.AppResponse{}, "Logout successful").
+		Response(401, w_resp.AppResponse{}, "Unauthorized").
 		Use(authMW).
 		Handler(services.HandleAuth.HandleLogout()).
 		Build()
@@ -50,8 +50,8 @@ func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleService
 		RateLimit(*limiterRate).
 		HeaderParam("Authorization", "Bearer token for authentication", false).
 		Body(map[string]int{"id": 0}, "User ID").
-		Response(200, w_resp.ResponseHandle{}, "User found").
-		Response(404, w_resp.ResponseHandle{}, "User not found").
+		Response(200, w_resp.AppResponse{}, "User found").
+		Response(404, w_resp.AppResponse{}, "User not found").
 		Use(authMW).
 		Handler(services.HandleUser.HandleGetUserById()).
 		Build()
@@ -67,7 +67,7 @@ func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleService
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		HeaderParam("Authorization", "Bearer token for authentication", false).
 		RateLimit(*limiterRate).
-		Response(200, w_resp.ResponseHandle{}, "Users list").
+		Response(200, w_resp.AppResponse{}, "Users list").
 		Use(authMW).
 		Handler(services.HandleUser.HandleGetAllUser()).
 		Build()
