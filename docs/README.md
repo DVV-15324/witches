@@ -1,5 +1,5 @@
 
-[Tiếng Việt](./README.vi.md) | [English](./README.md)
+[Vietnamese](./README.vi.md) | [English](./README.md)
 
 <div align="center">
 
