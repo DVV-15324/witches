@@ -1,4 +1,5 @@
 [Tiếng Việt](./README.vi.md) | [English](./README.md)
+
 <div align="center">
 
 <img src="../logo/logo.png" alt="Witches Logo" width="250"/>
@@ -6,8 +7,8 @@
 ### Backend Golang Nhanh & Mở Rộng
 
 <p>
-  REST API được xây dựng với <b>Go</b>, thiết kế để tối ưu hiệu năng,
-  Kiến trúc Clean Architecture và phát triển backend hiện đại.
+  REST API được xây dựng với <b>Go</b>, thiết kế để đạt hiệu suất cao,
+  kiến trúc clean architecture và phát triển backend hiện đại.
 </p>
 
 <p>
@@ -15,146 +16,330 @@
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
   <img src="https://img.shields.io/badge/SQL-Database-orange?style=for-the-badge&logo=sql">
   <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
+  <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
 </p>
 
 </div>
 
 ---
 
-## Tính năng
-- Xác thực JWT
-- Tạo tài liệu Swagger tự động
-- Quản lý Migration Database
-- Tiện ích băm (Hash Utilities)
-- Che giấu UID (UID Masking)
-- Kiến trúc Clean Architecture
+## Mục Lục
+
+- [Tính Năng](#tính-năng)
+- [Bắt Đầu Nhanh](#bắt-đầu-nhanh)
+- [Cấu Hình](#cấu-hình)
+- [Cơ Sở Dữ Liệu & Redis](#cơ-sở-dữ-liệu--redis)
+- [Migration](#migration)
+- [Chạy Ứng Dụng](#chạy-ứng-dụng)
+- [Cấu Trúc Dự Án](#cấu-trúc-dự-án)
+- [Clean Architecture](#clean-architecture)
+- [Công Nghệ Sử Dụng](#công-nghệ-sử-dụng)
+- [Các Thực Hành Tốt Nhất](#các-thực-hành-tốt-nhất)
+- [Giấy Phép](#giấy-phép)
 
 ---
 
-# Bắt đầu nhanh
+## Tính Năng
 
-## 1. Khởi tạo dự án
+| Tính Năng | Mô Tả |
+|-----------|-------|
+| **Xác Thực JWT** | Xác thực an toàn dựa trên token với Refresh Token|
+| **Tự Động Tạo Swagger** | Tài liệu API được tạo tự động |
+| **Migration Cơ Sở Dữ Liệu** | Kiểm soát phiên bản cho schema cơ sở dữ liệu |
+| **Tiện Ích Băm** | Băm mật khẩu an toàn |
+| **Che Giấu UID** | Ẩn ID người dùng nhạy cảm |
+| **Clean Architecture** | Cấu trúc mã nguồn có thể mở rộng và bảo trì |
+| **Hỗ Trợ Redis** | Tích hợp sẵn bộ nhớ đệm |
+| **Giới Hạn Tốc Độ** | Bảo vệ API của bạn |
+| **Hỗ Trợ GORM** | ORM mạnh mẽ cho các thao tác cơ sở dữ liệu |
 
-### Cài đặt Witches
+---
+
+## Bắt Đầu Nhanh
+
+### 1. Cài Đặt
+
 ```bash
+# Cài đặt CLI Witches
 go install github.com/DVV-15324/witches@latest
-```
 
-### kiểm tra phiên bản Witches hiện tại
-```bash
+# Kiểm tra cài đặt
 witches version
 ```
 
-### Tạo dự án mới
-```bash
-witches create example --db=mysql --type=access
-```
-
-#### Kết quả: `example/witches.env`
-```env
-APP_PORT=YOUR_PORT_APP
-DB_PASSWORD=YOUR_PASSWORD
-DB_NAME=YOUR_DATABASE
-DB_HOST=DB_HOST
-DB_PORT=YOUR_PORT_APP
-DB_DRIVER=mysql
-```
+### 2. Tạo Dự Án Mới
 
 ```bash
+# Tạo dự án mới
+witches create example
+
+# Di chuyển vào thư mục dự án
 cd example
 ```
 
+#### Đã Tạo: `witches.env`
 
-## 2. Cấu hình Database
-Sửa file `witches.env`:
 ```env
-APP_PORT=3000
-DB_PASSWORD=123
-DB_NAME=test
+# CẤU HÌNH MÁY CHỦ
+
+APP_PORT=8080
+
+
+# CẤU HÌNH CƠ SỞ DỮ LIỆU
+
+DB_DRIVER=%s
+DB_USER=root
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=your_database
+DB_PASSWORD=your_password
+
+
+# CẤU HÌNH REDIS
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+
+# THỜI GIAN HẾT HẠN TOKEN
+
+ACCESS_TOKEN_TTL=900
+REFRESH_TOKEN_TTL=604800
+
+
+# CÀI ĐẶT PHIÊN
+
+SESSION_TTL=604800
+IDLE_TIMEOUT=1800
+
+
+# CÀI ĐẶT DANH SÁCH ĐEN
+
+REVOKED_TTL=300
+
+
+# GIỚI HẠN TỐC ĐỘ
+
+RATE_LIMIT_PERIOD=60
+RATE_LIMIT_MAX=100 
+```
+
+---
+
+## Cấu Hình
+
+### Tham Chiếu Biến Môi Trường
+
+| Biến | Loại | Mô Tả |
+|----------|------|-------------|
+| `APP_PORT` | string | Cổng máy chủ ứng dụng |
+| `APP_ADDRESS` | string | Địa chỉ máy chủ ứng dụng |
+| `DB_DRIVER` | string | Trình điều khiển cơ sở dữ liệu (mysql, postgres, mssql) |
+| `DB_HOST` | string | Máy chủ cơ sở dữ liệu |
+| `DB_PORT` | string | Cổng máy chủ cơ sở dữ liệu |
+| `DB_PASSWORD` | string | Mật khẩu cơ sở dữ liệu |
+| `DB_NAME` | string | Tên cơ sở dữ liệu |
+| `REDIS_HOST` | string | Máy chủ Redis |
+| `REDIS_PORT` | string | Cổng máy chủ Redis |
+| `REDIS_PASSWORD` | string | Mật khẩu Redis |
+| `ACCESS_TOKEN_TTL` | int64 | Thời gian hết hạn access token (giây) |
+| `REFRESH_TOKEN_TTL` | int64 | Thời gian hết hạn refresh token (giây) |
+| `SESSION_TTL` | int64 | Thời gian hết hạn phiên (giây) |
+| `REVOKED_TTL` | int64 | Thời gian tồn tại cache token bị thu hồi (giây) |
+| `IDLE_TIMEOUT` | int64 | Thời gian chờ HTTP không hoạt động (giây) |
+| `RATE_LIMIT_PERIOD` | int64 | Cửa sổ thời gian giới hạn tốc độ (giây) |
+| `RATE_LIMIT_MAX` | int64 | Số yêu cầu tối đa mỗi khoảng thời gian |
+
+### Chỉnh Sửa Cấu Hình
+
+Chỉnh sửa `witches.env` với cài đặt thực tế của bạn:
+
+```env
+# CẤU HÌNH MÁY CHỦ
+
+APP_PORT=8080
+
+
+# CẤU HÌNH CƠ SỞ DỮ LIỆU
+
+DB_DRIVER=mysql
+DB_USER=root
 DB_HOST=localhost
 DB_PORT=3307
-DB_DRIVER=mysql
-```
+DB_NAME=test
+DB_PASSWORD=123
 
-## 3. Khởi động Database
+
+# CẤU HÌNH REDIS
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+
+# THỜI GIAN HẾT HẠN TOKEN
+
+ACCESS_TOKEN_TTL=900
+REFRESH_TOKEN_TTL=604800
+
+
+# CÀI ĐẶT PHIÊN
+
+SESSION_TTL=604800
+IDLE_TIMEOUT=1800
+
+
+# CÀI ĐẶT DANH SÁCH ĐEN
+
+REVOKED_TTL=300
+
+
+# GIỚI HẠN TỐC ĐỘ
+
+RATE_LIMIT_PERIOD=60
+RATE_LIMIT_MAX=100 
+```
+---
+
+## Cơ Sở Dữ Liệu & Redis
+
+### Sử Dụng Cơ Sở Dữ Liệu Hiện Có Của Bạn
+
+> **Hỗ trợ:** MySQL, PostgreSQL, MSSQL
+
 ```bash
-witches database docker-up
+witches database up
 ```
 
-#### Kết quả:
+Lệnh này sẽ:
+- Tự động tạo `DB_URL` cho MySQL và PostgreSQL
+- Nhắc bạn cấu hình thủ công `DB_URL` cho MSSQL
+
+#### Ví dụ Đầu Ra:
+
 ```text
-APP_PORT=3000
-DB_PASSWORD=123
-DB_NAME=test
-DB_HOST=localhost
-DB_PORT=3307
+# CẤU HÌNH CƠ SỞ DỮ LIỆU
 DB_DRIVER=mysql
-DB_URL=mysql://root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=test
+DB_PASSWORD=123
+DB_URL=root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
+
+# CẤU HÌNH REDIS
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
 ```
 
-## 4. Cài đặt dependencies và khởi tạo templates
+---
 
-### Khởi tạo templates
+## Migration
+
+### 1. Khởi Tạo & Cài Đặt Dependencies
+
 ```bash
+# Tạo các mẫu
 witches init
-```
 
-### Cài đặt dependencies
-```bash
+# Cài đặt dependencies
 witches install
 ```
 
-## 5. Chạy Migration
+### 2. Các File Migration
 
-**Tạo file migration:**
+**Up Migration** (`./migrate/migrations/1_init.up.sql`):
+**Down Migration** (`./migrate/migrations/1_init.down.sql`):
 
-**Up migration** (`./migrate/migrations/1_init.up.sql`):
-```sql
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+# Cài đặt dependencies
 
-**Down migration** (`./migrate/migrations/1_init.down.sql`):
-```sql
-DROP TABLE IF EXISTS users;
-```
-
-**Chạy:**
 ```bash
 witches migrate up
 ```
 
-**Rollback:**
-```bash
-witches migrate down
-```
+### 3. Các Lệnh Migration
 
----
-
-## Lệnh Migration
-
-| Lệnh | Mô tả |
-|------|-------|
+| Lệnh | Mô Tả |
+|---------|-------------|
 | `witches migrate up` | Áp dụng 1 migration đang chờ |
-| `witches migrate down` | Rollback 1 migration |
+| `witches migrate down` | Hoàn tác 1 migration |
 | `witches migrate version` | Hiển thị phiên bản migration hiện tại |
-| `witches migrate force <version>` | Gán phiên bản migration |
-| `witches migrate drop` | Xóa tất cả bảng trong database |
+| `witches migrate force <version>` | Buộc đặt phiên bản migration |
+| `witches migrate drop` | Xóa tất cả bảng ⚠️ NGUY HIỂM |
 
-## 6. Chạy ứng dụng
+> **Lưu ý:** Các lệnh migration yêu cầu Docker được cài đặt và đang chạy.
 
-### Chạy thông thường
+---
+
+## Chạy Ứng Dụng
+
 ```bash
+# Khởi động ứng dụng
 witches run
+
+# Máy chủ đang chạy tại: http://localhost:8080
 ```
 
 ---
 
-## Clean Architecture của sự án
+## Cấu Trúc Dự Án
+
+```
+.
+├── cmd/
+│   └── server/              # Điểm vào ứng dụng
+│       ├── config/          # Tải cấu hình
+│       └── routers/         # Định nghĩa route
+├── internal/
+│   ├── dto/                 # Đối tượng truyền dữ liệu
+│   │   ├── auth/
+│   │   │   ├── request/
+│   │   │   └── response/
+│   │   └── user/
+│   │       ├── request/
+│   │       └── response/
+│   ├── entity/              # Thực thể nghiệp vụ
+│   │   ├── auth/
+│   │   └── user/
+│   ├── handler/             # Trình xử lý HTTP
+│   │   ├── auth/
+│   │   └── user/
+│   ├── mapping/             # Ánh xạ DTO ↔ Entity
+│   ├── middleware/          # Middleware HTTP
+│   ├── repository/          # Tầng truy cập dữ liệu
+│   │   ├── auth/
+│   │   └── user/
+│   ├── usecase/             # Logic nghiệp vụ
+│   │   ├── auth/
+│   │   └── user/
+│   └── utils/               # Hàm tiện ích
+├── logs/                    # Log của ứng dụng
+├── migrate/                 # Migration cơ sở dữ liệu
+│   └── migrations/
+├───pkg
+│   └───redis                # Redis client
+└── swagger/                 # Tài liệu Swagger
+
+```
+
+---
+
+## Clean Architecture
+
+Dự án này tuân theo **Clean Architecture** của Robert C. Martin (Uncle Bob).
+
+### Ánh Xạ Tầng
+
+| Thư Mục | Tầng | Trách Nhiệm |
+|-----------|-------|----------------|
+| `internal/entity/` | **Entities** | Quy tắc nghiệp vụ cốt lõi, độc lập với framework |
+| `internal/usecase/` | **Use Cases** | Quy tắc nghiệp vụ cụ thể của ứng dụng |
+| `internal/handler/`<br>`internal/dto/` | **Interface Adapters** | Chuyển đổi dữ liệu giữa tầng bên ngoài và bên trong |
+| `internal/repository/` | **Interface Adapters** | Thao tác cơ sở dữ liệu, lưu trữ dữ liệu |
+| `internal/middleware/` | **Frameworks & Drivers** | Các thành phần phụ thuộc vào framework |
+| `cmd/server/` | **Frameworks & Drivers** | Điểm vào ứng dụng, tiêm phụ thuộc |
+| `pkg/` | **Frameworks & Drivers** | Tiện ích dùng chung (DB, Redis, logging) |
 
 <div align="center">
   <img src="../image/arc.png" alt="Clean Architecture" width="400"/>
@@ -162,104 +347,51 @@ witches run
 
 ---
 
-## Cấu trúc dự án
+## Công Nghệ Sử Dụng
 
-```text
-├───cmd
-│   └───server
-│       ├───config
-│       └───routers
-├───internal
-│   ├───dto
-│   │   ├───auth
-│   │   │   ├───request
-│   │   │   └───response
-│   │   └───user
-│   │       ├───request
-│   │       └───response
-│   ├───entity
-│   │   ├───auth
-│   │   └───user
-│   ├───handler
-│   │   ├───auth
-│   │   └───user
-│   ├───mapping
-│   ├───middleware
-│   ├───repository
-│   │   ├───auth
-│   │   └───user
-│   ├───usecase
-│   │   ├───auth
-│   │   └───user
-│   └───utils
-├───logs
-├───migrate
-│   └───migrations
-└───swagger
-```
+| Thành Phần | Công Nghệ |
+|-----------|------------|
+| **HTTP Framework** | [Gin](https://github.com/gin-gonic/gin) |
+| **ORM** | [GORM](https://gorm.io/) |
+| **Logger** | [Zap](https://github.com/uber-go/zap) |
+| **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
+| **Cache** | [Redis](https://redis.io/) |
+| **Swagger** | [EasyJSON](https://github.com/mailru/easyjson) |
+| **CLI** | [Cobra](https://github.com/spf13/cobra) |
+| **Database** | PostgreSQL / MySQL / MSSQL |
+...
 
+Cảm ơn tất cả các nhà đóng góp mã nguồn mở đã tạo nên những công cụ tuyệt vời này ❤️
 ---
 
-## Kiến trúc Clean Architecture
-
-Dự án được xây dựng dựa trên **Clean Architecture** của Robert C. Martin (Uncle Bob).
-
-### Ánh xạ thư mục với Clean Architecture
-
-| Thư mục | Layer | Vai trò |
-|---------|-------|----------|
-| `internal/entity/` | **Entities** | Chứa các entity và quy tắc nghiệp vụ cốt lõi, không phụ thuộc vào framework hay database. |
-| `internal/usecase/` | **Use Cases** | Chứa các quy tắc nghiệp vụ cụ thể, điều phối luồng xử lý và giao tiếp với repository. |
-| `internal/handler/`<br>`internal/dto/` | **Interface Adapters** | Chuyển đổi dữ liệu giữa bên ngoài và ứng dụng. Handler nhận request, gọi use case và trả response. |
-| `internal/repository/` | **Interface Adapters** | Triển khai repository, chuyển đổi dữ liệu giữa database và entity. |
-| `internal/middleware/` | **Frameworks & Drivers** | Chứa middleware phụ thuộc framework: JWT, CORS, Logging, Recovery,... |
-| `cmd/server/` | **Frameworks & Drivers** | Điểm vào ứng dụng, khởi tạo dependencies, router và start server. |
-| `pkg/` | **Frameworks & Drivers** | Các thành phần chia sẻ: database connection, Redis, logging, utilities. |
-
----
-
-## Hỗ trợ Database
-
-### SQL
-- PostgreSQL
-- MySQL
-- MSSQL
-
-### NoSQL
-- Redis
-
----
-
-## Best Practices
+## Các Thực Hành Tốt Nhất
 
 - Luôn viết cả migration `up` và `down`
-- Test migration trên môi trường dev trước khi chạy production
-- Không sửa migration đã áp dụng - hãy tạo migration mới
-- Backup database trước khi chạy migration trên production
-- Chạy migration độc lập với ứng dụng
+- Kiểm thử migration trong môi trường phát triển trước khi lên production
+- Không bao giờ chỉnh sửa migration đã được áp dụng - hãy tạo migration mới
+- Sao lưu cơ sở dữ liệu trước khi chạy migration trên production
+- Giữ cho migration độc lập với mã nguồn ứng dụng
+- Sử dụng biến môi trường cho cấu hình
 
 ---
 
-## Công nghệ sử dụng
+## Giấy Phép
 
-| Thành phần | Công nghệ |
-|-----------|-----------|
-| HTTP Framework | Gin |
-| Logger | Zap |
-| Migration | Golang-Migrate |
-| Cache | Redis |
-| Swagger | EasyJSON, Cobra |
-| Database | PostgreSQL / MySQL / MSSQL |
+Giấy phép MIT
 
 ---
 
-## License
+## Hỗ Trợ
 
-MIT
+- Mở một [issue](https://github.com/DVV-15324/witches/issues)
 
 ---
 
-## Hỗ trợ
-
-Vui lòng mở issue trên GitHub nếu có câu hỏi hoặc vấn đề cần hỗ trợ.
-```
+<div align="center">
+  <br>
+  <div><b> Mã Nguồn Mở · Phi Lợi Nhuận</b></div>
+  Dự án này hoàn toàn là mã nguồn mở và phi lợi nhuận.<br>
+  Được xây dựng với đam mê cho cộng đồng Go.
+  Được tạo bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  <br><br>
+</div>
