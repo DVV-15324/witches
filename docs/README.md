@@ -84,7 +84,7 @@ cd example
 # SERVER CONFIGURATION
 
 APP_PORT=8080
-
+APP_HOST=localhost
 
 # DATABASE CONFIGURATION
 
@@ -135,7 +135,7 @@ RATE_LIMIT_MAX=100
 | Variable | Type | Description |
 |----------|------|-------------|
 | `APP_PORT` | string | Application server port |
-| `APP_ADDRESS` | string | Application server address |
+| `APP_HOST` | string | Application server host |
 | `DB_DRIVER` | string | Database driver (mysql, postgres, mssql) |
 | `DB_HOST` | string | Database server host |
 | `DB_PORT` | string | Database server port |
@@ -161,7 +161,7 @@ Edit `witches.env` with your actual settings:
 # SERVER CONFIGURATION
 
 APP_PORT=8080
-
+APP_HOST=localhost
 
 # DATABASE CONFIGURATION
 

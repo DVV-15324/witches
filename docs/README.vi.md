@@ -83,7 +83,7 @@ cd example
 # CẤU HÌNH MÁY CHỦ
 
 APP_PORT=8080
-
+APP_HOST=localhost
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
@@ -134,7 +134,7 @@ RATE_LIMIT_MAX=100
 | Biến | Loại | Mô Tả |
 |----------|------|-------------|
 | `APP_PORT` | string | Cổng máy chủ ứng dụng |
-| `APP_ADDRESS` | string | Địa chỉ máy chủ ứng dụng |
+| `APP_HOST` | string | Địa chỉ máy chủ ứng dụng |
 | `DB_DRIVER` | string | Trình điều khiển cơ sở dữ liệu (mysql, postgres, mssql) |
 | `DB_HOST` | string | Máy chủ cơ sở dữ liệu |
 | `DB_PORT` | string | Cổng máy chủ cơ sở dữ liệu |
@@ -159,7 +159,7 @@ Chỉnh sửa `witches.env` với cài đặt thực tế của bạn:
 # CẤU HÌNH MÁY CHỦ
 
 APP_PORT=8080
-
+APP_HOST=localhost
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
