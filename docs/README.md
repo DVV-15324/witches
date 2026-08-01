@@ -269,9 +269,6 @@ witches migrate up
 | `witches migrate version` | Show current migration version |
 | `witches migrate force <version>` | Force set migration version |
 | `witches migrate drop` | Drop all tables ⚠️ DANGEROUS |
-
-> **Note:** Migration commands require Docker to be installed and running.
-
 ---
 
 ## Running the Application

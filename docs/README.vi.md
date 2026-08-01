@@ -268,8 +268,6 @@ witches migrate up
 | `witches migrate force <version>` | Buộc đặt phiên bản migration |
 | `witches migrate drop` | Xóa tất cả bảng ⚠️ NGUY HIỂM |
 
-> **Lưu ý:** Các lệnh migration yêu cầu Docker được cài đặt và đang chạy.
-
 ---
 
 ## Chạy Ứng Dụng
