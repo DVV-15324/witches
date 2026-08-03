@@ -1,0 +1,47 @@
+package repository
+
+import (
+	"context"
+	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	entity{{.NameCap}} "{{.ModuleName}}/internal/{{.FolderName}}/entity"
+)
+
+func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id uint) (*model{{.NameCap}}.{{.NameCap}}, error) {
+	var e entity{{.NameCap}}.{{.NameCap}}
+	err := r.db.WithContext(ctx).First(&e, id).Error
+	model := mapping.FromEntityToModel{{.NameCap}}(&e)
+	return model, err
+}
+
+func (r *{{.NameCap}}Repository) GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*model{{.NameCap}}.{{.NameCap}}, int64, error) {
+	var list []*entity{{.NameCap}}.{{.NameCap}}
+	var total int64
+
+	query := r.db.WithContext(ctx).Model(&entity{{.NameCap}}.{{.NameCap}}{})
+
+	// Search filter
+	if req.Search != "" {
+		search := "%" + req.Search + "%"
+		query = query.Where("id ILIKE", search, search)
+	}
+
+	// Count total
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply sorting
+	sort := req.GetSort("created_at")
+	order := req.GetOrder("desc")
+	query = query.Order(sort + " " + order)
+
+	// Apply pagination
+	if err := query.Scopes(req.GormScope()).Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	//mapping
+	modelsMapping := mapping.FromEntityToModel{{.NameCap}}List(list)
+	return modelsMapping, total, nil
+}

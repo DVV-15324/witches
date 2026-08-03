@@ -1,0 +1,28 @@
+package handler
+
+import (
+	"context"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+
+)
+type I{{.NameCap}}Usecase interface {
+	Create(ctx context.Context, req *model{{.NameCap}}.{{.NameCap}}) (*w_resp.AppError)
+	GetByID(ctx context.Context, id int) (*model{{.NameCap}}.{{.NameCap}}, *w_resp.AppError)
+	GetAll(ctx context.Context) ([]*model{{.NameCap}}.{{.NameCap}}, int64, *w_resp.AppError)
+	Update(ctx context.Context, id int, req *model{{.NameCap}}.{{.NameCap}}) (*w_resp.AppError)
+	Delete(ctx context.Context, id int) *w_resp.AppError
+}
+type {{.NameCap}}Handler struct {
+	Log         *logger.EntityLogger
+	usecase I{{.NameCap}}Usecase
+}
+
+// New{{.NameCap}}Handler - Constructor
+func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.EntityLogger) *{{.NameCap}}Handler {
+	return &{{.NameCap}}Handler{
+	usecase: usecase,
+	Log:         log,
+	}
+}

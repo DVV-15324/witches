@@ -1,0 +1,40 @@
+package handler
+
+import (
+	"time"
+	mapping "{{.ModuleName}}/internal/{{.FolderName}}/mapping"
+	"{{.ModuleName}}/internal/shared/utils"
+	"strconv"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+)
+
+func (h *{{.NameCap}}Handler) GetByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		resq := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		return
+	}
+
+	data, err_get := h.usecase.GetByID(c.Request.Context(), id)
+	if err_get != nil {
+		w_resp.WriteErrorWithLog(c, h.Log, err_get, utils.ReqKey)
+		return
+	}
+	dto := mapping.FromModelToDto{{.NameCap}}(data)
+	w_resp.WriteSuccess(c, dto)
+}
+
+func (h *{{.NameCap}}Handler) GetAll(c *gin.Context) {
+	req := w_utils.PaginationRequest{}
+	data,total, err := h.usecase.GetAll(c.Request.Context())
+	if err != nil {
+		w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
+		return
+	}
+	dto := mapping.FromModelToDto{{.NameCap}}List(data)
+	paginationResp := req.ToPaginationResponse(total)
+	w_resp.WriteSuccessWithPagination(c, dto, &paginationResp)
+}

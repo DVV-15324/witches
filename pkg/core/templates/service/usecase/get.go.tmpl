@@ -1,0 +1,27 @@
+package usecase
+
+import (
+	"context"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"time"
+)
+
+func (u *{{.NameCap}}Usecase) GetByID(ctx context.Context, id int) (*model{{.NameCap}}.{{.NameCap}}, *w_resp.AppError) {
+	e, err := u.repo.GetByID(ctx, id)
+	if err != nil {
+		resp := w_resp.NewAppError(500, err, time.Now())
+		return nil, resp
+	}
+	return e, nil
+}
+
+func (u *{{.NameCap}}Usecase) GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*model{{.NameCap}}.{{.NameCap}}, int64, *w_resp.AppError) {
+	list, total, err := u.repo.GetAll(ctx, req)
+	if err != nil {
+		resp := w_resp.NewAppError(500, err, time.Now())
+		return nil, 0, resp
+	}
+	return list, total, nil
+}

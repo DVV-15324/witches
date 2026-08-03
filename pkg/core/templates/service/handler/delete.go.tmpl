@@ -1,0 +1,25 @@
+package handler
+
+import (
+	"{{.ModuleName}}/internal/shared/utils"
+	"strconv"
+	"time"
+	"github.com/gin-gonic/gin"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+)
+
+func (h *{{.NameCap}}Handler) Delete(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		resq := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		return
+	}
+
+	err_d := h.usecase.Delete(c.Request.Context(), id)
+	if err_d != nil {
+		w_resp.WriteErrorWithLog(c, h.Log, err_d, utils.ReqKey)
+		return
+	}
+    w_resp.WriteSuccess(c, "xoa thanh cong")
+}

@@ -1,0 +1,37 @@
+package handler
+
+import (
+	"strconv"
+	"time"
+	"{{.ModuleName}}/internal/shared/utils"
+	"{{.ModuleName}}/internal/{{.FolderName}}/dto/request"
+	"github.com/gin-gonic/gin"
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+)
+
+func (h *{{.NameCap}}Handler) Update(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		resq := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		return
+	}
+
+	var req request.Update{{.NameCap}}Request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resq := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		return
+	}
+
+
+	model := model{{.NameCap}}.{{.NameCap}}{}
+	resp := h.usecase.Update(c.Request.Context(), id, &model)
+
+	if resp != nil {
+		w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
+		return
+	}
+	w_resp.WriteSuccess(c, "cap nhat thanh cong")
+}

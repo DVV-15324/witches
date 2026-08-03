@@ -1,0 +1,10 @@
+package repository
+
+import (
+	"context"
+	entity{{.NameCap}} "{{.ModuleName}}/internal/{{.FolderName}}/entity"
+)
+
+func (r *{{.NameCap}}Repository) Delete(ctx context.Context, id int) error {
+	return r.db.WithContext(ctx).Delete(&entity{{.NameCap}}.{{.NameCap}}{}, id).Error
+}

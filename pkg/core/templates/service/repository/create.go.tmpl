@@ -1,0 +1,13 @@
+package repository
+
+import (
+	"context"
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
+)
+
+func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *model{{.NameCap}}.{{.NameCap}}) (error) {
+	entity := mapping.FromModelToEntity{{.NameCap}}(e)
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return err
+}

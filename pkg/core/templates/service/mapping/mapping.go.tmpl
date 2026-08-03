@@ -1,0 +1,77 @@
+package mapping
+
+import (
+	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	"{{.ModuleName}}/internal/shared/utils"
+	dto{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}-service/dto/response"
+	entity{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}-service/entity"
+)
+
+// DTO ↔ Model
+
+func FromDtoToModel{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
+	if dto == nil {
+		return nil
+	}
+	return &model{{.NameCap}}.{{.NameCap}}{
+		ID:        int(utils.DecodeFromBase58(dto.ID).LocalID),
+		CreatedAt: dto.CreatedAt,
+		UpdatedAt: dto.UpdatedAt,
+	}
+}
+
+// List DTO → List Model (dùng generic)
+func FromDtoToModel{{.NameCap}}List(dtos []*dto{{.NameCap}}.{{.NameCap}}) []*model{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(dtos, FromDtoToModel{{.NameCap}})
+}
+
+//  Model ↔ Entity
+
+func FromModelToEntity{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *entity{{.NameCap}}.{{.NameCap}} {
+	if model == nil {
+		return nil
+	}
+	return &entity{{.NameCap}}.{{.NameCap}}{
+		ID:        model.ID,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}
+}
+
+// List Model → List Entity (dùng generic)
+func FromModelToEntity{{.NameCap}}List(models []*model{{.NameCap}}.{{.NameCap}}) []*entity{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(models, FromModelToEntity{{.NameCap}})
+}
+
+func FromEntityToModel{{.NameCap}}(entity *entity{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
+	if entity == nil {
+		return nil
+	}
+	return &model{{.NameCap}}.{{.NameCap}}{
+		ID:        entity.ID,
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
+	}
+}
+
+// List Entity → List Model (dùng generic)
+func FromEntityToModel{{.NameCap}}List(entities []*entity{{.NameCap}}.{{.NameCap}}) []*model{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(entities, FromEntityToModel{{.NameCap}})
+}
+
+// List Model → List DTO
+func FromModelToDto{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *dto{{.NameCap}}.{{.NameCap}} {
+	if model == nil {
+		return nil
+	}
+	return &dto{{.NameCap}}.{{.NameCap}}{
+		ID:        utils.NewUID(uint32(model.ID), utils.Object{{.NameCap}}).ToBase58(),
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}
+}
+
+// List Model → List DTO (dùng generic)
+func FromModelToDto{{.NameCap}}List(models []*model{{.NameCap}}.{{.NameCap}}) []*dto{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(models, FromModelToDto{{.NameCap}})
+}
