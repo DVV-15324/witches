@@ -12,96 +12,105 @@ import (
 //go:embed template/cmd/*.tmpl
 //go:embed template/cmd/server/config/*.tmpl
 //go:embed template/cmd/server/routers/*.tmpl
-//go:embed template/internal/dto/auth/request/*.tmpl
-//go:embed template/internal/dto/auth/response/*.tmpl
-//go:embed template/internal/dto/refresh/request/*.tmpl
-//go:embed template/internal/dto/refresh/response/*.tmpl
-//go:embed template/internal/dto/user/request/*.tmpl
-//go:embed template/internal/dto/user/response/*.tmpl
-//go:embed template/internal/entity/auth/*.tmpl
-//go:embed template/internal/entity/refresh/*.tmpl
-//go:embed template/internal/entity/user/*.tmpl
-//go:embed template/internal/handler/auth/*.tmpl
-//go:embed template/internal/handler/refresh/*.tmpl
-//go:embed template/internal/handler/user/*.tmpl
-//go:embed template/internal/mapping/*.tmpl
-//go:embed template/internal/middleware/*.tmpl
-//go:embed template/internal/repository/auth/*.tmpl
-//go:embed template/internal/repository/refresh/*.tmpl
-//go:embed template/internal/repository/user/*.tmpl
-//go:embed template/internal/usecase/auth/*.tmpl
-//go:embed template/internal/usecase/refresh/*.tmpl
-//go:embed template/internal/usecase/user/*.tmpl
-//go:embed template/internal/utils/*.tmpl
-//go:embed template/logs/*.tmpl
+//go:embed template/internal/auth-service/dto/request/*.tmpl
+//go:embed template/internal/auth-service/dto/response/*.tmpl
+//go:embed template/internal/auth-service/entity/*.tmpl
+//go:embed template/internal/auth-service/handler/*.tmpl
+//go:embed template/internal/auth-service/mapping/*.tmpl
+//go:embed template/internal/auth-service/repository/*.tmpl
+//go:embed template/internal/auth-service/usecase/*.tmpl
+//go:embed template/internal/refresh-service/dto/request/*.tmpl
+//go:embed template/internal/refresh-service/dto/response/*.tmpl
+//go:embed template/internal/refresh-service/entity/*.tmpl
+//go:embed template/internal/refresh-service/handler/*.tmpl
+//go:embed template/internal/refresh-service/mapping/*.tmpl
+//go:embed template/internal/refresh-service/repository/*.tmpl
+//go:embed template/internal/refresh-service/usecase/*.tmpl
+
+//go:embed template/internal/user-service/dto/request/*.tmpl
+//go:embed template/internal/user-service/dto/response/*.tmpl
+//go:embed template/internal/user-service/entity/*.tmpl
+//go:embed template/internal/user-service/handler/*.tmpl
+//go:embed template/internal/user-service/mapping/*.tmpl
+//go:embed template/internal/user-service/repository/*.tmpl
+//go:embed template/internal/user-service/usecase/*.tmpl
+//go:embed template/internal/shared/middleware/*.tmpl
+//go:embed template/internal/shared/model/*.tmpl
+//go:embed template/internal/shared/utils/*.tmpl
 //go:embed template/migrate/migrations/*.tmpl
 //go:embed template/pkg/redis/*.tmpl
-var templates embed.FS
+var templateFS embed.FS
 
-type ProjectConfigRefresh struct {
-	ProjectName string
-	ModuleName  string
+type ProjectConfig struct {
+	ModuleName string
 }
 
 func CreateGoArcRefresh(projectName string) {
-	config := ProjectConfigRefresh{
-		ProjectName: projectName,
-		ModuleName:  projectName,
+
+	config := ProjectConfig{
+		ModuleName: projectName,
 	}
 
-	fmt.Printf("Creating project: %s\n", projectName)
-	fmt.Println("Generating structure...")
+	fmt.Printf("Generating project: %s\n", projectName)
+	fmt.Println("Creating structure...")
 
-	if err := createProjectStructureRefresh(config); err != nil {
+	if err := createProjectStructure(config); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Project created successfully!")
 	fmt.Printf("\nNext steps:\n")
+	fmt.Printf("  cd %s\n", projectName)
 	fmt.Printf("  witches install\n")
 	fmt.Printf("  witches run\n")
 }
 
-func createProjectStructureRefresh(config ProjectConfigRefresh) error {
+func createProjectStructure(config ProjectConfig) error {
 	baseDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
 	}
+
+	baseDir = filepath.Join(baseDir)
 
 	// Tạo thư mục project
 	if err := os.MkdirAll(baseDir, 0755); err != nil {
 		return fmt.Errorf("failed to create project directory: %v", err)
 	}
 
-	// Tạo tất cả thư mục cần thiết
+	// Danh sách thư mục cần tạo
 	dirs := []string{
 		"cmd/server/config",
 		"cmd/server/routers",
-		"internal/dto/auth/request",
-		"internal/dto/auth/response",
-		"internal/dto/refresh/request",
-		"internal/dto/refresh/response",
-		"internal/dto/user/request",
-		"internal/dto/user/response",
-		"internal/entity/auth",
-		"internal/entity/refresh",
-		"internal/entity/user",
-		"internal/handler/auth",
-		"internal/handler/refresh",
-		"internal/handler/user",
-		"internal/mapping",
-		"internal/middleware",
-		"internal/repository/auth",
-		"internal/repository/refresh",
-		"internal/repository/user",
-		"internal/usecase/auth",
-		"internal/usecase/refresh",
-		"internal/usecase/user",
-		"internal/utils/ratelimit",
+		"internal/auth-service/dto/request",
+		"internal/auth-service/dto/response",
+		"internal/auth-service/entity",
+		"internal/auth-service/handler",
+		"internal/auth-service/mapping",
+		"internal/auth-service/repository",
+		"internal/auth-service/usecase",
+		"internal/refresh-service/dto/request",
+		"internal/refresh-service/dto/response",
+		"internal/refresh-service/entity",
+		"internal/refresh-service/handler",
+		"internal/refresh-service/mapping",
+		"internal/refresh-service/repository",
+		"internal/refresh-service/usecase",
+		"internal/user-service/dto/request",
+		"internal/user-service/dto/response",
+		"internal/user-service/entity",
+		"internal/user-service/handler",
+		"internal/user-service/mapping",
+		"internal/user-service/repository",
+		"internal/user-service/usecase",
+		"internal/shared/middleware",
+		"internal/shared/model",
+		"internal/shared/utils",
 		"logs",
 		"migrate/migrations",
 		"pkg/redis",
+		"swagger",
 	}
 
 	for _, dir := range dirs {
@@ -113,128 +122,115 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 
 	// Map template files -> destination files
 	files := map[string]string{
-		// ROOT FILES
+		// ROOT
 		"template/main.go.tmpl":   "main.go",
 		"template/README.md.tmpl": "README.md",
 		"template/go.mod.tmpl":    "go.mod",
 
 		// CMD
-		"template/cmd/root.go.tmpl":                     "cmd/root.go",
-		"template/cmd/server/config/config.go.tmpl":     "cmd/server/config/config.go",
-		"template/cmd/server/routers/composer.go.tmpl":  "cmd/server/routers/composer.go",
-		"template/cmd/server/routers/protected.go.tmpl": "cmd/server/routers/protected.go",
-		"template/cmd/server/routers/public.go.tmpl":    "cmd/server/routers/public.go",
-		"template/cmd/server/routers/routers.go.tmpl":   "cmd/server/routers/routers.go",
+		"template/cmd/root.go.tmpl":                     filepath.Join("cmd", "root.go"),
+		"template/cmd/server/config/config.go.tmpl":     filepath.Join("cmd", "server", "config", "config.go"),
+		"template/cmd/server/routers/composer.go.tmpl":  filepath.Join("cmd", "server", "routers", "composer.go"),
+		"template/cmd/server/routers/protected.go.tmpl": filepath.Join("cmd", "server", "routers", "protected.go"),
+		"template/cmd/server/routers/public.go.tmpl":    filepath.Join("cmd", "server", "routers", "public.go"),
+		"template/cmd/server/routers/routers.go.tmpl":   filepath.Join("cmd", "server", "routers", "routers.go"),
 
-		// DTO AUTH REQUEST
-		"template/internal/dto/auth/request/login.go.tmpl":    "internal/dto/auth/request/login.go",
-		"template/internal/dto/auth/request/register.go.tmpl": "internal/dto/auth/request/register.go",
-		"template/internal/dto/auth/request/errors.go.tmpl":   "internal/dto/auth/request/errors.go",
-		"template/internal/dto/auth/request/validate.go.tmpl": "internal/dto/auth/request/validate.go",
-		"template/internal/dto/auth/request/gg.go.tmpl":       "internal/dto/auth/request/gg.go",
+		// AUTH SERVICE - DTO REQUEST
+		"template/internal/auth-service/dto/request/login.go.tmpl":    filepath.Join("internal", "auth-service", "dto", "request", "login.go"),
+		"template/internal/auth-service/dto/request/register.go.tmpl": filepath.Join("internal", "auth-service", "dto", "request", "register.go"),
+		"template/internal/auth-service/dto/request/errors.go.tmpl":   filepath.Join("internal", "auth-service", "dto", "request", "errors.go"),
+		"template/internal/auth-service/dto/request/validate.go.tmpl": filepath.Join("internal", "auth-service", "dto", "request", "validate.go"),
+		"template/internal/auth-service/dto/request/gg.go.tmpl":       filepath.Join("internal", "auth-service", "dto", "request", "gg.go"),
+		// AUTH SERVICE - DTO RESPONSE
+		"template/internal/auth-service/dto/response/auth.go.tmpl": filepath.Join("internal", "auth-service", "dto", "response", "auth.go"),
+		// AUTH SERVICE - ENTITY
+		"template/internal/auth-service/entity/entity.go.tmpl": filepath.Join("internal", "auth-service", "entity", "entity.go"),
+		// AUTH SERVICE - HANDLER
+		"template/internal/auth-service/handler/handler.go.tmpl":  filepath.Join("internal", "auth-service", "handler", "handler.go"),
+		"template/internal/auth-service/handler/login.go.tmpl":    filepath.Join("internal", "auth-service", "handler", "login.go"),
+		"template/internal/auth-service/handler/registry.go.tmpl": filepath.Join("internal", "auth-service", "handler", "registry.go"),
+		"template/internal/auth-service/handler/google.go.tmpl":   filepath.Join("internal", "auth-service", "handler", "google.go"),
+		"template/internal/auth-service/handler/logout.go.tmpl":   filepath.Join("internal", "auth-service", "handler", "logout.go"),
+		// AUTH SERVICE - MAPPING
+		"template/internal/auth-service/mapping/mapping.go.tmpl": filepath.Join("internal", "auth-service", "mapping", "mapping.go"),
+		// AUTH SERVICE - REPOSITORY
+		"template/internal/auth-service/repository/repository.go.tmpl": filepath.Join("internal", "auth-service", "repository", "repository.go"),
+		"template/internal/auth-service/repository/create.go.tmpl":     filepath.Join("internal", "auth-service", "repository", "create.go"),
+		"template/internal/auth-service/repository/get.go.tmpl":        filepath.Join("internal", "auth-service", "repository", "get.go"),
+		"template/internal/auth-service/repository/update.go.tmpl":     filepath.Join("internal", "auth-service", "repository", "update.go"),
+		"template/internal/auth-service/repository/cache.go.tmpl":      filepath.Join("internal", "auth-service", "repository", "cache.go"),
+		"template/internal/auth-service/repository/key.go.tmpl":        filepath.Join("internal", "auth-service", "repository", "key.go"),
+		// AUTH SERVICE - USECASE
+		"template/internal/auth-service/usecase/usecase.go.tmpl":  filepath.Join("internal", "auth-service", "usecase", "usecase.go"),
+		"template/internal/auth-service/usecase/login.go.tmpl":    filepath.Join("internal", "auth-service", "usecase", "login.go"),
+		"template/internal/auth-service/usecase/register.go.tmpl": filepath.Join("internal", "auth-service", "usecase", "register.go"),
+		"template/internal/auth-service/usecase/get.go.tmpl":      filepath.Join("internal", "auth-service", "usecase", "get.go"),
+		"template/internal/auth-service/usecase/google.go.tmpl":   filepath.Join("internal", "auth-service", "usecase", "google.go"),
+		"template/internal/auth-service/usecase/logout.go.tmpl":   filepath.Join("internal", "auth-service", "usecase", "logout.go"),
+		"template/internal/auth-service/usecase/errors.go.tmpl":   filepath.Join("internal", "auth-service", "usecase", "errors.go"),
 
-		// DTO AUTH RESPONSE
-		"template/internal/dto/auth/response/auth.go.tmpl": "internal/dto/auth/response/auth.go",
+		// REFRESH SERVICE - DTO
+		"template/internal/refresh-service/dto/request/request.go.tmpl":   filepath.Join("internal", "refresh-service", "dto", "request", "request.go"),
+		"template/internal/refresh-service/dto/response/response.go.tmpl": filepath.Join("internal", "refresh-service", "dto", "response", "response.go"),
+		// REFRESH SERVICE - ENTITY
+		"template/internal/refresh-service/entity/entity.go.tmpl": filepath.Join("internal", "refresh-service", "entity", "entity.go"),
+		// REFRESH SERVICE - HANDLER
+		"template/internal/refresh-service/handler/handler.go.tmpl":  filepath.Join("internal", "refresh-service", "handler", "handler.go"),
+		"template/internal/refresh-service/handler/re_token.go.tmpl": filepath.Join("internal", "refresh-service", "handler", "re_token.go"),
+		// REFRESH SERVICE - MAPPING
+		"template/internal/refresh-service/mapping/mapping.go.tmpl": filepath.Join("internal", "refresh-service", "mapping", "mapping.go"),
+		// REFRESH SERVICE - REPOSITORY
+		"template/internal/refresh-service/repository/repository.go.tmpl": filepath.Join("internal", "refresh-service", "repository", "repository.go"),
+		"template/internal/refresh-service/repository/create.go.tmpl":     filepath.Join("internal", "refresh-service", "repository", "create.go"),
+		"template/internal/refresh-service/repository/get.go.tmpl":        filepath.Join("internal", "refresh-service", "repository", "get.go"),
+		"template/internal/refresh-service/repository/revoke.go.tmpl":     filepath.Join("internal", "refresh-service", "repository", "revoke.go"),
+		"template/internal/refresh-service/repository/cache.go.tmpl":      filepath.Join("internal", "refresh-service", "repository", "cache.go"),
+		"template/internal/refresh-service/repository/key.go.tmpl":        filepath.Join("internal", "refresh-service", "repository", "key.go"),
+		// REFRESH SERVICE - USECASE
+		"template/internal/refresh-service/usecase/usecase.go.tmpl": filepath.Join("internal", "refresh-service", "usecase", "usecase.go"),
+		"template/internal/refresh-service/usecase/create.go.tmpl":  filepath.Join("internal", "refresh-service", "usecase", "create.go"),
+		"template/internal/refresh-service/usecase/get.go.tmpl":     filepath.Join("internal", "refresh-service", "usecase", "get.go"),
+		"template/internal/refresh-service/usecase/refresh.go.tmpl": filepath.Join("internal", "refresh-service", "usecase", "refresh.go"),
+		"template/internal/refresh-service/usecase/revoke.go.tmpl":  filepath.Join("internal", "refresh-service", "usecase", "revoke.go"),
+		"template/internal/refresh-service/usecase/token.go.tmpl":   filepath.Join("internal", "refresh-service", "usecase", "token.go"),
 
-		// DTO REFRESH REQUEST
-		"template/internal/dto/refresh/request/refresh.go.tmpl": "internal/dto/refresh/request/refresh.go",
+		// USER SERVICE - DTO
+		"template/internal/user-service/dto/request/errors.go.tmpl":    filepath.Join("internal", "user-service", "dto", "request", "errors.go"),
+		"template/internal/user-service/dto/request/validate.go.tmpl":  filepath.Join("internal", "user-service", "dto", "request", "validate.go"),
+		"template/internal/user-service/dto/response/response.go.tmpl": filepath.Join("internal", "user-service", "dto", "response", "response.go"),
+		// USER SERVICE - ENTITY
+		"template/internal/user-service/entity/entity.go.tmpl": filepath.Join("internal", "user-service", "entity", "entity.go"),
+		// USER SERVICE - HANDLER
+		"template/internal/user-service/handler/handler.go.tmpl": filepath.Join("internal", "user-service", "handler", "handler.go"),
+		"template/internal/user-service/handler/get.go.tmpl":     filepath.Join("internal", "user-service", "handler", "get.go"),
+		// USER SERVICE - MAPPING
+		"template/internal/user-service/mapping/mapping.go.tmpl": filepath.Join("internal", "user-service", "mapping", "mapping.go"),
+		// USER SERVICE - REPOSITORY
+		"template/internal/user-service/repository/repository.go.tmpl": filepath.Join("internal", "user-service", "repository", "repository.go"),
+		"template/internal/user-service/repository/create.go.tmpl":     filepath.Join("internal", "user-service", "repository", "create.go"),
+		"template/internal/user-service/repository/get.go.tmpl":        filepath.Join("internal", "user-service", "repository", "get.go"),
+		// USER SERVICE - USECASE
+		"template/internal/user-service/usecase/usecase.go.tmpl": filepath.Join("internal", "user-service", "usecase", "usecase.go"),
+		"template/internal/user-service/usecase/create.go.tmpl":  filepath.Join("internal", "user-service", "usecase", "create.go"),
+		"template/internal/user-service/usecase/get.go.tmpl":     filepath.Join("internal", "user-service", "usecase", "get.go"),
 
-		// DTO REFRESH RESPONSE
-		"template/internal/dto/refresh/response/refresh.go.tmpl": "internal/dto/refresh/response/refresh.go",
-
-		// DTO USER REQUEST
-		"template/internal/dto/user/request/errors.go.tmpl":   "internal/dto/user/request/errors.go",
-		"template/internal/dto/user/request/validate.go.tmpl": "internal/dto/user/request/validate.go",
-
-		// DTO USER RESPONSE
-		"template/internal/dto/user/response/user.go.tmpl": "internal/dto/user/response/user.go",
-
-		// ENTITY AUTH
-		"template/internal/entity/auth/auth.go.tmpl":        "internal/entity/auth/auth.go",
-		"template/internal/entity/auth/auth_google.go.tmpl": "internal/entity/auth/auth_google.go",
-
-		// ENTITY REFRESH
-		"template/internal/entity/refresh/refesh_token.go.tmpl": "internal/entity/refresh/refesh_token.go",
-
-		// ENTITY USER
-		"template/internal/entity/user/user.go.tmpl": "internal/entity/user/user.go",
-
-		// HANDLER AUTH
-		"template/internal/handler/auth/auth.go.tmpl":     "internal/handler/auth/auth.go",
-		"template/internal/handler/auth/login.go.tmpl":    "internal/handler/auth/login.go",
-		"template/internal/handler/auth/registry.go.tmpl": "internal/handler/auth/registry.go",
-		"template/internal/handler/auth/google.go.tmpl":   "internal/handler/auth/google.go",
-		"template/internal/handler/auth/logout.go.tmpl":   "internal/handler/auth/logout.go",
-
-		// HANDLER REFRESH
-		"template/internal/handler/refresh/refresh.go.tmpl":  "internal/handler/refresh/refresh.go",
-		"template/internal/handler/refresh/re_token.go.tmpl": "internal/handler/refresh/re_token.go",
-
-		// HANDLER USER
-		"template/internal/handler/user/get.go.tmpl":  "internal/handler/user/get.go",
-		"template/internal/handler/user/user.go.tmpl": "internal/handler/user/user.go",
-
-		// MAPPING
-		"template/internal/mapping/auth.go.tmpl": "internal/mapping/auth.go",
-		"template/internal/mapping/key.go.tmpl":  "internal/mapping/key.go",
-		"template/internal/mapping/user.go.tmpl": "internal/mapping/user.go",
-
-		// MIDDLEWARE
-		"template/internal/middleware/cors.go.tmpl":       "internal/middleware/cors.go",
-		"template/internal/middleware/middleware.go.tmpl": "internal/middleware/middleware.go",
-		"template/internal/middleware/limit.go.tmpl":      "internal/middleware/limit.go",
-		"template/internal/middleware/timing.go.tmpl":     "internal/middleware/timing.go",
-
-		// REPOSITORY AUTH
-		"template/internal/repository/auth/auth_repo.go.tmpl":   "internal/repository/auth/auth_repo.go",
-		"template/internal/repository/auth/db_create.go.tmpl":   "internal/repository/auth/db_create.go",
-		"template/internal/repository/auth/db_get.go.tmpl":      "internal/repository/auth/db_get.go",
-		"template/internal/repository/auth/db_update.go.tmpl":   "internal/repository/auth/db_update.go",
-		"template/internal/repository/auth/redis_cache.go.tmpl": "internal/repository/auth/redis_cache.go",
-		"template/internal/repository/auth/redis_key.go.tmpl":   "internal/repository/auth/redis_key.go",
-
-		// REPOSITORY REFRESH
-		"template/internal/repository/refresh/db_create.go.tmpl":    "internal/repository/refresh/db_create.go",
-		"template/internal/repository/refresh/db_get.go.tmpl":       "internal/repository/refresh/db_get.go",
-		"template/internal/repository/refresh/db_revoke.go.tmpl":    "internal/repository/refresh/db_revoke.go",
-		"template/internal/repository/refresh/redis_cache.go.tmpl":  "internal/repository/refresh/redis_cache.go",
-		"template/internal/repository/refresh/redis_key.go.tmpl":    "internal/repository/refresh/redis_key.go",
-		"template/internal/repository/refresh/refresh_repo.go.tmpl": "internal/repository/refresh/refresh_repo.go",
-
-		// REPOSITORY USER
-		"template/internal/repository/user/db_create.go.tmpl": "internal/repository/user/db_create.go",
-		"template/internal/repository/user/db_get.go.tmpl":    "internal/repository/user/db_get.go",
-		"template/internal/repository/user/user_repo.go.tmpl": "internal/repository/user/user_repo.go",
-
-		// USECASE AUTH
-		"template/internal/usecase/auth/auth.go.tmpl":     "internal/usecase/auth/auth.go",
-		"template/internal/usecase/auth/errors.go.tmpl":   "internal/usecase/auth/errors.go",
-		"template/internal/usecase/auth/login.go.tmpl":    "internal/usecase/auth/login.go",
-		"template/internal/usecase/auth/register.go.tmpl": "internal/usecase/auth/register.go",
-		"template/internal/usecase/auth/get.go.tmpl":      "internal/usecase/auth/get.go",
-		"template/internal/usecase/auth/google.go.tmpl":   "internal/usecase/auth/google.go",
-		"template/internal/usecase/auth/logout.go.tmpl":   "internal/usecase/auth/logout.go",
-
-		// USECASE REFRESH
-		"template/internal/usecase/refresh/create.go.tmpl":        "internal/usecase/refresh/create.go",
-		"template/internal/usecase/refresh/get.go.tmpl":           "internal/usecase/refresh/get.go",
-		"template/internal/usecase/refresh/refresh.go.tmpl":       "internal/usecase/refresh/refresh.go",
-		"template/internal/usecase/refresh/refresh_token.go.tmpl": "internal/usecase/refresh/refresh_token.go",
-		"template/internal/usecase/refresh/revoke.go.tmpl":        "internal/usecase/refresh/revoke.go",
-		"template/internal/usecase/refresh/token.go.tmpl":         "internal/usecase/refresh/token.go",
-
-		// USECASE USER
-		"template/internal/usecase/user/create.go.tmpl": "internal/usecase/user/create.go",
-		"template/internal/usecase/user/get.go.tmpl":    "internal/usecase/user/get.go",
-		"template/internal/usecase/user/user.go.tmpl":   "internal/usecase/user/user.go",
-
-		// UTILS
-		"template/internal/utils/key_req.go.tmpl": "internal/utils/key_req.go",
-		"template/internal/utils/helper.go.tmpl":  "internal/utils/helper.go",
-		"template/internal/utils/uid.go.tmpl":     "internal/utils/uid.go",
+		// SHARED - MIDDLEWARE
+		"template/internal/shared/middleware/cors.go.tmpl":       filepath.Join("internal", "shared", "middleware", "cors.go"),
+		"template/internal/shared/middleware/limit.go.tmpl":      filepath.Join("internal", "shared", "middleware", "limit.go"),
+		"template/internal/shared/middleware/middleware.go.tmpl": filepath.Join("internal", "shared", "middleware", "middleware.go"),
+		"template/internal/shared/middleware/timing.go.tmpl":     filepath.Join("internal", "shared", "middleware", "timing.go"),
+		// SHARED - MODEL
+		"template/internal/shared/model/auth.go.tmpl":    filepath.Join("internal", "shared", "model", "auth.go"),
+		"template/internal/shared/model/refresh.go.tmpl": filepath.Join("internal", "shared", "model", "refresh.go"),
+		"template/internal/shared/model/user.go.tmpl":    filepath.Join("internal", "shared", "model", "user.go"),
+		// SHARED - UTILS
+		"template/internal/shared/utils/helper.go.tmpl":     filepath.Join("internal", "shared", "utils", "helper.go"),
+		"template/internal/shared/utils/key_object.go.tmpl": filepath.Join("internal", "shared", "utils", "key_object.go"),
+		"template/internal/shared/utils/key_req.go.tmpl":    filepath.Join("internal", "shared", "utils", "key_req.go"),
+		"template/internal/shared/utils/mapping.go.tmpl":    filepath.Join("internal", "shared", "utils", "mapping.go"),
+		"template/internal/shared/utils/uid.go.tmpl":        filepath.Join("internal", "shared", "utils", "uid.go"),
 
 		// LOGS
-		"template/logs/logs.log.tmpl": "logs/logs.log",
 
 		// MIGRATIONS
 		"template/migrate/migrations/1_create_table.up.sql.tmpl": "migrate/migrations/1_create_table.up.sql",
@@ -245,7 +241,7 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 	}
 
 	for tmpl, dest := range files {
-		if err := renderTemplateRefresh(baseDir, dest, tmpl, config); err != nil {
+		if err := renderTemplate(baseDir, dest, tmpl, config); err != nil {
 			return fmt.Errorf("failed to render %s: %v", dest, err)
 		}
 	}
@@ -253,9 +249,8 @@ func createProjectStructureRefresh(config ProjectConfigRefresh) error {
 	return nil
 }
 
-func renderTemplateRefresh(baseDir, destFile, tmplFile string, config ProjectConfigRefresh) error {
-	// Đọc template từ embed
-	tmplContent, err := templates.ReadFile(tmplFile)
+func renderTemplate(baseDir, destFile, tmplFile string, config ProjectConfig) error {
+	tmplContent, err := templateFS.ReadFile(tmplFile)
 	if err != nil {
 		return fmt.Errorf("failed to read template %s: %v", tmplFile, err)
 	}
@@ -265,10 +260,8 @@ func renderTemplateRefresh(baseDir, destFile, tmplFile string, config ProjectCon
 		return fmt.Errorf("failed to parse template %s: %v", tmplFile, err)
 	}
 
-	// Tạo file đích
 	fullPath := filepath.Join(baseDir, destFile)
 
-	// Tạo thư mục cha nếu chưa tồn tại
 	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for %s: %v", fullPath, err)
 	}
@@ -279,6 +272,5 @@ func renderTemplateRefresh(baseDir, destFile, tmplFile string, config ProjectCon
 	}
 	defer file.Close()
 
-	// Render template
 	return tmpl.Execute(file, config)
 }
