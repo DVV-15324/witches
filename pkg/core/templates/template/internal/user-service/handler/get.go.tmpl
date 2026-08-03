@@ -1,0 +1,49 @@
+package handler
+
+import (
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+	"time"
+	utils "{{.ModuleName}}/internal/shared/utils"
+	dtoUser "{{.ModuleName}}/internal/user-service/dto/response"
+	mapping "{{.ModuleName}}/internal/user-service/mapping"
+)
+
+func (h *UserHandle) HandleGetAllUser() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		req := w_utils.PaginationRequest{}
+		// Bind JSON first
+		err := c.ShouldBindQuery(&req)
+		if err != nil {
+			resq := w_resp.NewAppError(400, err, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+		user, total, resp := h.UserUseCase.GetAllUser(c, &req)
+		if resp != nil {
+			w_resp.WriteError(c, h.Log, resp)
+			return
+		}
+		//Chuyển user từ entity -> dto
+		dto := mapping.FromModelToDtoUserList(user)
+		paginationResp := req.ToPaginationResponse(total)
+		w_resp.WriteSuccessWithPagination(c, dto, &paginationResp)
+	}
+}
+
+func (h *UserHandle) HandleGetUserById() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		//uid := shared.DecodeFromBase58(id)
+		id := w_utils.GetRequestContext(c.Request.Context(), utils.ReqKey).Sub
+		uid := utils.DecodeFromBase58(id)
+		user, resp := h.UserUseCase.GetUserById(c, int(uid.LocalID))
+		if resp != nil {
+			w_resp.WriteError(c, h.Log, resp)
+			return
+		}
+		dto := &dtoUser.User{}
+		dto = mapping.FromModelToDtoUser(user)
+		w_resp.WriteSuccess(c, dto)
+	}
+}

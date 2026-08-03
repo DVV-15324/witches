@@ -1,0 +1,27 @@
+package cmd
+
+import (
+	"context"
+	"fmt"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
+	"{{.ModuleName}}/cmd/server/config"
+	routes "{{.ModuleName}}/cmd/server/routers"
+)
+
+var root = &cobra.Command{
+	Use:   "root",
+	Short: "En: Start the software | Vi: Bắt đầu khởi động phần mềm",
+	Run: func(cmd *cobra.Command, args []string) {
+		r := gin.Default()
+		config := config.Load()
+		host := fmt.Sprintf("%s:%s", config.Host, config.Port)
+		routes.Start(r, host, config)
+		w_utils.ShutdownServer(context.Background(), r, config.Host, config.Port)
+	},
+}
+
+func GetExcute() *cobra.Command {
+	return root
+}

@@ -1,0 +1,50 @@
+package mapping
+
+import (
+	dtoAuth "{{.ModuleName}}/internal/auth-service/dto/request"
+	entityAuth "{{.ModuleName}}/internal/auth-service/entity"
+	modelAuth "{{.ModuleName}}/internal/shared/model"
+)
+
+func FromRegisterToModelAuth(dtoAuth *dtoAuth.Register) *modelAuth.Auth {
+	return &modelAuth.Auth{
+		Email:    dtoAuth.Email,
+		Password: dtoAuth.Password,
+	}
+}
+
+func FromLoginToModelAuth(dtoAuth *dtoAuth.Login) *modelAuth.Auth {
+	return &modelAuth.Auth{
+		Email:    dtoAuth.Email,
+		Password: dtoAuth.Password,
+	}
+}
+
+func FromModelToEntityAuth(model *modelAuth.Auth) *entityAuth.Auth {
+	return &entityAuth.Auth{
+		Id:        model.Id,
+		Email:     model.Email,
+		UserId:    model.UserId,
+		Password:  model.Password,
+		Salt:      model.Salt,
+		Banned:    model.Banned,
+		AuthType:  model.AuthType,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}
+}
+
+// Model → Entity
+func FromEntityToModelAuth(entity *entityAuth.Auth) *modelAuth.Auth {
+	return &modelAuth.Auth{
+		Id:        entity.Id,
+		Email:     entity.Email,
+		UserId:    entity.UserId,
+		Password:  entity.Password,
+		Salt:      entity.Salt,
+		Banned:    entity.Banned,
+		AuthType:  entity.AuthType,
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
+	}
+}

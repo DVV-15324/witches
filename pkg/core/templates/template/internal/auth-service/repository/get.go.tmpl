@@ -1,0 +1,57 @@
+package repository
+
+import (
+	"context"
+	"errors"
+	entityAuth "{{.ModuleName}}/internal/auth-service/entity"
+	"{{.ModuleName}}/internal/auth-service/mapping"
+	modelAuth "{{.ModuleName}}/internal/shared/model"
+
+	"gorm.io/gorm"
+)
+
+func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, error) {
+	// 1. Check cache
+	auth, err := r.getAuthFromCacheByEmail(ctx, email)
+	if err == nil && auth != nil {
+		modelA := mapping.FromEntityToModelAuth(auth)
+		return modelA, nil
+	}
+
+	// 2. Query DB
+	var data entityAuth.Auth
+	err = r.db.WithContext(ctx).Where("email = ?", email).First(&data).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+
+	}
+	r.cacheAuth(ctx, &data)
+	modelA := mapping.FromEntityToModelAuth(&data)
+	return modelA, nil
+}
+func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*modelAuth.Auth, error) {
+	// 1. Check cache
+	auth, err := r.getAuthFromCacheByUserID(ctx, userID)
+	if err == nil && auth != nil {
+		modelA := mapping.FromEntityToModelAuth(auth)
+		return modelA, nil
+	} else {
+		// 2. Query DB
+		var data entityAuth.Auth
+		err = r.db.WithContext(ctx).Where("user_id = ?", userID).First(&data).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+
+				return nil, nil
+			}
+			return nil, err
+		}
+		r.cacheAuth(ctx, &data)
+		modelA := mapping.FromEntityToModelAuth(&data)
+		return modelA, nil
+	}
+
+}

@@ -1,0 +1,45 @@
+package handler
+
+import (
+	"time"
+	dtoAuth "{{.ModuleName}}/internal/auth-service/dto/request"
+	mapping "{{.ModuleName}}/internal/auth-service/mapping"
+	utils "{{.ModuleName}}/internal/shared/utils"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+)
+
+func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var data dtoAuth.Login
+
+		// Bind JSON first
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			resq := w_resp.NewAppError(400, err, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+
+		// Then validate
+		err_valid := data.Validate()
+		if err_valid != nil {
+			resq := w_resp.NewAppError(401, err_valid, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+
+		entity := mapping.FromLoginToModelAuth(&data)
+
+		// Use utils to get device info
+		deviceID, ipAddress, userAgent, locale, timeZone := utils.GetDeviceInfo(c)
+
+		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), entity, deviceID, ipAddress, userAgent, locale, timeZone)
+		if resq != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+		w_resp.WriteSuccess(c, claims)
+	}
+}

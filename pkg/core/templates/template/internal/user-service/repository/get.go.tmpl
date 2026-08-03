@@ -1,0 +1,58 @@
+package repository
+
+import (
+	"context"
+	"errors"
+	modelUser "{{.ModuleName}}/internal/shared/model"
+	entityUser "{{.ModuleName}}/internal/user-service/entity"
+	mapping "{{.ModuleName}}/internal/user-service/mapping"
+
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+
+	"gorm.io/gorm"
+)
+
+func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*modelUser.User, int64, error) {
+	var users []*entityUser.User
+	var total int64
+
+	query := u.db.WithContext(ctx).Model(&entityUser.User{})
+
+	// Search filter
+	if req.Search != "" {
+		search := "%" + req.Search + "%"
+		query = query.Where("name ILIKE ? OR email ILIKE ?", search, search)
+	}
+
+	// Count total
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply sorting
+	sort := req.GetSort("created_at")
+	order := req.GetOrder("desc")
+	query = query.Order(sort + " " + order)
+
+	// Apply pagination
+	if err := query.Scopes(req.GormScope()).Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+	//mapping
+	modelsMapping := mapping.FromEntityToModelUserList(users)
+	return modelsMapping, total, nil
+}
+
+func (u *UserRepository) GetUserById(ctx context.Context, id int) (*modelUser.User, error) {
+	var data entityUser.User
+
+	err := u.db.WithContext(ctx).First(&data, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	modelU := mapping.FromEntityToModelUser(&data)
+	return modelU, nil
+}
