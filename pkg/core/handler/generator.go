@@ -108,18 +108,6 @@ func (g *SwaggerGenerator) AddBearerAuthWithDescription(name, description string
 	}
 }
 
-// AddSecurityDefinition thêm định nghĩa security
-func (g *SwaggerGenerator) AddSecurityDefinition(name string, scheme SecurityScheme) {
-	g.doc.SecurityDefinitions[name] = scheme
-}
-
-// SetGlobalSecurity thiết lập security mặc định cho tất cả routes
-func (g *SwaggerGenerator) SetGlobalSecurity(name string, scopes ...string) {
-	security := make(SecurityRequirement)
-	security[name] = scopes
-	g.globalSecurity = append(g.globalSecurity, security)
-}
-
 // AddTag thêm tag để nhóm routes
 func (g *SwaggerGenerator) AddTag(name, description string) {
 	g.doc.Tags = append(g.doc.Tags, Tag{Name: name, Description: description})
