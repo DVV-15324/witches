@@ -3,12 +3,12 @@ package middleware
 import (
 	"context"
 	"errors"
+	utils "{{.ModuleName}}/internal/shared/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"time"
-	utils "{{.ModuleName}}/internal/shared/utils"
 )
 
 type UsecaseAuth interface {
@@ -36,7 +36,7 @@ func AuthMiddleware(
 		token, err := utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
 		if err != nil {
 			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteError(c, log, resp)
+			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
 			c.Abort()
 			return
 		}
@@ -50,7 +50,7 @@ func AuthMiddleware(
 		isBlacklisted := blacklistSvc.IsTokenBlacklisted(c.Request.Context(), token)
 		if isBlacklisted {
 			resp := w_resp.NewAppError(401, errors.New("Error: token has been revoked"), time.Now())
-			w_resp.WriteError(c, log, resp)
+			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
 			c.Abort()
 			return
 		}
@@ -60,7 +60,7 @@ func AuthMiddleware(
 		// Vi: Xác thực access token
 		claims, errResp := usecaseAuth.IntrospectToken(c.Request.Context(), token)
 		if errResp != nil {
-			w_resp.WriteError(c, log, errResp)
+			w_resp.WriteErrorWithLog(c, log, errResp, utils.ReqKey)
 			c.Abort()
 			return
 		}
@@ -73,7 +73,7 @@ func AuthMiddleware(
 
 		if userID == 0 {
 			resp := w_resp.NewAppError(401, errors.New("Error: invalid user ID in token"), time.Now())
-			w_resp.WriteError(c, log, resp)
+			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
 			c.Abort()
 			return
 		}
@@ -88,7 +88,7 @@ func AuthMiddleware(
 			// Session không hợp lệ → blacklist token để tránh dùng lại
 			blacklistSvc.BlacklistToken(c.Request.Context(), token)
 			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteError(c, log, resp)
+			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
 			c.Abort()
 			return
 		}
