@@ -1,19 +1,24 @@
 package handler
 
 import (
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"errors"
 	dtoAuth "{{.ModuleName}}/internal/auth-service/dto/request"
 	helper "{{.ModuleName}}/internal/shared/utils"
+	utils "{{.ModuleName}}/internal/shared/utils"
+
+	"time"
+
+	w_easyjson "github.com/DVV-15324/witches/pkg/core/easyjson"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
 )
 
 func (h *AuthHandle) HandleGoogleLogin() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var req dtoAuth.GoogleLoginRequest
 
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		if err := w_easyjson.BindJSON(c, &req); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
 			return
 		}
 
@@ -31,7 +36,7 @@ func (h *AuthHandle) HandleGoogleLogin() func(c *gin.Context) {
 		)
 
 		if err != nil {
-			w_resp.WriteError(c, h.Log, err)
+			w_resp.WriteError(c, err)
 			return
 		}
 		w_resp.WriteSuccess(c, token)
