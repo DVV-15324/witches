@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	h_w "github.com/DVV-15324/witches/pkg/core/handle_swagger"
+	utils "github.com/DVV-15324/witches/pkg/core/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,10 +17,11 @@ func TestHttpShutDown(t *testing.T) {
 		w.Write([]byte("hello world"))
 	})
 
-	h_w.ShadownServer(
+	utils.ShutdownServer(
 		context.Background(),
 		mux,
-		8080,
+		"localhost",
+		"8080",
 	)
 }
 
@@ -28,14 +29,13 @@ func TestGin(t *testing.T) {
 	r := gin.Default()
 
 	r.GET("/hello", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "hello gin",
-		})
+		c.String(200, "hello gin")
 	})
 
-	h_w.ShadownServer(
+	utils.ShutdownServer(
 		context.Background(),
 		r,
-		8080,
+		"localhost",
+		"8080",
 	)
 }
