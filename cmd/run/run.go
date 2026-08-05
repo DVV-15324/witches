@@ -13,9 +13,8 @@ import (
 
 // WitchesRun - Runs the application with auto-generate easyjson
 func WitchesRun() {
-	// Gen easyjson cho request và response
-	GeneratorEasyJsonRequest()
-	GeneratorEasyJsonResponse()
+	// Gen easyjson cho tất cả DTO trong project
+	generateEasyJSONForAllDTOs()
 
 	// Start executing
 	cmd := exec.Command("go", "run", ".")
@@ -27,61 +26,68 @@ func WitchesRun() {
 	}
 }
 
-// GeneratorEasyJsonRequest - Gen easyjson cho DTO request
-func GeneratorEasyJsonRequest() {
+// generateEasyJSONForAllDTOs - Gen easyjson cho tất cả DTO trong internal/*/dto
+func generateEasyJSONForAllDTOs() {
 	rootDir := findProjectRoot()
 	if rootDir == "" {
 		fmt.Println("Cannot find project root")
 		return
 	}
 
-	inputDir := filepath.Join(rootDir, "internal", "dto", "request")
-	outputDir := inputDir
-
-	// Xóa tất cả file *_easyjson.go cũ
-	removeEasyJSONFiles(outputDir)
-
-	fset := token.NewFileSet()
-	err := easyjson.GeneratorEasyJson(fset, inputDir, outputDir)
+	// Tìm tất cả thư mục dto
+	var dtoDirs []string
+	err := filepath.Walk(filepath.Join(rootDir, "internal"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() && filepath.Base(path) == "dto" {
+			dtoDirs = append(dtoDirs, path)
+			fmt.Printf("  Found DTO folder: %s\n", path)
+		}
+		return nil
+	})
 	if err != nil {
-		fmt.Printf("Warn: %v\n", err)
+		fmt.Printf("Error walking: %v\n", err)
+		return
 	}
-	// Kiểm tra file gen
-	files, _ := filepath.Glob(filepath.Join(outputDir, "*_easyjson.go")) //Glob => Chỉ tìm 1 cấp (*.go) trong khi filepath.Walk Tìm tất cả cấp (**/*.go) => Glob trường hợp này tìm trong 1 folder nên Glop tạm
-	if len(files) > 0 {
-		fmt.Printf("Generated request easyjson: %d file(s)\n", len(files))
-	} else {
-		fmt.Println("No file go request generated")
+
+	if len(dtoDirs) == 0 {
+		fmt.Println("No DTO folders found")
+		return
+	}
+
+	// Gen cho từng DTO folder
+	for _, dtoDir := range dtoDirs {
+		// Gen cho request và response
+		requestDir := filepath.Join(dtoDir, "request")
+		responseDir := filepath.Join(dtoDir, "response")
+
+		if _, err := os.Stat(requestDir); err == nil {
+			generateEasyJSONForDir(requestDir, "request")
+		}
+		if _, err := os.Stat(responseDir); err == nil {
+			generateEasyJSONForDir(responseDir, "response")
+		}
 	}
 }
 
-// GeneratorEasyJsonResponse - Gen easyjson cho DTO response
-func GeneratorEasyJsonResponse() {
-	rootDir := findProjectRoot()
-	if rootDir == "" {
-		fmt.Println("Cannot find project root")
-		return
-	}
-
-	inputDir := filepath.Join(rootDir, "internal", "dto", "response")
-	outputDir := inputDir
-
-	// Xóa tất cả file *_easyjson.go cũ
-	removeEasyJSONFiles(outputDir)
+// generateEasyJSONForDir - Gen easyjson cho 1 thư mục
+func generateEasyJSONForDir(dir, name string) {
+	// Xóa file gen cũ
+	removeEasyJSONFiles(dir)
 
 	fset := token.NewFileSet()
-	err := easyjson.GeneratorEasyJson(fset, inputDir, outputDir)
-
+	err := easyjson.GeneratorEasyJson(fset, dir, dir)
 	if err != nil {
-		fmt.Printf("Warn: %v\n", err)
+		fmt.Printf("%s error: %v\n", name, err)
 	}
 
 	// Kiểm tra file gen
-	files, _ := filepath.Glob(filepath.Join(outputDir, "*_easyjson.go")) //Glob => Chỉ tìm 1 cấp (*.go) trong khi filepath.Walk Tìm tất cả cấp (**/*.go) => Glob trường hợp này tìm trong 1 folder nên Glop tạm
+	files, _ := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
 	if len(files) > 0 {
-		fmt.Printf("Generated response easyjson: %d file(s)\n", len(files))
+		fmt.Printf("Generated %s easyjson: %d file(s)\n", name, len(files))
 	} else {
-		fmt.Println("No file go response generated")
+		fmt.Printf("No %s_easyjson.go generated\n", name)
 	}
 }
 
@@ -108,13 +114,13 @@ func findProjectRoot() string {
 
 // removeEasyJSONFiles - Xóa tất cả file *_easyjson.go trong thư mục
 func removeEasyJSONFiles(dir string) {
-	files, err := filepath.Glob(filepath.Join(dir, "*_easyjson.go")) //Glob => Chỉ tìm 1 cấp (*.go) trong khi filepath.Walk Tìm tất cả cấp (**/*.go) => Glob trường hợp này tìm trong 1 folder nên Glop tạm
+	files, err := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
 	if err != nil {
 		return
 	}
 	for _, f := range files {
 		if err := os.Remove(f); err == nil {
-			fmt.Printf("Removed old: %s\n", filepath.Base(f))
+			fmt.Printf("  Removed old: %s\n", filepath.Base(f))
 		}
 	}
 }
