@@ -2,12 +2,21 @@ package template
 
 import (
 	"embed"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"strconv"
+
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/DVV-15324/witches/pkg/core/templates/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //go:embed service/dto/request/*.tmpl
@@ -21,16 +30,22 @@ import (
 var templateSvFS embed.FS
 
 type ServiceConfig struct {
-	NameCap    string // Book
-	Name       string // book
-	FolderName string // book-service
-	ModuleName string // example_3
+	NameCap    string //
+	Name       string //
+	FolderName string //
+	ModuleName string //
 }
 
-func AddGoService(projectRoot string, moduleName string, serviceN string) {
-
-	serviceName := strings.ToLower(serviceN)
-	serviceNameCap := strings.Title(serviceName)
+func (p ServiceConfig) GetMuduleName() string {
+	return p.ModuleName
+}
+func AddGoService(project string, moduleName string, serviceName string) {
+	// Xóa cách
+	serviceName = strings.TrimSpace(serviceName)
+	// Chỉnh chữ thường
+	serviceName = strings.ToLower(serviceName)
+	// Chữ Hoa đầu
+	serviceNameCap := cases.Title(language.English).String(serviceName)
 
 	config := ServiceConfig{
 		NameCap:    serviceNameCap,
@@ -41,7 +56,7 @@ func AddGoService(projectRoot string, moduleName string, serviceN string) {
 
 	fmt.Printf("Generating service '%s' ...\n", config.FolderName)
 
-	if err := generateService(projectRoot, config); err != nil {
+	if err := generateService(project, config); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -49,10 +64,11 @@ func AddGoService(projectRoot string, moduleName string, serviceN string) {
 	fmt.Printf("Service '%s' generated successfully!\n", config.FolderName)
 }
 
-func generateService(projectRoot string, config ServiceConfig) error {
-	baseDir := filepath.Join(projectRoot, "internal", config.FolderName)
+func generateService(project string, config ServiceConfig) error {
+	// Vị trí project/internal/folder_name(new service)
+	baseDir := filepath.Join(project, "internal", config.FolderName)
 
-	// Tạo thư mục
+	// Các thư mục cần tạo
 	dirs := []string{
 		"dto/request",
 		"dto/response",
@@ -64,7 +80,9 @@ func generateService(projectRoot string, config ServiceConfig) error {
 	}
 
 	for _, dir := range dirs {
+		// Nối baseDir/folder_name(new service)/folder cần tạo ở dirs
 		path := filepath.Join(baseDir, dir)
+		// Tạo Folder
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %v", path, err)
 		}
@@ -94,30 +112,29 @@ func generateService(projectRoot string, config ServiceConfig) error {
 	}
 
 	for tmpl, dest := range files {
-		if err := renderTemplateSv(baseDir, dest, tmpl, config); err != nil {
-			return fmt.Errorf("failed to render %s: %v", dest, err)
-		}
+		utils.RenderTemplate(templateSvFS, baseDir, dest, tmpl, config)
 	}
 
-	// Sinh shared model
-	if err := generateSharedModel(projectRoot, config); err != nil {
+	// gen shared model
+	if err := generateSharedModel(project, config); err != nil {
 		fmt.Printf("Warning: failed to generate shared model: %v\n", err)
 	}
 
 	// Cập nhật key_object.go
-	if err := updateKeyObject(projectRoot, config); err != nil {
+	if err := updateKeyObject(project, config); err != nil {
 		fmt.Printf("Warning: failed to update key_object.go: %v\n", err)
 	}
 
 	return nil
 }
+
+// Tạo file shared/model/Name.go
 func generateSharedModel(projectRoot string, config ServiceConfig) error {
 	sharedModelDir := filepath.Join(projectRoot, "internal", "shared", "model")
 	if err := os.MkdirAll(sharedModelDir, 0755); err != nil {
 		return err
 	}
 
-	// Tên file: {name}_model.go (VD: book_model.go)
 	destFile := filepath.Join(sharedModelDir, config.Name+".go")
 	tmplFile := "service/shared/model/model.go.tmpl"
 
@@ -140,110 +157,64 @@ func generateSharedModel(projectRoot string, config ServiceConfig) error {
 	return tmpl.Execute(file, config)
 }
 
+// Cập nhật key_object
 func updateKeyObject(projectRoot string, config ServiceConfig) error {
 	keyFile := filepath.Join(projectRoot, "internal", "shared", "utils", "key_object.go")
 
-	// Đọc file hiện tại
-	content, err := os.ReadFile(keyFile)
+	src, err := os.ReadFile(keyFile)
 	if err != nil {
-		// Nếu file chưa tồn tại, tạo mới
-		return createKeyObjectFile(keyFile, config)
-	}
-
-	lines := strings.Split(string(content), "\n")
-
-	// Kiểm tra xem constant đã tồn tại chưa
-	for _, line := range lines {
-		if strings.Contains(line, "Object"+config.NameCap) {
-			fmt.Printf("Object%s already exists in key_object.go\n", config.NameCap)
-			return nil
-		}
-	}
-
-	// Tìm max ID hiện tại
-	maxID := 0
-	re := regexp.MustCompile(`Object\w+\s+uint\s*=\s*(\d+)`)
-	for _, line := range lines {
-		matches := re.FindStringSubmatch(line)
-		if len(matches) > 1 {
-			id := 0
-			fmt.Sscanf(matches[1], "%d", &id)
-			if id > maxID {
-				maxID = id
-			}
-		}
-	}
-
-	// Tạo constant mới với ID = maxID + 1
-	newLine := fmt.Sprintf("\tObject%s uint = %d", config.NameCap, maxID+1)
-
-	// Tìm vị trí để chèn (sau dòng cuối cùng trong block var)
-	insertIndex := -1
-	for i, line := range lines {
-		if strings.TrimSpace(line) == ")" {
-			insertIndex = i
-			break
-		}
-	}
-
-	if insertIndex == -1 {
-		// Không tìm thấy dấu đóng ngoặc, thêm vào cuối file
-		lines = append(lines, "")
-		lines = append(lines, "var (")
-		lines = append(lines, newLine)
-		lines = append(lines, ")")
-	} else {
-		// Chèn trước dấu đóng ngoặc
-		newLines := make([]string, 0, len(lines)+1)
-		newLines = append(newLines, lines[:insertIndex]...)
-		newLines = append(newLines, newLine)
-		newLines = append(newLines, lines[insertIndex:]...)
-		lines = newLines
-	}
-
-	// Ghi lại file
-	newContent := strings.Join(lines, "\n")
-	return os.WriteFile(keyFile, []byte(newContent), 0644)
-}
-
-func createKeyObjectFile(keyFile string, config ServiceConfig) error {
-	dir := filepath.Dir(keyFile)
-	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 
-	content := `package utils
-
-var (
-	ObjectUser uint = 1
-	Object%s   uint = 2
-)
-`
-	return os.WriteFile(keyFile, []byte(fmt.Sprintf(content, config.NameCap)), 0644)
-}
-
-func renderTemplateSv(baseDir, destFile, tmplFile string, config ServiceConfig) error {
-	tmplContent, err := templateSvFS.ReadFile(tmplFile)
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "", src, parser.ParseComments)
 	if err != nil {
-		return fmt.Errorf("failed to read template %s: %v", tmplFile, err)
+		return fmt.Errorf("parse file error: %w", err)
 	}
 
-	tmpl, err := template.New(filepath.Base(tmplFile)).Parse(string(tmplContent))
-	if err != nil {
-		return fmt.Errorf("failed to parse template %s: %v", tmplFile, err)
+	// Tìm object có ID lớn nhất và block var chứa nó
+	var maxID int
+	var targetDecl *ast.GenDecl
+
+	ast.Inspect(node, func(n ast.Node) bool {
+		// ast.GenDecl (quản lý các thành phần ở cấp package )
+		decl, ok := n.(*ast.GenDecl)
+		if !ok || decl.Tok != token.VAR {
+			return true
+		}
+
+		for _, spec := range decl.Specs {
+			vs, ok := spec.(*ast.ValueSpec)
+			if !ok || len(vs.Names) != 1 || !strings.HasPrefix(vs.Names[0].Name, "Object") {
+				continue
+			}
+
+			if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
+				if id, _ := strconv.Atoi(lit.Value); id > maxID {
+					maxID = id
+					targetDecl = decl
+				}
+			}
+		}
+		return true
+	})
+
+	if targetDecl == nil {
+		return fmt.Errorf("no Object constant found")
 	}
 
-	fullPath := filepath.Join(baseDir, destFile)
+	// Tạo và thêm constant mới
+	newSpec := &ast.ValueSpec{
+		Names:  []*ast.Ident{ast.NewIdent("Object" + config.NameCap)},
+		Type:   &ast.Ident{Name: "uint"},
+		Values: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", maxID+1)}},
+	}
+	targetDecl.Specs = append(targetDecl.Specs, newSpec)
 
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
-		return fmt.Errorf("failed to create directory for %s: %v", fullPath, err)
+	var buf strings.Builder
+	if err := format.Node(&buf, fset, node); err != nil {
+		return fmt.Errorf("format code error: %w", err)
 	}
 
-	file, err := os.Create(fullPath)
-	if err != nil {
-		return fmt.Errorf("failed to create file %s: %v", fullPath, err)
-	}
-	defer file.Close()
-
-	return tmpl.Execute(file, config)
+	return os.WriteFile(keyFile, []byte(buf.String()), 0644)
 }
