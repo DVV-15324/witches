@@ -9,6 +9,7 @@ import (
 	handleRefresh "{{.ModuleName}}/internal/refresh-service/handler"
 	responsitoryRefresh "{{.ModuleName}}/internal/refresh-service/repository"
 	usecaseRefresh "{{.ModuleName}}/internal/refresh-service/usecase"
+	"{{.ModuleName}}/internal/shared/utils"
 	handleUser "{{.ModuleName}}/internal/user-service/handler"
 	responsitoryUser "{{.ModuleName}}/internal/user-service/repository"
 	usecaseUser "{{.ModuleName}}/internal/user-service/usecase"
@@ -90,7 +91,7 @@ func Services() *HandleServices {
 	// 5.
 	// En: Connect the database to the driver and DNS.
 	// Vi: Kết nối database với driver và DSN
-	db, err := w_db.NewDatabaseInstance(config.DBDriver, config.DBURL, logg, 2*time.Second)
+	db, err := w_db.NewDatabaseInstance(config.DBDriver, config.DBURL, logg, 2*time.Second, utils.ReqKey)
 
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
