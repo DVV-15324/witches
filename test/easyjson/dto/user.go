@@ -1,8 +1,8 @@
 package dto
 
 type User struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func (u *User) TableName() string {
