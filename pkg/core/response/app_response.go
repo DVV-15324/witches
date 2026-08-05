@@ -92,7 +92,7 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, 
 }
 
 // WriteError gửi response lỗi => không log
-func WriteError(c *gin.Context, log *logger.EntityLogger, re *AppError) {
+func WriteError(c *gin.Context, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
 		Message:   re.Error.Error(),
