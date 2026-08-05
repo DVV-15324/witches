@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/DVV-15324/witches/pkg/core/utils"
 	"go.uber.org/zap"
 	gormlogger "gorm.io/gorm/logger"
 )
@@ -13,14 +14,16 @@ type GormZapLogger struct {
 	zapLogger     *EntityLogger
 	LogLevel      gormlogger.LogLevel
 	SlowThreshold time.Duration
+	KeyReq        string
 }
 
 // NewGormLogger - Tạo GORM Logger từ Zap
-func NewGormLogger(zapLogger *EntityLogger, slowThreshold time.Duration) *GormZapLogger {
+func NewGormLogger(zapLogger *EntityLogger, slowThreshold time.Duration, keyReq string) *GormZapLogger {
 	return &GormZapLogger{
 		zapLogger:     zapLogger,
 		LogLevel:      gormlogger.Info,
 		SlowThreshold: slowThreshold,
+		KeyReq:        keyReq,
 	}
 }
 
@@ -51,6 +54,8 @@ func (l *GormZapLogger) Error(ctx context.Context, msg string, data ...interface
 
 // TRACE - Ghi log SQL queries
 func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+	tid := utils.GetTid(ctx, l.KeyReq)
+	sub := utils.GetSub(ctx, l.KeyReq)
 	if l.LogLevel <= gormlogger.Silent {
 		return
 	}
@@ -61,6 +66,8 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 	// Kiểm tra slow query
 	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
 		l.zapLogger.WarnWithFields("SLOW QUERY",
+			zap.String("trace_id(tid)", tid),
+			zap.String("subject(sub)", sub),
 			zap.String("sql", sql),
 			zap.Duration("duration", elapsed),
 			zap.Int64("rows", rows),
@@ -68,10 +75,34 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		)
 		return
 	}
+	//Log tất cả query (nếu level >= Info)
+	if l.LogLevel >= gormlogger.Info {
+		l.zapLogger.InfoWithFields("SQL QUERY",
+			zap.String("trace_id(tid)", tid),
+			zap.String("subject(sub)", sub),
+			zap.String("sql", sql),
+			zap.Duration("duration", elapsed),
+			zap.Int64("rows", rows),
+		)
+	}
+
+	// Slow query (nếu level >= Warn)
+	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
+		l.zapLogger.WarnWithFields("SLOW QUERY",
+			zap.String("trace_id(tid)", tid),
+			zap.String("subject(sub)", sub),
+			zap.String("sql", sql),
+			zap.Duration("duration", elapsed),
+			zap.Int64("rows", rows),
+			zap.Duration("threshold", l.SlowThreshold),
+		)
+	}
 
 	// Log lỗi
 	if err != nil && l.LogLevel >= gormlogger.Error {
 		l.zapLogger.ErrorWithFields("SQL ERROR",
+			zap.String("trace_id(tid)", tid),
+			zap.String("subject(sub)", sub),
 			zap.String("sql", sql),
 			zap.Duration("duration", elapsed),
 			zap.Int64("rows", rows),
