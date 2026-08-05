@@ -2,10 +2,12 @@ package handler
 
 import (
 	"errors"
+	dtoRefresh "{{.ModuleName}}/internal/refresh-service/dto/request"
+	"{{.ModuleName}}/internal/shared/utils"
+	"time"
+
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
-	"time"
-	dtoRefresh "{{.ModuleName}}/internal/refresh-service/dto/request"
 )
 
 func (h *RefreshHandle) HandleRefreshToken() func(c *gin.Context) {
@@ -14,7 +16,7 @@ func (h *RefreshHandle) HandleRefreshToken() func(c *gin.Context) {
 
 		// Bind request
 		if err := c.ShouldBindJSON(&req); err != nil {
-			w_resp.WriteError(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
 			return
 		}
 
@@ -27,7 +29,7 @@ func (h *RefreshHandle) HandleRefreshToken() func(c *gin.Context) {
 		// Fixed: Added missing deviceID parameter
 		tokenResp, err := h.RefreshUsecase.Refresh(c.Request.Context(), req.RefreshToken, deviceID)
 		if err != nil {
-			w_resp.WriteError(c, h.Log, err)
+			w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
 			return
 		}
 
