@@ -1,28 +1,28 @@
 package handler
 
 import (
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	"github.com/gin-gonic/gin"
-	"time"
+	"errors"
 	utils "{{.ModuleName}}/internal/shared/utils"
 	dtoUser "{{.ModuleName}}/internal/user-service/dto/response"
 	mapping "{{.ModuleName}}/internal/user-service/mapping"
+	"time"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func (h *UserHandle) HandleGetAllUser() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		req := w_utils.PaginationRequest{}
 		// Bind JSON first
-		err := c.ShouldBindQuery(&req)
-		if err != nil {
-			resq := w_resp.NewAppError(400, err, time.Now())
-			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		if err := c.ShouldBindJSON(&req); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
 			return
 		}
 		user, total, resp := h.UserUseCase.GetAllUser(c, &req)
 		if resp != nil {
-			w_resp.WriteError(c, h.Log, resp)
+			w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
 			return
 		}
 		//Chuyển user từ entity -> dto
@@ -39,7 +39,7 @@ func (h *UserHandle) HandleGetUserById() func(c *gin.Context) {
 		uid := utils.DecodeFromBase58(id)
 		user, resp := h.UserUseCase.GetUserById(c, int(uid.LocalID))
 		if resp != nil {
-			w_resp.WriteError(c, h.Log, resp)
+			w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
 			return
 		}
 		dto := &dtoUser.User{}
