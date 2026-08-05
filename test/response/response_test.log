@@ -1,0 +1,2 @@
+{"level":"info","ts":1785930943.2500038,"caller":"response/app_response.go:60","msg":"API response success","trace_id(tid)":"","subject(sub)":"","method":"GET","path":"/test","status":200,"timestamp":1785930943.2500038}
+{"level":"error","ts":1785930945.0962863,"caller":"response/app_response.go:115","msg":"API error","trace_id(tid)":"","subject(sub)":"","method":"GET","path":"/test","status":404,"error":"Not Found","timestamp":1785930945.0957656}
