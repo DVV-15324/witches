@@ -1,4 +1,4 @@
-package gen_easyjson
+package easyjson
 
 import (
 	"fmt"
@@ -11,64 +11,48 @@ import (
 	"strings"
 )
 
-// FileSet đánh dấu như 1 cái sổ cái lưu token
 func GeneratorEasyJson(fset *token.FileSet, filePathWalk string) {
-	structs := []string{}
-	// filepath.Walk: Hàm duyệt đệ quy tất cả file và thư mục con trong path (đường dẫn) ./internal/dto
+	var targetFiles []string // 1. Tạo danh sách file cần gen
+
 	err := filepath.Walk(filePathWalk, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
-		// Kiểm tra chỉ chọn xem có file .go trước
-		if !strings.HasSuffix(path, ".go") {
+		if err != nil || !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 
-		// Parse (Phân tích) file .go sang cây AST
 		f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 		if err != nil {
 			return nil
 		}
 
-		// Kiểm tra struct có implement interface có method Gen() không?
-		// Để đơn giản, ta tìm các struct có method receiver là Gen()
-		// (có thể parse thêm interface nếu cần)
-		hasGenMethod := false
+		hasMarker := false
+		// 2. Kiểm tra có method TableName không
 		ast.Inspect(f, func(n ast.Node) bool {
 			if fn, ok := n.(*ast.FuncDecl); ok {
-				if fn.Name.Name == "Gen" && fn.Recv != nil {
-					hasGenMethod = true
+				if fn.Name.Name == "TableName" && fn.Recv != nil {
+					hasMarker = true
+					return false // Tìm thấy rồi -> dừng duyệt tiếp
 				}
 			}
 			return true
 		})
 
-		if !hasGenMethod {
-			return nil
+		// 3. Nếu có dấu hiệu, lưu file vào danh sách
+		if hasMarker {
+			targetFiles = append(targetFiles, path)
 		}
-
-		// Tìm các struct trong file
-		ast.Inspect(f, func(n ast.Node) bool {
-			switch x := n.(type) {
-			case *ast.TypeSpec:
-				if _, ok := x.Type.(*ast.StructType); ok {
-					structName := x.Name.Name
-					structs = append(structs, structName)
-					// Gọi easyjson CLI
-					generateEasyJSON(path)
-				}
-			}
-			return true
-		})
 		return nil
 	})
 
 	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+		fmt.Println("Error walking:", err)
+		return
 	}
 
-	fmt.Println("Generated easyjson for structs in files:", structs)
+	// 4. CHỈ GỌI EASYJSON 1 LẦN DUY NHẤT cho mỗi FILE
+	for _, path := range targetFiles {
+		fmt.Printf("Generating easyjson for file: %s\n", path)
+		generateEasyJSON(path)
+	}
 }
 
 func generateEasyJSON(filePath string) {
