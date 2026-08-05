@@ -35,7 +35,7 @@ func GeneratorEasyJsonRequest() {
 		return
 	}
 
-	inputDir := filepath.Join(rootDir, "test", "easyjson", "dto", "request")
+	inputDir := filepath.Join(rootDir, "internal", "dto", "request")
 	outputDir := inputDir
 
 	// Xóa tất cả file *_easyjson.go cũ
@@ -44,7 +44,7 @@ func GeneratorEasyJsonRequest() {
 	fset := token.NewFileSet()
 	err := easyjson.GeneratorEasyJson(fset, inputDir, outputDir)
 	if err != nil {
-		log.Fatalln("No file go request generated")
+		fmt.Printf("Warn: %v\n", err)
 	}
 	// Kiểm tra file gen
 	files, _ := filepath.Glob(filepath.Join(outputDir, "*_easyjson.go")) //Glob => Chỉ tìm 1 cấp (*.go) trong khi filepath.Walk Tìm tất cả cấp (**/*.go) => Glob trường hợp này tìm trong 1 folder nên Glop tạm
@@ -63,7 +63,7 @@ func GeneratorEasyJsonResponse() {
 		return
 	}
 
-	inputDir := filepath.Join(rootDir, "test", "easyjson", "dto", "response")
+	inputDir := filepath.Join(rootDir, "internal", "dto", "response")
 	outputDir := inputDir
 
 	// Xóa tất cả file *_easyjson.go cũ
@@ -73,7 +73,7 @@ func GeneratorEasyJsonResponse() {
 	err := easyjson.GeneratorEasyJson(fset, inputDir, outputDir)
 
 	if err != nil {
-		log.Fatalln("No file go response generated")
+		fmt.Printf("Warn: %v\n", err)
 	}
 
 	// Kiểm tra file gen
