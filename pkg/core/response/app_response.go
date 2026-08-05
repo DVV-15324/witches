@@ -24,7 +24,7 @@ type PaginationResponseWrapper struct {
 	Timestamp  time.Time                 `json:"timestamp"`
 }
 
-// WriteSuccess gửi response thành công (có thể log nếu muốn)
+// WriteSuccess gửi response thành công => không log
 func WriteSuccess(c *gin.Context, data interface{}) {
 	r := AppResponse{
 		Status:    http.StatusOK,
@@ -35,7 +35,7 @@ func WriteSuccess(c *gin.Context, data interface{}) {
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithPagination - Response thành công có kèm pagination
+// WriteSuccessWithPagination - Response thành công có kèm pagination  => không log
 func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *utils.PaginationResponse) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
@@ -47,7 +47,7 @@ func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *ut
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithLog gửi response thành công + log (tuỳ chọn)
+// WriteSuccessWithLog gửi response thành công => log
 func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interface{}, keyReq string) {
 	r := AppResponse{
 		Status:    http.StatusOK,
@@ -57,10 +57,10 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interfac
 	}
 	tid := utils.GetTid(c, keyReq)
 	sub := utils.GetSub(c, keyReq)
-	// Log thành công (level Info)
 	log.InfoWithFields("API response success",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
+		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
 		zap.Int("status", r.Status),
 		zap.Time("timestamp", time.Now()),
@@ -68,7 +68,7 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interfac
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithPaginationAndLog - Response thành công có pagination + log
+// WriteSuccessWithPaginationAndLog - Response thành công có pagination => log
 func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, data interface{}, pagination *utils.PaginationResponse, keyReq string) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
@@ -83,33 +83,30 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, 
 	log.InfoWithFields("API response success with pagination",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
+		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
 		zap.Int("status", r.Status),
-		zap.Int("page", pagination.Page),
-		zap.Int("limit", pagination.Limit),
-		zap.Int64("total", pagination.Total),
-		zap.Int("totalPages", pagination.TotalPages),
 		zap.Time("timestamp", time.Now()),
 	)
 	c.JSON(r.Status, r)
 }
 
-// WriteError gửi response lỗi + nhớ limmit
+// WriteError gửi response lỗi => không log
 func WriteError(c *gin.Context, log *logger.EntityLogger, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
 		Message:   re.Error.Error(),
-		Timestamp: time.Now(),
+		Timestamp: re.TimeStamp,
 	}
 	c.JSON(r.Status, r)
 }
 
-// WriteError gửi response lỗi + ghi log error
+// WriteError gửi response lỗi => log
 func WriteErrorWithLog(c *gin.Context, log *logger.EntityLogger, re *AppError, keyReq string) {
 	r := AppResponse{
 		Status:    re.Status,
 		Message:   re.Error.Error(),
-		Timestamp: time.Now(),
+		Timestamp: re.TimeStamp,
 	}
 	tid := utils.GetTid(c, keyReq)
 	sub := utils.GetSub(c, keyReq)
@@ -118,10 +115,11 @@ func WriteErrorWithLog(c *gin.Context, log *logger.EntityLogger, re *AppError, k
 	log.ErrorWithFields("API error",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
+		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
 		zap.Int("status", re.Status),
 		zap.Error(re.Error),
-		zap.Time("timestamp", re.TimeStamp), // Thời gian bắt tại layer xảy ra lỗi
+		zap.Time("timestamp", re.TimeStamp),
 	)
 
 	c.JSON(r.Status, r)
