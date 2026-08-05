@@ -6,46 +6,43 @@ import (
 
 // RequestContext chứa tất cả thông tin của request
 type RequestContext struct {
-	Tid        string // Trace ID
-	Sub        string // Subject/User ID
-	DeviceID   string // Device ID
-	DeviceName string // Device Name
-	IPAddress  string // Client IP
-	UserAgent  string // User Agent
-	SessionID  string // Session ID
-	Platform   string // Platform: web, ios, android, etc.
-	Locale     string // Locale/Language (vd: vi-VN, en-US)
-	Timezone   string // Timezone (vd: Asia/Ho_Chi_Minh)
+	Tid       string // Trace ID
+	Sub       string // Subject/User ID
+	DeviceID  string // Device ID
+	IPAddress string // Client IP
+	UserAgent string // User Agent
+	SessionID string // Session ID
+	Platform  string // Platform: web, ios, android, etc.
+	Locale    string // Locale/Language (vd: vi-VN, en-US)
+	Timezone  string // Timezone (vd: Asia/Ho_Chi_Minh)
 }
 
 // NewRequestContext tạo mới RequestContext
-func NewRequestContext(keyRequest, sub, tid, deviceID, deviceName, ipAddress, userAgent string) *RequestContext {
+func NewRequestContext(keyRequest, sub, tid, deviceID, ipAddress, userAgent string) *RequestContext {
 	return &RequestContext{
-		Sub:        sub,
-		Tid:        tid,
-		DeviceID:   deviceID,
-		DeviceName: deviceName,
-		IPAddress:  ipAddress,
-		UserAgent:  userAgent,
+		Sub:       sub,
+		Tid:       tid,
+		DeviceID:  deviceID,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
 	}
 }
 
 // NewRequestContextFull tạo mới RequestContext với đầy đủ thông tin
 func NewRequestContextFull(
-	sub, tid, deviceID, deviceName, ipAddress, userAgent,
+	sub, tid, deviceID, ipAddress, userAgent,
 	shardID, sessionID, requestID, platform, locale, timezone string,
 ) *RequestContext {
 	return &RequestContext{
-		Sub:        sub,
-		Tid:        tid,
-		DeviceID:   deviceID,
-		DeviceName: deviceName,
-		IPAddress:  ipAddress,
-		UserAgent:  userAgent,
-		SessionID:  sessionID,
-		Platform:   platform,
-		Locale:     locale,
-		Timezone:   timezone,
+		Sub:       sub,
+		Tid:       tid,
+		DeviceID:  deviceID,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+		SessionID: sessionID,
+		Platform:  platform,
+		Locale:    locale,
+		Timezone:  timezone,
 	}
 }
 
