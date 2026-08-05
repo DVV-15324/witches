@@ -1,0 +1,165 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "User API",
+    "version": "1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/api/v1/users": {
+      "get": {
+        "summary": "List all users",
+        "description": "Returns a list of all users with pagination",
+        "tags": [
+          "users"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by name or email",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PaginationResponseWrapper"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AppResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "CreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "password"
+      ]
+    },
+    "PaginationResponseWrapper": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        },
+        "pagination": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "password"
+      ]
+    }
+  },
+  "tags": [
+    {
+      "name": "users",
+      "description": "User management"
+    }
+  ]
+}
