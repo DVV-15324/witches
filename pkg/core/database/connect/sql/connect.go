@@ -15,9 +15,9 @@ type DatabaseInstance struct {
 	Log *logger.EntityLogger
 }
 
-func NewDatabaseInstance(Type string, dsn string, log *logger.EntityLogger, slowThreshold time.Duration) (*DatabaseInstance, error) {
+func NewDatabaseInstance(Type string, dsn string, log *logger.EntityLogger, slowThreshold time.Duration, keyReq string) (*DatabaseInstance, error) {
 	// Tạo GORM Logger từ Zap
-	gormLogger := logger.NewGormLogger(log, slowThreshold)
+	gormLogger := logger.NewGormLogger(log, slowThreshold, keyReq)
 
 	// Chọn driver
 	var dialector gorm.Dialector
@@ -35,8 +35,8 @@ func NewDatabaseInstance(Type string, dsn string, log *logger.EntityLogger, slow
 	// Cấu hình GORM với logger
 	config := &gorm.Config{
 		Logger:                 gormLogger.LogMode(gormlogger.Info),
-		SkipDefaultTransaction: true,
-		PrepareStmt:            true,
+		SkipDefaultTransaction: true, // Tắt transaction tự động(Gorm sẽ tự dùng transaction với mọi trường hợp ngay cả câu query đơn giản nếu ta sài SkipDefaultTransaction: false) => true và nên dùng transaction thủ cống cho đỡ tốn tài nguyên.
+		PrepareStmt:            true, //GORM sẽ chuẩn bị sẵn (prepare) các câu lệnh SQL ngay từ đầu và tái sử dụng chúng cho các lần gọi sau.(Quan trọng)
 	}
 
 	// Kết nối
@@ -49,4 +49,12 @@ func NewDatabaseInstance(Type string, dsn string, log *logger.EntityLogger, slow
 		DB:  db,
 		Log: log,
 	}, nil
+}
+
+func (d *DatabaseInstance) Close() error {
+	sqlDB, err := d.DB.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }
