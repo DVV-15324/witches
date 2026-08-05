@@ -1,10 +1,13 @@
 package handler
 
 import (
-	"time"
+	"errors"
 	dtoAuth "{{.ModuleName}}/internal/auth-service/dto/request"
 	mapping "{{.ModuleName}}/internal/auth-service/mapping"
 	utils "{{.ModuleName}}/internal/shared/utils"
+	"time"
+
+	w_easyjson "github.com/DVV-15324/witches/pkg/core/easyjson"
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
@@ -14,11 +17,8 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var data dtoAuth.Login
 
-		// Bind JSON first
-		err := c.ShouldBindJSON(&data)
-		if err != nil {
-			resq := w_resp.NewAppError(400, err, time.Now())
-			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		if err := w_easyjson.BindJSON(c, &data); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
 			return
 		}
 
