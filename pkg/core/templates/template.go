@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"text/template"
+
+	"github.com/DVV-15324/witches/pkg/core/templates/utils"
 )
 
 //go:embed template/*.tmpl
@@ -45,6 +46,10 @@ type ProjectConfig struct {
 	ModuleName string
 }
 
+func (p ProjectConfig) GetMuduleName() string {
+	return p.ModuleName
+}
+
 func CreateGoArcRefresh(projectName string) {
 
 	config := ProjectConfig{
@@ -77,47 +82,6 @@ func createProjectStructure(config ProjectConfig) error {
 	// Tạo thư mục project
 	if err := os.MkdirAll(baseDir, 0755); err != nil {
 		return fmt.Errorf("failed to create project directory: %v", err)
-	}
-
-	// Danh sách thư mục cần tạo
-	dirs := []string{
-		"cmd/server/config",
-		"cmd/server/routers",
-		"internal/auth-service/dto/request",
-		"internal/auth-service/dto/response",
-		"internal/auth-service/entity",
-		"internal/auth-service/handler",
-		"internal/auth-service/mapping",
-		"internal/auth-service/repository",
-		"internal/auth-service/usecase",
-		"internal/refresh-service/dto/request",
-		"internal/refresh-service/dto/response",
-		"internal/refresh-service/entity",
-		"internal/refresh-service/handler",
-		"internal/refresh-service/mapping",
-		"internal/refresh-service/repository",
-		"internal/refresh-service/usecase",
-		"internal/user-service/dto/request",
-		"internal/user-service/dto/response",
-		"internal/user-service/entity",
-		"internal/user-service/handler",
-		"internal/user-service/mapping",
-		"internal/user-service/repository",
-		"internal/user-service/usecase",
-		"internal/shared/middleware",
-		"internal/shared/model",
-		"internal/shared/utils",
-		"logs",
-		"migrate/migrations",
-		"pkg/redis",
-		"swagger",
-	}
-
-	for _, dir := range dirs {
-		path := filepath.Join(baseDir, dir)
-		if err := os.MkdirAll(path, 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %v", path, err)
-		}
 	}
 
 	// Map template files -> destination files
@@ -241,36 +205,8 @@ func createProjectStructure(config ProjectConfig) error {
 	}
 
 	for tmpl, dest := range files {
-		if err := renderTemplate(baseDir, dest, tmpl, config); err != nil {
-			return fmt.Errorf("failed to render %s: %v", dest, err)
-		}
+		utils.RenderTemplate(templateFS, baseDir, dest, tmpl, config)
 	}
 
 	return nil
-}
-
-func renderTemplate(baseDir, destFile, tmplFile string, config ProjectConfig) error {
-	tmplContent, err := templateFS.ReadFile(tmplFile)
-	if err != nil {
-		return fmt.Errorf("failed to read template %s: %v", tmplFile, err)
-	}
-
-	tmpl, err := template.New(filepath.Base(tmplFile)).Parse(string(tmplContent))
-	if err != nil {
-		return fmt.Errorf("failed to parse template %s: %v", tmplFile, err)
-	}
-
-	fullPath := filepath.Join(baseDir, destFile)
-
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
-		return fmt.Errorf("failed to create directory for %s: %v", fullPath, err)
-	}
-
-	file, err := os.Create(fullPath)
-	if err != nil {
-		return fmt.Errorf("failed to create file %s: %v", fullPath, err)
-	}
-	defer file.Close()
-
-	return tmpl.Execute(file, config)
 }
