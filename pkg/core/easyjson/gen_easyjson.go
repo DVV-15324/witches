@@ -91,7 +91,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 
 			if hasMarker {
 				targetFiles = append(targetFiles, path)
-				fmt.Printf("  Found marker in: %s\n", path)
+				//fmt.Printf("  Found marker in: %s\n", path)
 			}
 			return nil
 		})
@@ -101,9 +101,9 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		}
 	}
 
-	if len(targetFiles) == 0 {
-		return fmt.Errorf("no files with GenEasyJson() method found")
-	}
+	// if len(targetFiles) == 0 {
+	// 	return fmt.Errorf("no files with GenEasyJson() method found")
+	// }
 
 	fmt.Printf("Generating easyjson for %d file(s)...\n", len(targetFiles))
 	var generatedFiles []string
@@ -156,9 +156,9 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		os.Remove(tmpFile)
 	}
 
-	if len(generatedFiles) == 0 {
-		return fmt.Errorf("no files were generated successfully")
-	}
+	// if len(generatedFiles) == 0 {
+	// 	return fmt.Errorf("no files were generated successfully")
+	// }
 
 	fmt.Printf("Successfully generated %d file(s)\n", len(generatedFiles))
 	return nil
