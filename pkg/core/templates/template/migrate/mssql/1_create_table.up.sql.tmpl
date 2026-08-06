@@ -1,0 +1,94 @@
+CREATE TABLE users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    name NVARCHAR(255) NOT NULL,
+    role NVARCHAR(50) DEFAULT 'user',
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE()
+);
+GO
+
+CREATE TRIGGER trg_users_update
+ON users
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE users 
+    SET updated_at = GETDATE() 
+    FROM users u
+    INNER JOIN inserted i ON u.id = i.id;
+END;
+GO
+
+CREATE INDEX idx_email ON users(email);
+GO
+
+CREATE TABLE auths (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    password NVARCHAR(255) NOT NULL,
+    salt NVARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
+    auth_type NVARCHAR(50) DEFAULT 'email',
+    banned BIT DEFAULT 0,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT fk_auths_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+GO
+
+CREATE TRIGGER trg_auths_update
+ON auths
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE auths 
+    SET updated_at = GETDATE() 
+    FROM auths a
+    INNER JOIN inserted i ON a.id = i.id;
+END;
+GO
+
+CREATE INDEX idx_user_id ON auths(user_id);
+CREATE INDEX idx_email ON auths(email);
+GO
+
+
+CREATE TABLE refresh_tokens (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    token NVARCHAR(255) NOT NULL UNIQUE,
+    device_id NVARCHAR(255) NOT NULL,
+    ip_address NVARCHAR(255),
+    user_agent NVARCHAR(MAX),
+    locale NVARCHAR(50) DEFAULT 'en-US',
+    timezone NVARCHAR(50) DEFAULT 'UTC',
+    expires_at INT NOT NULL,
+    revoked BIT DEFAULT 0,
+    revoked_at INT NULL,
+    revoked_reason NVARCHAR(255),
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT fk_refresh_tokens_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+GO
+
+CREATE TRIGGER trg_refresh_tokens_update
+ON refresh_tokens
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE refresh_tokens 
+    SET updated_at = GETDATE() 
+    FROM refresh_tokens rt
+    INNER JOIN inserted i ON rt.id = i.id;
+END;
+GO
+
+CREATE INDEX idx_user_id ON refresh_tokens(user_id);
+CREATE INDEX idx_token ON refresh_tokens(token);
+CREATE INDEX idx_expires_at ON refresh_tokens(expires_at);
+GO
