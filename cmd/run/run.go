@@ -42,7 +42,7 @@ func generateEasyJSONForAllDTOs() {
 		}
 		if info.IsDir() && filepath.Base(path) == "dto" {
 			dtoDirs = append(dtoDirs, path)
-			fmt.Printf("  Found DTO folder: %s\n", path)
+			//fmt.Printf("  Found DTO folder: %s\n", path)
 		}
 		return nil
 	})
@@ -52,7 +52,7 @@ func generateEasyJSONForAllDTOs() {
 	}
 
 	if len(dtoDirs) == 0 {
-		fmt.Println("No DTO folders found")
+		//fmt.Println("No DTO folders found")
 		return
 	}
 
@@ -119,8 +119,6 @@ func removeEasyJSONFiles(dir string) {
 		return
 	}
 	for _, f := range files {
-		if err := os.Remove(f); err == nil {
-			fmt.Printf("  Removed old: %s\n", filepath.Base(f))
-		}
+		os.Remove(f)
 	}
 }
