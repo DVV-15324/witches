@@ -361,7 +361,7 @@ This project follows **Clean Architecture** by Robert C. Martin (Uncle Bob).
 </div>
 
 ---
-## Add a new service (you can see an example add a new book-service here: https://github.com/DVV-15324/witches/tree/main/example)
+## Add a new service (you can see an example add a new book-service here: ...)
 
 ### Generate Service
 ```bash

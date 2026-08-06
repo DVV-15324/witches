@@ -361,7 +361,7 @@ Dự án này tuân theo **Clean Architecture** của Robert C. Martin (Uncle Bo
 
 ---
 
-## Thêm một dịch vụ mới (bạn có thể xem ví dụ thêm dịch vụ sách mới tại đây: https://github.com/DVV-15324/witches/tree/main/example)
+## Thêm một dịch vụ mới (bạn có thể xem ví dụ thêm dịch vụ sách mới tại đây: ...)
 
 ### Tạo dịch vụ
 ```bash
