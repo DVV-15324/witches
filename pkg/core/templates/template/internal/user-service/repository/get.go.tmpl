@@ -21,7 +21,7 @@ func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.Pagination
 	// Search filter
 	if req.Search != "" {
 		search := "%" + req.Search + "%"
-		query = query.Where("name ILIKE ? OR email ILIKE ?", search, search)
+		query = query.Where("LOWER(name) ? OR LOWER(email) ILIKE ?", search, search)
 	}
 
 	// Count total
