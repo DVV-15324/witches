@@ -86,8 +86,6 @@ func generateEasyJSONForDir(dir, name string) {
 	files, _ := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
 	if len(files) > 0 {
 		fmt.Printf("Generated %s easyjson: %d file(s)\n", name, len(files))
-	} else {
-		fmt.Printf("No %s_easyjson.go generated\n", name)
 	}
 }
 
