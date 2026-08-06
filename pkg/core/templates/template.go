@@ -91,14 +91,14 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 	var migraDown string
 	switch typeDb {
 	case "mysql":
-		migraUp = "migrate/mysql/1_create_table.up.sql"
-		migraDown = "migrate/mysql/1_drop_table.down.sql"
+		migraUp = "template/migrate/mysql/1_create_table.up.sql"
+		migraDown = "template/migrate/mysql/1_drop_table.down.sql"
 	case "postgres", "postgresql":
-		migraUp = "migrate/postgresql/1_create_table.up.sql"
-		migraDown = "migrate/postgresql/1_drop_table.down.sql"
+		migraUp = "template/migrate/postgresql/1_create_table.up.sql"
+		migraDown = "template/migrate/postgresql/1_drop_table.down.sql"
 	case "sqlserver", "mssql":
-		migraUp = "migrate/mssql/1_create_table.up.sql"
-		migraDown = "migrate/mssql/1_drop_table.down.sql"
+		migraUp = "template/migrate/mssql/1_create_table.up.sql"
+		migraDown = "template/migrate/mssql/1_drop_table.down.sql"
 	default:
 		log.Fatalf("Error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
 	}
@@ -216,8 +216,8 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		// LOGS
 
 		// MIGRATIONS
-		"template/migrate/migrations/1_create_table.up.sql.tmpl": migraUp,
-		"template/migrate/migrations/1_drop_table.down.sql.tmpl": migraDown,
+		migraUp:   "migrate/migrations/1_create_table.up.sql.tmpl",
+		migraDown: "migrate/migrations/1_drop_table.down.sql.tmpl",
 
 		// PKG REDIS
 		"template/pkg/redis/client.go.tmpl": "pkg/redis/client.go",
