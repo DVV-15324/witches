@@ -3,6 +3,7 @@ package template
 import (
 	"embed"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -38,7 +39,9 @@ import (
 //go:embed template/internal/shared/middleware/*.tmpl
 //go:embed template/internal/shared/model/*.tmpl
 //go:embed template/internal/shared/utils/*.tmpl
-//go:embed template/migrate/migrations/*.tmpl
+//go:embed template/migrate/mssql/*.tmpl
+//go:embed template/migrate/mysql/*.tmpl
+//go:embed template/migrate/postgresql/*.tmpl
 //go:embed template/pkg/redis/*.tmpl
 var templateFS embed.FS
 
@@ -50,7 +53,7 @@ func (p ProjectConfig) GetMuduleName() string {
 	return p.ModuleName
 }
 
-func CreateGoArcRefresh(projectName string) {
+func CreateGoArcRefresh(projectName string, typeDb string) {
 
 	config := ProjectConfig{
 		ModuleName: projectName,
@@ -59,7 +62,7 @@ func CreateGoArcRefresh(projectName string) {
 	fmt.Printf("Generating project: %s\n", projectName)
 	fmt.Println("Creating structure...")
 
-	if err := createProjectStructure(config); err != nil {
+	if err := createProjectStructure(config, typeDb); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -71,7 +74,7 @@ func CreateGoArcRefresh(projectName string) {
 	fmt.Printf("  witches run\n")
 }
 
-func createProjectStructure(config ProjectConfig) error {
+func createProjectStructure(config ProjectConfig, typeDb string) error {
 	baseDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
@@ -82,6 +85,22 @@ func createProjectStructure(config ProjectConfig) error {
 	// Tạo thư mục project
 	if err := os.MkdirAll(baseDir, 0755); err != nil {
 		return fmt.Errorf("failed to create project directory: %v", err)
+	}
+
+	var migraUp string
+	var migraDown string
+	switch typeDb {
+	case "mysql":
+		migraUp = "migrate/mysql/1_create_table.up.sql"
+		migraDown = "migrate/mysql/1_drop_table.down.sql"
+	case "postgres", "postgresql":
+		migraUp = "migrate/postgresql/1_create_table.up.sql"
+		migraDown = "migrate/postgresql/1_drop_table.down.sql"
+	case "sqlserver", "mssql":
+		migraUp = "migrate/mssql/1_create_table.up.sql"
+		migraDown = "migrate/mssql/1_drop_table.down.sql"
+	default:
+		log.Fatalf("Error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
 	}
 
 	// Map template files -> destination files
@@ -197,8 +216,8 @@ func createProjectStructure(config ProjectConfig) error {
 		// LOGS
 
 		// MIGRATIONS
-		"template/migrate/migrations/1_create_table.up.sql.tmpl": "migrate/migrations/1_create_table.up.sql",
-		"template/migrate/migrations/1_drop_table.down.sql.tmpl": "migrate/migrations/1_drop_table.down.sql",
+		"template/migrate/migrations/1_create_table.up.sql.tmpl": migraUp,
+		"template/migrate/migrations/1_drop_table.down.sql.tmpl": migraDown,
 
 		// PKG REDIS
 		"template/pkg/redis/client.go.tmpl": "pkg/redis/client.go",
