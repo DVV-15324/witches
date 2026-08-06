@@ -52,7 +52,8 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Error: missing load")
 		}
-		run.WitchesInit()
+		db_driver := os.Getenv("DB_DRIVER")
+		run.WitchesInit(db_driver)
 	},
 }
 
