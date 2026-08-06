@@ -251,8 +251,6 @@ witches install
 **Up Migration** (`./migrate/migrations/1_init.up.sql`):
 **Down Migration** (`./migrate/migrations/1_init.down.sql`):
 
-# Cài đặt dependencies
-
 ```bash
 witches migrate up
 ```
