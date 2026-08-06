@@ -2,19 +2,19 @@
 
 <div align="center">
 
-<img src="../logo/logo.png" alt="Witches Logo" width="250"/>
+<img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-### Backend Golang Nhanh & Mở Rộng
+### Backend Golang Nhanh và mở rộng
 
 <p>
   REST API được xây dựng với <b>Go</b>, thiết kế để đạt hiệu suất cao,
-  kiến trúc clean architecture và phát triển backend hiện đại.
+  kiến trúc Clean Architecture và phát triển backend hiện đại.
 </p>
 
 <p>
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
-  <img src="https://img.shields.io/badge/SQL-Database-orange?style=for-the-badge&logo=sql">
+  <img src="https://img.shields.io/badge/EasyJSON-JSON_Fast-00ADD8?style=for-the-badge">
   <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
   <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
 </p>
@@ -41,18 +41,17 @@
 
 ## Tính Năng
 
-| Tính Năng | Mô Tả |
-|-----------|-------|
-| **Xác Thực JWT** | Xác thực an toàn dựa trên token với Refresh Token|
-| **Tự Động Tạo Swagger** | Tài liệu API được tạo tự động |
-| **Migration Cơ Sở Dữ Liệu** | Kiểm soát phiên bản cho schema cơ sở dữ liệu |
-| **Tiện Ích Băm** | Băm mật khẩu an toàn |
-| **Che Giấu UID** | Ẩn ID người dùng nhạy cảm |
-| **Clean Architecture** | Cấu trúc mã nguồn có thể mở rộng và bảo trì |
-| **Hỗ Trợ Redis** | Tích hợp sẵn bộ nhớ đệm |
-| **Giới Hạn Tốc Độ** | Bảo vệ API của bạn |
-| **Hỗ Trợ GORM** | ORM mạnh mẽ cho các thao tác cơ sở dữ liệu |
-
+| Tính năng | Mô tả |
+|-----------|------------|
+| **HTTP Framework** | [Gin](https://github.com/gin-gonic/gin) |
+| **ORM** | [GORM](https://gorm.io/) |
+| **Logger** | [Zap](https://github.com/uber-go/zap) |
+| **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
+| **Swagger** | [Swagger](https://swagger.io/specification/v2/) |
+| **Cache** | [Redis](https://redis.io/) |
+| **EasyJson** | [EasyJSON](https://github.com/mailru/easyjson) |
+| **CLI** | [Cobra](https://github.com/spf13/cobra) |
+...
 ---
 
 ## Bắt Đầu Nhanh
@@ -71,6 +70,7 @@ witches version
 
 ```bash
 # Tạo dự án mới
+# witches create <dự án của bạn>
 witches create example
 
 # Di chuyển vào thư mục dự án
@@ -213,8 +213,7 @@ witches database up
 ```
 
 Lệnh này sẽ:
-- Tự động tạo `DB_URL` cho MySQL và PostgreSQL
-- Nhắc bạn cấu hình thủ công `DB_URL` cho MSSQL
+- Tự động tạo `DB_URL` cho MySQL, MSSQL và PostgreSQL
 
 #### Ví dụ Đầu Ra:
 
@@ -284,41 +283,60 @@ witches run
 ## Cấu Trúc Dự Án
 
 ```
-.
-├── cmd/
-│   └── server/              # Điểm vào ứng dụng
-│       ├── config/          # Tải cấu hình
-│       └── routers/         # Định nghĩa route
-├── internal/
-│   ├── dto/                 # Đối tượng truyền dữ liệu
-│   │   ├── auth/
-│   │   │   ├── request/
-│   │   │   └── response/
-│   │   └── user/
-│   │       ├── request/
-│   │       └── response/
-│   ├── entity/              # Thực thể nghiệp vụ
-│   │   ├── auth/
-│   │   └── user/
-│   ├── handler/             # Trình xử lý HTTP
-│   │   ├── auth/
-│   │   └── user/
-│   ├── mapping/             # Ánh xạ DTO ↔ Entity
-│   ├── middleware/          # Middleware HTTP
-│   ├── repository/          # Tầng truy cập dữ liệu
-│   │   ├── auth/
-│   │   └── user/
-│   ├── usecase/             # Logic nghiệp vụ
-│   │   ├── auth/
-│   │   └── user/
-│   └── utils/               # Hàm tiện ích
-├── logs/                    # Log của ứng dụng
-├── migrate/                 # Migration cơ sở dữ liệu
-│   └── migrations/
-├───pkg
-│   └───redis                # Redis client
-└── swagger/                 # Tài liệu Swagger
-
+├── cmd/                                 # Entrypoint - Nơi ứng dụng khởi chạy
+│   └── server/                          # Khởi tạo và chạy HTTP server
+│       ├── config/                      # Load cấu hình từ env (DB, Redis, JWT...)
+│       └── routers/                     # Định tuyến - Đăng ký API routes + DI
+│           ├── composer.go              # Dependency Injection (lắp ráp các module)
+│           ├── public.go                # Public routes (không cần auth)
+│           ├── protected.go             # Protected routes (cần auth)
+│           └── routers.go               # Khởi tạo router chính
+│
+├── internal/                            # NỘI BỘ - Code chỉ dùng trong project
+│   │
+│   ├── shared/                          # DÙNG CHUNG cho toàn hệ thống
+│   │   ├── middleware/                  # Middleware: CORS, Rate Limit, Auth, Timing
+│   │   ├── model/                       # Shared Model (DTO giao tiếp BE ↔ BE)
+│   │   │   ├── auth.go
+│   │   │   ├── user.go
+│   │   │   └── refresh.go
+│   │   └── utils/                       # Helper: UID, Decode, Encode, Mapping Generic,...
+│   │
+│   ├── user-service/                    # DOMAIN: Quản lý người dùng
+│   │   ├── dto/                         # Data Transfer Object (Request/Response)
+│   │   │   ├── request/                 # Request DTO (FE gửi lên)
+│   │   │   └── response/                # Response DTO (trả về FE)
+│   │   ├── entity/                      # Entity (GORM model)
+│   │   ├── handler/                     # Xử lý HTTP request, gọi usecase
+│   │   ├── mapping/                     # Chuyển đổi DTO ↔ Model ↔ Entity
+│   │   ├── repository/                  # Tương tác DB + Redis cache
+│   │   └── usecase/                     # Business logic thuần
+│   │
+│   ├── auth-service/                    # DOMAIN: Xác thực (Login, Register, Logout)
+│   │   ├── dto/
+│   │   ├── entity/
+│   │   ├── handler/
+│   │   ├── mapping/
+│   │   ├── repository/
+│   │   └── usecase/
+│   │
+│   ├── refresh-service/                 # DOMAIN: Quản lý Refresh Token
+│       ├── dto/
+│       ├── entity/
+│       ├── handler/
+│       ├── mapping/
+│       ├── repository/
+│       └── usecase/
+│
+├── logs/                                # Log files
+│
+├── migrate/                             # Database migration
+│   └── migrations/                      # SQL migration files (up/down)
+│
+├── pkg/                                 # Package có thể tái sử dụng
+│   └── redis/                           # Redis client
+│
+└── swagger/                             # API documentation (Swagger/OpenAPI)
 ```
 
 ---
@@ -337,11 +355,31 @@ Dự án này tuân theo **Clean Architecture** của Robert C. Martin (Uncle Bo
 | `internal/repository/` | **Interface Adapters** | Thao tác cơ sở dữ liệu, lưu trữ dữ liệu |
 | `internal/middleware/` | **Frameworks & Drivers** | Các thành phần phụ thuộc vào framework |
 | `cmd/server/` | **Frameworks & Drivers** | Điểm vào ứng dụng, tiêm phụ thuộc |
-| `pkg/` | **Frameworks & Drivers** | Tiện ích dùng chung (DB, Redis, logging) |
+| `pkg/` | **Frameworks & Drivers** | Tiện ích dùng chung (Redis, Generics, UID, Key Request, Key Object,...) |
 
 <div align="center">
   <img src="../image/arc.png" alt="Clean Architecture" width="400"/>
 </div>
+
+---
+
+## Thêm một dịch vụ mới (bạn có thể xem ví dụ thêm dịch vụ sách mới tại đây: https://github.com/DVV-15324/witches/tree/main/example)
+
+### Tạo dịch vụ
+```bash
+# witches add <dịch vụ mới>
+witches add book
+```
+Thao tác này sẽ tạo ra `internal/book-service/` với cấu trúc CRUD cơ bản.
+
+### Các bước thủ công (Sau khi tạo)
+
+| Bước | Đường dẫn tệp | Hành động |
+|------|-----------|--------|
+| **Router** | `cmd/server/routers/protected.go hoặc cmd/server/routers/public.go` | Thêm router cho dịch vụ mới |
+| **Composer** | `cmd/server/routers/composer.go` | thêm DI handler|
+| **Migration** | `migrate/migrations/` | Tạo `.up.sql` và `.down.sql` cho bảng mới |
+| **Shared Model** | `internal/shared/model/book.go` | Tạo model dùng chung (nếu cần cho BE ↔ BE) |
 
 ---
 
@@ -353,10 +391,10 @@ Dự án này tuân theo **Clean Architecture** của Robert C. Martin (Uncle Bo
 | **ORM** | [GORM](https://gorm.io/) |
 | **Logger** | [Zap](https://github.com/uber-go/zap) |
 | **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
+| **Swagger** | [Swagger](https://swagger.io/specification/v2/) |
 | **Cache** | [Redis](https://redis.io/) |
-| **Swagger** | [EasyJSON](https://github.com/mailru/easyjson) |
+| **EasyJson** | [EasyJSON](https://github.com/mailru/easyjson) |
 | **CLI** | [Cobra](https://github.com/spf13/cobra) |
-| **Database** | PostgreSQL / MySQL / MSSQL |
 ...
 
 Cảm ơn tất cả các nhà đóng góp mã nguồn mở đã tạo nên những công cụ tuyệt vời này ❤️

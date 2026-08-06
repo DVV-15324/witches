@@ -1,21 +1,20 @@
-
 [Vietnamese](./README.vi.md) | [English](./README.md)
 
 <div align="center">
 
-<img src="../logo/logo.png" alt="Witches Logo" width="250"/>
+<img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
 ### Fast & Scalable Golang Backend
 
 <p>
   REST API built with <b>Go</b>, designed for performance,
-  clean architecture, and modern backend development.
+  Clean Architecture, and modern backend development.
 </p>
 
 <p>
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
-  <img src="https://img.shields.io/badge/SQL-Database-orange?style=for-the-badge&logo=sql">
+  <img src="https://img.shields.io/badge/EasyJSON-JSON_Fast-00ADD8?style=for-the-badge">
   <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
   <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
 </p>
@@ -72,6 +71,7 @@ witches version
 
 ```bash
 # Create a new project
+# witches create <your_project>
 witches create example
 
 # Navigate to project directory
@@ -156,7 +156,6 @@ RATE_LIMIT_MAX=100
 
 Edit `witches.env` with your actual settings:
 
-
 ```env
 # SERVER CONFIGURATION
 
@@ -215,8 +214,7 @@ witches database up
 ```
 
 This command will:
-- Auto-generate `DB_URL` for MySQL and PostgreSQL
-- Prompt you to manually configure `DB_URL` for MSSQL
+- Auto-generate `DB_URL` for MySQL and PostgreSQL and MSSQL
 
 #### Output Example:
 
@@ -269,6 +267,7 @@ witches migrate up
 | `witches migrate version` | Show current migration version |
 | `witches migrate force <version>` | Force set migration version |
 | `witches migrate drop` | Drop all tables ⚠️ DANGEROUS |
+
 ---
 
 ## Running the Application
@@ -285,41 +284,60 @@ witches run
 ## Project Structure
 
 ```
-.
-├── cmd/
-│   └── server/              # Application entry point
-│       ├── config/          # Configuration loading
-│       └── routers/         # Route definitions
-├── internal/
-│   ├── dto/                 # Data Transfer Objects
-│   │   ├── auth/
-│   │   │   ├── request/
-│   │   │   └── response/
-│   │   └── user/
-│   │       ├── request/
-│   │       └── response/
-│   ├── entity/              # Business entities
-│   │   ├── auth/
-│   │   └── user/
-│   ├── handler/             # HTTP handlers
-│   │   ├── auth/
-│   │   └── user/
-│   ├── mapping/             # DTO ↔ Entity mappers
-│   ├── middleware/          # HTTP middleware
-│   ├── repository/          # Data access layer
-│   │   ├── auth/
-│   │   └── user/
-│   ├── usecase/             # Business logic
-│   │   ├── auth/
-│   │   └── user/
-│   └── utils/               # Utility functions
-├── logs/                    # Application logs
-├── migrate/                 # Database migrations
-│   └── migrations/
-├───pkg
-│   └───redis                # Redis client
-└── swagger/                 # Swagger documentation
-
+├── cmd/                                 # Entrypoint - Application startup
+│   └── server/                          # HTTP server initialization
+│       ├── config/                      # Config loading (DB, Redis, JWT...)
+│       └── routers/                     # Route definitions + DI
+│           ├── composer.go              # Dependency Injection (wiring modules)
+│           ├── public.go                # Public routes (no auth required)
+│           ├── protected.go             # Protected routes (auth required)
+│           └── routers.go               # Main router setup
+│
+├── internal/                            # INTERNAL - Private code (not exported)
+│   │
+│   ├── shared/                          # SHARED across all services
+│   │   ├── middleware/                  # Middleware: CORS, Rate Limit, Auth, Timing
+│   │   ├── model/                       # Shared Model (DTO for BE ↔ BE communication)
+│   │   │   ├── auth.go
+│   │   │   ├── user.go
+│   │   │   └── refresh.go
+│   │   └── utils/                       # Helpers: UID, Decode, Encode, Generic Mapping,...
+│   │
+│   ├── user-service/                    # DOMAIN: User management
+│   │   ├── dto/                         # Data Transfer Object (Request/Response)
+│   │   │   ├── request/                 # Request DTO (from FE)
+│   │   │   └── response/                # Response DTO (to FE)
+│   │   ├── entity/                      # Entity (GORM model)
+│   │   ├── handler/                     # HTTP handler (calls usecase)
+│   │   ├── mapping/                     # DTO ↔ Model ↔ Entity mapper
+│   │   ├── repository/                  # DB + Redis cache layer
+│   │   └── usecase/                     # Pure business logic
+│   │
+│   ├── auth-service/                    # DOMAIN: Authentication (Login, Register, Logout)
+│   │   ├── dto/
+│   │   ├── entity/
+│   │   ├── handler/
+│   │   ├── mapping/
+│   │   ├── repository/
+│   │   └── usecase/
+│   │
+│   ├── refresh-service/                 # DOMAIN: Refresh Token management
+│       ├── dto/
+│       ├── entity/
+│       ├── handler/
+│       ├── mapping/
+│       ├── repository/
+│       └── usecase/
+│   
+├── logs/                                # Application logs
+│
+├── migrate/                             # Database migrations
+│   └── migrations/                      # SQL migration files (up/down)
+│
+├── pkg/                                 # Reusable packages (can be exported)
+│   └── redis/                           # Redis client
+│
+└── swagger/                             # API documentation (Swagger/OpenAPI)
 ```
 
 ---
@@ -338,11 +356,30 @@ This project follows **Clean Architecture** by Robert C. Martin (Uncle Bob).
 | `internal/repository/` | **Interface Adapters** | Database operations, data persistence |
 | `internal/middleware/` | **Frameworks & Drivers** | Framework-dependent components |
 | `cmd/server/` | **Frameworks & Drivers** | Application entry point, dependency injection |
-| `pkg/` | **Frameworks & Drivers** | Shared utilities (DB, Redis, logging) |
+| `pkg/` | **Frameworks & Drivers** | Shared utilities (Redis, Generics, UID, Key Request, Key Object,...) |
 
 <div align="center">
   <img src="../image/arc.png" alt="Clean Architecture" width="400"/>
 </div>
+
+---
+## Add a new service (you can see an example add a new book-service here: https://github.com/DVV-15324/witches/tree/main/example)
+
+### Generate Service
+```bash
+# witches add <new_service>
+witches add book
+```
+This will generate `internal/book-service/` with full CRUD structure.
+
+### Manual Steps (After Generation)
+
+| Step | File Path | Action |
+|------|-----------|--------|
+| **Router** | `cmd/server/routers/protected.go or cmd/server/routers/public.go` | Add route group for new service |
+| **Composer** | `cmd/server/routers/composer.go` | Add DI handler|
+| **Migration** | `migrate/migrations/` | Create `.up.sql` and `.down.sql` for new table |
+| **Shared Model** | `internal/shared/model/book.go` | Create shared model (if needed for BE ↔ BE) |
 
 ---
 
@@ -354,10 +391,10 @@ This project follows **Clean Architecture** by Robert C. Martin (Uncle Bob).
 | **ORM** | [GORM](https://gorm.io/) |
 | **Logger** | [Zap](https://github.com/uber-go/zap) |
 | **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
+| **Swagger** | [Swagger](https://swagger.io/specification/v2/) |
 | **Cache** | [Redis](https://redis.io/) |
-| **Swagger** | [EasyJSON](https://github.com/mailru/easyjson) |
+| **EasyJson** | [EasyJSON](https://github.com/mailru/easyjson) |
 | **CLI** | [Cobra](https://github.com/spf13/cobra) |
-| **Database** | PostgreSQL / MySQL / MSSQL |
 ...
 
 All the open-source contributors who make these tools possible ❤️
