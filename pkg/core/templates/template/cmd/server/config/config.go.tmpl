@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Port            string
 	Host            string
+	MetrictPort     string
 	DBHost          string
 	DBPort          string
 	DBPassword      string
@@ -41,6 +42,7 @@ func Load() *Config {
 	return &Config{
 		Port:            os.Getenv("APP_PORT"), // En: Application server port | Vi: Cổng máy chủ ứng dụng
 		Host:            os.Getenv("APP_HOST"),
+		MetrictPort:     os.Getenv("MESTRICT_PORT"),
 		DBDriver:        os.Getenv("DB_DRIVER"), // En: Database driver (e.g., postgres, mysql) | Vi: Loại database (vd: postgres, mysql)
 		DBUser:          os.Getenv("DB_USER"),
 		DBHost:          os.Getenv("DB_HOST"),               // En: Database server host | Vi: Địa chỉ máy chủ database
