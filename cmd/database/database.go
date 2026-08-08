@@ -24,20 +24,20 @@ func WitchesDatabase(DB_DRIVER string) {
 	}
 	// En: Get the value of the environmental variable
 	// Vi: Lấy giá trị của biến môi trường
-	APP_PORT := os.Getenv("APP_PORT")           // En: Project Port                 // Vi: Cổng Port của dự án
-	APP_HOST := os.Getenv("APP_HOST")           // En: Project Host                 // Vi: Cổng Port của dự án
-	MESTRICT_PORT := os.Getenv("MESTRICT_PORT") // En: Mestrict Port                 // Vi: Cổng Mestrict Port của dự án
-	DB_HOST := os.Getenv("DB_HOST")             // En: Database HOST/IP address     // Vi: Địa chỉ HOST/IP của database
-	DB_PORT := os.Getenv("DB_PORT")             // En: Database Port                // Vi: Cổng Port của database
-	DB_NAME := os.Getenv("DB_NAME")             // En: Database name                // Vi: Tên của database
-	DB_USER := os.Getenv("DB_USER")             // En: Database user            	// Vi: user của database
-	DB_PASSWORD := os.Getenv("DB_PASSWORD")     // En: Database password            // Vi: Mật khẩu của database
+	APP_PORT := os.Getenv("APP_PORT")       // En: Project Port                 // Vi: Cổng Port của dự án
+	APP_HOST := os.Getenv("APP_HOST")       // En: Project Host                 // Vi: Cổng Port của dự án
+	METRIC_PORT := os.Getenv("METRIC_PORT") // En: Mestrict Port                 // Vi: Cổng Mestrict Port của dự án
+	DB_HOST := os.Getenv("DB_HOST")         // En: Database HOST/IP address     // Vi: Địa chỉ HOST/IP của database
+	DB_PORT := os.Getenv("DB_PORT")         // En: Database Port                // Vi: Cổng Port của database
+	DB_NAME := os.Getenv("DB_NAME")         // En: Database name                // Vi: Tên của database
+	DB_USER := os.Getenv("DB_USER")         // En: Database user            	// Vi: user của database
+	DB_PASSWORD := os.Getenv("DB_PASSWORD") // En: Database password            // Vi: Mật khẩu của database
 
 	if APP_PORT == "" {
 		log.Fatal("Error: APP_PORT is not set in environment")
 	}
-	if MESTRICT_PORT == "" {
-		log.Fatal("Error: MESTRICT_PORT is not set in environment")
+	if METRIC_PORT == "" {
+		log.Fatal("Error: METRIC_PORT is not set in environment")
 	}
 	if DB_PASSWORD == "" {
 		log.Fatal("Error: DB_PASSWORD is not set in environment")
@@ -148,7 +148,7 @@ func WitchesDatabase(DB_DRIVER string) {
 	//Vi: Chắc chắn file đóng
 	defer file.Close()
 
-	content := utils.CreateContentRefreshUsed(APP_PORT, APP_HOST, MESTRICT_PORT, DB_DRIVER, DB_USER, DB_HOST, DB_PORT, DB_NAME, DB_PASSWORD, DB_URL, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, SESSION_TTL, IDLE_TIMEOUT, REVOKED_TTL, RATE_LIMIT_PERIOD, RATE_LIMIT_MAX)
+	content := utils.CreateContentRefreshUsed(APP_PORT, APP_HOST, METRIC_PORT, DB_DRIVER, DB_USER, DB_HOST, DB_PORT, DB_NAME, DB_PASSWORD, DB_URL, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, SESSION_TTL, IDLE_TIMEOUT, REVOKED_TTL, RATE_LIMIT_PERIOD, RATE_LIMIT_MAX)
 
 	if _, err := file.WriteString(content); err != nil {
 		log.Fatalf("Error: write to witches.env: %v", err)
