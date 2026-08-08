@@ -6,6 +6,7 @@ func CreateContentRefresh() string {
 	return `# SERVER CONFIGURATION
 APP_PORT=8080
 APP_HOST=localhost
+MESTRICT_PORT=8088
 
 # DATABASE CONFIGURATION
 DB_DRIVER=your_driver
@@ -39,6 +40,7 @@ RATE_LIMIT_MAX=100
 
 func CreateContentRefreshUsed(
 	APP_PORT string,
+	MESTRICT_PORT string,
 	APP_HOST string,
 	DB_DRIVER string,
 	DB_USER string,
@@ -61,6 +63,7 @@ func CreateContentRefreshUsed(
 	return fmt.Sprintf(`# SERVER CONFIGURATION
 APP_PORT=%s
 APP_HOST=%s
+MESTRICT_PORT=%s
 
 # DATABASE CONFIGURATION
 DB_DRIVER=%s
