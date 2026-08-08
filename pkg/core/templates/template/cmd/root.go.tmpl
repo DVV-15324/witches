@@ -17,7 +17,7 @@ var root = &cobra.Command{
 		r := gin.Default()
 		config := config.Load()
 		host := fmt.Sprintf("%s:%s", config.Host, config.Port)
-		r = w_utils.InitMetric(config.MESTRICT_PORT, r)
+		r = w_utils.InitMetric(config.MetrictPort, r)
 		routes.Start(r, host, config)
 		w_utils.ShutdownServer(context.Background(), r, config.Host, config.Port)
 	},
