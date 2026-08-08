@@ -3,6 +3,7 @@ package utils
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -14,6 +15,9 @@ import (
 // InitMetric khởi tạo middleware metrics và chạy metrics server trên một goroutine riêng.
 // Trả về gin.Engine đã được bọc middleware .
 func InitMetric(metricsAddr string, engine *gin.Engine) *gin.Engine {
+	if !strings.Contains(metricsAddr, ":") && !strings.HasPrefix(metricsAddr, ":") {
+		metricsAddr = ":" + metricsAddr
+	}
 	// 1. Tạo middleware metrics
 	mdlw := middleware.New(middleware.Config{
 		Recorder: metrics.NewRecorder(metrics.Config{}),
