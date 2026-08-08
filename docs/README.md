@@ -85,7 +85,7 @@ cd example
 
 APP_PORT=8080
 APP_HOST=localhost
-MESTRICT_PORT=8088
+METRIC_PORT =8088
 
 # DATABASE CONFIGURATION
 
@@ -137,6 +137,7 @@ RATE_LIMIT_MAX=100
 |----------|------|-------------|
 | `APP_PORT` | string | Application server port |
 | `APP_HOST` | string | Application server host |
+|`METRIC_PORT ` | string | Metrict server host|
 | `DB_DRIVER` | string | Database driver (mysql, postgres, mssql) |
 | `DB_HOST` | string | Database server host |
 | `DB_PORT` | string | Database server port |
@@ -162,7 +163,7 @@ Edit `witches.env` with your actual settings:
 
 APP_PORT=8080
 APP_HOST=localhost
-MESTRICT_PORT=8088
+METRIC_PORT =8088
 
 # DATABASE CONFIGURATION
 
@@ -276,6 +277,7 @@ witches migrate up
 # Start the application
 witches run
 
+# Metrics server listening on http://localhost:8088
 # Server running on: http://localhost:8080
 ```
 
@@ -380,6 +382,7 @@ This will generate `internal/book-service/` with full CRUD structure.
 | **Composer** | `cmd/server/routers/composer.go` | Add DI handler|
 | **Migration** | `migrate/migrations/` | Create `.up.sql` and `.down.sql` for new table |
 | **Shared Model** | `internal/shared/model/book.go` | Create shared model (if needed for BE ↔ BE) |
+| **key_object** | `internal\shared\utils\key_object.go` | Create Key Object|
 
 ---
 

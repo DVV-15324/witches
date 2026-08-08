@@ -84,7 +84,7 @@ cd example
 
 APP_PORT=8080
 APP_HOST=localhost
-MESTRICT_PORT=8088
+METRIC_PORT =8088
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
@@ -136,6 +136,7 @@ RATE_LIMIT_MAX=100
 |----------|------|-------------|
 | `APP_PORT` | string | Cổng máy chủ ứng dụng |
 | `APP_HOST` | string | Địa chỉ máy chủ ứng dụng |
+| `METRIC_PORT` | string | Cổng metric ứng dụng |
 | `DB_DRIVER` | string | Trình điều khiển cơ sở dữ liệu (mysql, postgres, mssql) |
 | `DB_HOST` | string | Máy chủ cơ sở dữ liệu |
 | `DB_PORT` | string | Cổng máy chủ cơ sở dữ liệu |
@@ -161,7 +162,7 @@ Chỉnh sửa `witches.env` với cài đặt thực tế của bạn:
 
 APP_PORT=8080
 APP_HOST=localhost
-MESTRICT_PORT=8088
+METRIC_PORT=8088
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
@@ -275,7 +276,8 @@ witches migrate up
 # Khởi động ứng dụng
 witches run
 
-# Máy chủ đang chạy tại: http://localhost:8080
+# Metrics server listening on http://localhost:8088
+# Server running on http://localhost:8080
 ```
 
 ---
@@ -377,9 +379,10 @@ Thao tác này sẽ tạo ra `internal/book-service/` với cấu trúc CRUD cơ
 | Bước | Đường dẫn tệp | Hành động |
 |------|-----------|--------|
 | **Router** | `cmd/server/routers/protected.go hoặc cmd/server/routers/public.go` | Thêm router cho dịch vụ mới |
-| **Composer** | `cmd/server/routers/composer.go` | thêm DI handler|
+| **Composer** | `cmd/server/routers/composer.go` | Thêm DI handler|
 | **Migration** | `migrate/migrations/` | Tạo `.up.sql` và `.down.sql` cho bảng mới |
 | **Shared Model** | `internal/shared/model/book.go` | Tạo model dùng chung (nếu cần cho BE ↔ BE) |
+| **key_object** | `internal\shared\utils\key_object.go` | Tạo Key Object|
 
 ---
 
