@@ -2,10 +2,10 @@ package utils
 
 import (
 	"embed"
-	"html/template"
 	"log"
 	"os"
 	"path/filepath"
+	"text/template"
 )
 
 type Config interface {
