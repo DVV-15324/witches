@@ -85,6 +85,7 @@ cd example
 
 APP_PORT=8080
 APP_HOST=localhost
+MESTRICT_PORT=8088
 
 # DATABASE CONFIGURATION
 
@@ -161,6 +162,7 @@ Edit `witches.env` with your actual settings:
 
 APP_PORT=8080
 APP_HOST=localhost
+MESTRICT_PORT=8088
 
 # DATABASE CONFIGURATION
 

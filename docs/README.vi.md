@@ -84,6 +84,7 @@ cd example
 
 APP_PORT=8080
 APP_HOST=localhost
+MESTRICT_PORT=8088
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
@@ -160,6 +161,7 @@ Chỉnh sửa `witches.env` với cài đặt thực tế của bạn:
 
 APP_PORT=8080
 APP_HOST=localhost
+MESTRICT_PORT=8088
 
 # CẤU HÌNH CƠ SỞ DỮ LIỆU
 
