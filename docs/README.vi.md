@@ -4,18 +4,16 @@
 
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-### Backend Golang Nhanh và mở rộng
+### Công cụ CLI Backend Go
 
 <p>
-  REST API được xây dựng với <b>Go</b>, thiết kế để đạt hiệu suất cao,
-  kiến trúc Clean Architecture và phát triển backend hiện đại.
+  Scaffolding REST API cho <b>Go</b>, thiết kế đơn giản,
+  dùng ít tài nguyên, thực dụng cho phát triển thực tế.
 </p>
 
 <p>
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
-  <img src="https://img.shields.io/badge/EasyJSON-JSON_Fast-00ADD8?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Swagger-API_Docs-green?style=for-the-badge">
   <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
 </p>
 
@@ -23,414 +21,111 @@
 
 ---
 
-## Mục Lục
+## ⚠️ Trạng thái
 
-- [Tính Năng](#tính-năng)
-- [Bắt Đầu Nhanh](#bắt-đầu-nhanh)
-- [Cấu Hình](#cấu-hình)
-- [Cơ Sở Dữ Liệu & Redis](#cơ-sở-dữ-liệu--redis)
-- [Migration](#migration)
-- [Chạy Ứng Dụng](#chạy-ứng-dụng)
-- [Cấu Trúc Dự Án](#cấu-trúc-dự-án)
-- [Clean Architecture](#clean-architecture)
-- [Công Nghệ Sử Dụng](#công-nghệ-sử-dụng)
-- [Các Thực Hành Tốt Nhất](#các-thực-hành-tốt-nhất)
-- [Giấy Phép](#giấy-phép)
+**Chưa sẵn sàng để dùng.**  
+Đây là dự án cá nhân. Dùng là tự chịu rủi ro.  
+Có thể 30 năm nữa mới xong. Hoặc không bao giờ.
 
 ---
 
-## Tính Năng
+## Tính năng
 
 | Tính năng | Mô tả |
-|-----------|------------|
-| **HTTP Framework** | [Gin](https://github.com/gin-gonic/gin) |
-| **ORM** | [GORM](https://gorm.io/) |
-| **Logger** | [Zap](https://github.com/uber-go/zap) |
-| **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
-| **Swagger** | [Swagger](https://swagger.io/specification/v2/) |
-| **Cache** | [Redis](https://redis.io/) |
-| **EasyJson** | [EasyJSON](https://github.com/mailru/easyjson) |
-| **CLI** | [Cobra](https://github.com/spf13/cobra) |
-...
+|-----------|-------|
+| **Xác thực JWT** | Auth bằng token + Refresh Token |
+| **Swagger** | Tự động tạo tài liệu API |
+| **Migration** | Quản lý schema database |
+| **Mã hóa** | Băm mật khẩu an toàn |
+| **Redis** | Hỗ trợ cache (không bắt buộc) |
+| **Giới hạn tốc độ** | Bảo vệ API |
+| **GORM** | ORM cho database |
+
 ---
 
-## Bắt Đầu Nhanh
+## Bắt đầu nhanh
 
-### 1. Cài Đặt
+### 1. Cài đặt
 
 ```bash
-# Cài đặt CLI Witches
 go install github.com/DVV-15324/witches@latest
-
-# Kiểm tra cài đặt
-witches version
 ```
 
-### 2. Tạo Dự Án Mới
+### 2. Tạo project mới
 
 ```bash
-# Tạo dự án mới
-# witches create <dự án của bạn>
 witches create example
-
-# Di chuyển vào thư mục dự án
 cd example
 ```
 
-#### Đã Tạo: `witches.env`
+### 3. Cấu hình
 
-```env
-# CẤU HÌNH MÁY CHỦ
+Sửa file `witches.env` theo nhu cầu.
 
-APP_PORT=8080
-APP_HOST=localhost
-METRIC_PORT =8088
-
-# CẤU HÌNH CƠ SỞ DỮ LIỆU
-
-DB_DRIVER=%s
-DB_USER=root
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=your_database
-DB_PASSWORD=your_password
-
-
-# CẤU HÌNH REDIS
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-
-
-# THỜI GIAN HẾT HẠN TOKEN
-
-ACCESS_TOKEN_TTL=900
-REFRESH_TOKEN_TTL=604800
-
-
-# CÀI ĐẶT PHIÊN
-
-SESSION_TTL=604800
-IDLE_TIMEOUT=1800
-
-
-# CÀI ĐẶT DANH SÁCH ĐEN
-
-REVOKED_TTL=300
-
-
-# GIỚI HẠN TỐC ĐỘ
-
-RATE_LIMIT_PERIOD=60
-RATE_LIMIT_MAX=100 
-```
-
----
-
-## Cấu Hình
-
-### Tham Chiếu Biến Môi Trường
-
-| Biến | Loại | Mô Tả |
-|----------|------|-------------|
-| `APP_PORT` | string | Cổng máy chủ ứng dụng |
-| `APP_HOST` | string | Địa chỉ máy chủ ứng dụng |
-| `METRIC_PORT` | string | Cổng metric ứng dụng |
-| `DB_DRIVER` | string | Trình điều khiển cơ sở dữ liệu (mysql, postgres, mssql) |
-| `DB_HOST` | string | Máy chủ cơ sở dữ liệu |
-| `DB_PORT` | string | Cổng máy chủ cơ sở dữ liệu |
-| `DB_PASSWORD` | string | Mật khẩu cơ sở dữ liệu |
-| `DB_NAME` | string | Tên cơ sở dữ liệu |
-| `REDIS_HOST` | string | Máy chủ Redis |
-| `REDIS_PORT` | string | Cổng máy chủ Redis |
-| `REDIS_PASSWORD` | string | Mật khẩu Redis |
-| `ACCESS_TOKEN_TTL` | int64 | Thời gian hết hạn access token (giây) |
-| `REFRESH_TOKEN_TTL` | int64 | Thời gian hết hạn refresh token (giây) |
-| `SESSION_TTL` | int64 | Thời gian hết hạn phiên (giây) |
-| `REVOKED_TTL` | int64 | Thời gian tồn tại cache token bị thu hồi (giây) |
-| `IDLE_TIMEOUT` | int64 | Thời gian chờ HTTP không hoạt động (giây) |
-| `RATE_LIMIT_PERIOD` | int64 | Cửa sổ thời gian giới hạn tốc độ (giây) |
-| `RATE_LIMIT_MAX` | int64 | Số yêu cầu tối đa mỗi khoảng thời gian |
-
-### Chỉnh Sửa Cấu Hình
-
-Chỉnh sửa `witches.env` với cài đặt thực tế của bạn:
-
-```env
-# CẤU HÌNH MÁY CHỦ
-
-APP_PORT=8080
-APP_HOST=localhost
-METRIC_PORT=8088
-
-# CẤU HÌNH CƠ SỞ DỮ LIỆU
-
-DB_DRIVER=mysql
-DB_USER=root
-DB_HOST=localhost
-DB_PORT=3307
-DB_NAME=test
-DB_PASSWORD=123
-
-
-# CẤU HÌNH REDIS
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-
-
-# THỜI GIAN HẾT HẠN TOKEN
-
-ACCESS_TOKEN_TTL=900
-REFRESH_TOKEN_TTL=604800
-
-
-# CÀI ĐẶT PHIÊN
-
-SESSION_TTL=604800
-IDLE_TIMEOUT=1800
-
-
-# CÀI ĐẶT DANH SÁCH ĐEN
-
-REVOKED_TTL=300
-
-
-# GIỚI HẠN TỐC ĐỘ
-
-RATE_LIMIT_PERIOD=60
-RATE_LIMIT_MAX=100 
-```
----
-
-## Cơ Sở Dữ Liệu & Redis
-
-### Sử Dụng Cơ Sở Dữ Liệu Hiện Có Của Bạn
-
-> **Hỗ trợ:** MySQL, PostgreSQL, MSSQL
+### 4. Chạy
 
 ```bash
-witches database up
+witches run
 ```
 
-Lệnh này sẽ:
-- Tự động tạo `DB_URL` cho MySQL, MSSQL và PostgreSQL
+---
 
-#### Ví dụ Đầu Ra:
+## Cấu hình
 
-```text
-# CẤU HÌNH CƠ SỞ DỮ LIỆU
-DB_DRIVER=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=test
-DB_PASSWORD=123
-DB_URL=root:123@tcp(localhost:3307)/test?charset=utf8mb4&parseTime=True&loc=Local
+Xem file `witches.env` để biết tất cả tùy chọn.
 
-# CẤU HÌNH REDIS
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
+---
+
+## Database
+
+Hỗ trợ: MySQL, PostgreSQL, MSSQL
+
+```bash
+witches database generate
 ```
 
 ---
 
 ## Migration
 
-### 1. Khởi Tạo & Cài Đặt Dependencies
-
-```bash
-# Tạo các mẫu
-witches init
-
-# Cài đặt dependencies
-witches install
-```
-
-### 2. Các File Migration
-
-**Up Migration** (`./migrate/migrations/1_init.up.sql`):
-**Down Migration** (`./migrate/migrations/1_init.down.sql`):
-
 ```bash
 witches migrate up
-```
-
-### 3. Các Lệnh Migration
-
-| Lệnh | Mô Tả |
-|---------|-------------|
-| `witches migrate up` | Áp dụng 1 migration đang chờ |
-| `witches migrate down` | Hoàn tác 1 migration |
-| `witches migrate version` | Hiển thị phiên bản migration hiện tại |
-| `witches migrate force <version>` | Buộc đặt phiên bản migration |
-| `witches migrate drop` | Xóa tất cả bảng ⚠️ NGUY HIỂM |
-
----
-
-## Chạy Ứng Dụng
-
-```bash
-# Khởi động ứng dụng
-witches run
-
-# Metrics server listening on http://localhost:8088
-# Server running on http://localhost:8080
+witches migrate down
 ```
 
 ---
 
-## Cấu Trúc Dự Án
+## Cấu trúc project
 
 ```
-├── cmd/                                 # Entrypoint - Nơi ứng dụng khởi chạy
-│   └── server/                          # Khởi tạo và chạy HTTP server
-│       ├── config/                      # Load cấu hình từ env (DB, Redis, JWT...)
-│       └── routers/                     # Định tuyến - Đăng ký API routes + DI
-│           ├── composer.go              # Dependency Injection (lắp ráp các module)
-│           ├── public.go                # Public routes (không cần auth)
-│           ├── protected.go             # Protected routes (cần auth)
-│           └── routers.go               # Khởi tạo router chính
-│
-├── internal/                            # NỘI BỘ - Code chỉ dùng trong project
-│   │
-│   ├── shared/                          # DÙNG CHUNG cho toàn hệ thống
-│   │   ├── middleware/                  # Middleware: CORS, Rate Limit, Auth, Timing
-│   │   ├── model/                       # Shared Model (DTO giao tiếp BE ↔ BE)
-│   │   │   ├── auth.go
-│   │   │   ├── user.go
-│   │   │   └── refresh.go
-│   │   └── utils/                       # Helper: UID, Decode, Encode, Mapping Generic,...
-│   │
-│   ├── user-service/                    # DOMAIN: Quản lý người dùng
-│   │   ├── dto/                         # Data Transfer Object (Request/Response)
-│   │   │   ├── request/                 # Request DTO (FE gửi lên)
-│   │   │   └── response/                # Response DTO (trả về FE)
-│   │   ├── entity/                      # Entity (GORM model)
-│   │   ├── handler/                     # Xử lý HTTP request, gọi usecase
-│   │   ├── mapping/                     # Chuyển đổi DTO ↔ Model ↔ Entity
-│   │   ├── repository/                  # Tương tác DB + Redis cache
-│   │   └── usecase/                     # Business logic thuần
-│   │
-│   ├── auth-service/                    # DOMAIN: Xác thực (Login, Register, Logout)
-│   │   ├── dto/
-│   │   ├── entity/
-│   │   ├── handler/
-│   │   ├── mapping/
-│   │   ├── repository/
-│   │   └── usecase/
-│   │
-│   ├── refresh-service/                 # DOMAIN: Quản lý Refresh Token
-│       ├── dto/
-│       ├── entity/
-│       ├── handler/
-│       ├── mapping/
-│       ├── repository/
-│       └── usecase/
-│
-├── logs/                                # Log files
-│
-├── migrate/                             # Database migration
-│   └── migrations/                      # SQL migration files (up/down)
-│
-├── pkg/                                 # Package có thể tái sử dụng
-│   └── redis/                           # Redis client
-│
-└── swagger/                             # API documentation (Swagger/OpenAPI)
+├── cmd/           # Điểm vào
+├── internal/       # Code nội bộ
+│   ├── shared/     # Dùng chung
+│   └── *-service/  # Module nghiệp vụ
+├── migrate/        # SQL migration
+└── pkg/            # Package tái sử dụng
 ```
 
 ---
 
-## Clean Architecture
+## Công nghệ sử dụng
 
-Dự án này tuân theo **Clean Architecture** của Robert C. Martin (Uncle Bob).
-
-### Ánh Xạ Tầng
-
-| Thư Mục | Tầng | Trách Nhiệm |
-|-----------|-------|----------------|
-| `internal/entity/` | **Entities** | Quy tắc nghiệp vụ cốt lõi, độc lập với framework |
-| `internal/usecase/` | **Use Cases** | Quy tắc nghiệp vụ cụ thể của ứng dụng |
-| `internal/handler/`<br>`internal/dto/` | **Interface Adapters** | Chuyển đổi dữ liệu giữa tầng bên ngoài và bên trong |
-| `internal/repository/` | **Interface Adapters** | Thao tác cơ sở dữ liệu, lưu trữ dữ liệu |
-| `internal/middleware/` | **Frameworks & Drivers** | Các thành phần phụ thuộc vào framework |
-| `cmd/server/` | **Frameworks & Drivers** | Điểm vào ứng dụng, tiêm phụ thuộc |
-| `pkg/` | **Frameworks & Drivers** | Tiện ích dùng chung (Redis, Generics, UID, Key Request, Key Object,...) |
-
-<div align="center">
-  <img src="../image/arc.png" alt="Clean Architecture" width="400"/>
-</div>
+- **HTTP:** Gin
+- **ORM:** GORM
+- **Migration:** Golang-Migrate
+- **Cache:** Redis
+- **CLI:** Cobra
 
 ---
 
-## Thêm một dịch vụ mới (bạn có thể xem ví dụ thêm dịch vụ sách mới tại đây: ...)
+## Giấy phép
 
-### Tạo dịch vụ
-```bash
-# witches add <dịch vụ mới>
-witches add book
-```
-Thao tác này sẽ tạo ra `internal/book-service/` với cấu trúc CRUD cơ bản.
-
-### Các bước thủ công (Sau khi tạo)
-
-| Bước | Đường dẫn tệp | Hành động |
-|------|-----------|--------|
-| **Router** | `cmd/server/routers/protected.go hoặc cmd/server/routers/public.go` | Thêm router cho dịch vụ mới |
-| **Composer** | `cmd/server/routers/composer.go` | Thêm DI handler|
-| **Migration** | `migrate/migrations/` | Tạo `.up.sql` và `.down.sql` cho bảng mới |
-| **Shared Model** | `internal/shared/model/book.go` | Tạo model dùng chung (nếu cần cho BE ↔ BE) |
-| **key_object** | `internal\shared\utils\key_object.go` | Tạo Key Object|
-
----
-
-## Công Nghệ Sử Dụng
-
-| Thành Phần | Công Nghệ |
-|-----------|------------|
-| **HTTP Framework** | [Gin](https://github.com/gin-gonic/gin) |
-| **ORM** | [GORM](https://gorm.io/) |
-| **Logger** | [Zap](https://github.com/uber-go/zap) |
-| **Migration** | [Golang-Migrate](https://github.com/golang-migrate/migrate) |
-| **Swagger** | [Swagger](https://swagger.io/specification/v2/) |
-| **Cache** | [Redis](https://redis.io/) |
-| **EasyJson** | [EasyJSON](https://github.com/mailru/easyjson) |
-| **CLI** | [Cobra](https://github.com/spf13/cobra) |
-...
-
-Cảm ơn tất cả các nhà đóng góp mã nguồn mở đã tạo nên những công cụ tuyệt vời này ❤️
----
-
-## Các Thực Hành Tốt Nhất
-
-- Luôn viết cả migration `up` và `down`
-- Kiểm thử migration trong môi trường phát triển trước khi lên production
-- Không bao giờ chỉnh sửa migration đã được áp dụng - hãy tạo migration mới
-- Sao lưu cơ sở dữ liệu trước khi chạy migration trên production
-- Giữ cho migration độc lập với mã nguồn ứng dụng
-- Sử dụng biến môi trường cho cấu hình
-
----
-
-## Giấy Phép
-
-Giấy phép MIT
-
----
-
-## Hỗ Trợ
-
-- Mở một [issue](https://github.com/DVV-15324/witches/issues)
+MIT License
 
 ---
 
 <div align="center">
   <br>
-  <div><b> Mã Nguồn Mở · Phi Lợi Nhuận</b></div>
-  Dự án này hoàn toàn là mã nguồn mở và phi lợi nhuận.<br>
-  Được xây dựng với đam mê cho cộng đồng Go.
-  Được tạo bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  Làm bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
 </div>
