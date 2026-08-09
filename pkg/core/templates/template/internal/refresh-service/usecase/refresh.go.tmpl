@@ -2,12 +2,12 @@ package usecase
 
 import (
 	"context"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	"{{.ModuleName}}/cmd/server/config"
 	modelAuth "{{.ModuleName}}/internal/shared/model"
 	modelRefresh "{{.ModuleName}}/internal/shared/model"
 	modelUser "{{.ModuleName}}/internal/shared/model"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 type IRefreshTokenRepository interface {
@@ -40,11 +40,11 @@ type RefreshUseCase struct {
 	UserUseCase      IUserUseCase
 	SessionService   *w_utils.SessionService
 	BlacklistService *w_utils.BlacklistService
-	Config           *config.Config
+	Config           *wcmd_utils.Config
 }
 
 func NewRefreshUseCase(userUseCase IUserUseCase, refreshTokenRepo IRefreshTokenRepository, jwt IJwt, sessionService *w_utils.SessionService,
-	blacklistService *w_utils.BlacklistService, config *config.Config) *RefreshUseCase {
+	blacklistService *w_utils.BlacklistService, config *wcmd_utils.Config) *RefreshUseCase {
 	return &RefreshUseCase{
 		UserUseCase:      userUseCase,
 		Jwt:              jwt,
