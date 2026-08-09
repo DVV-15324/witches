@@ -1,20 +1,23 @@
-[Vietnamese](./README.vi.md) | [English](./README.md)
+[Tiếng Việt](./README.vi.md) | [English](./README.md)
 
 <div align="center">
 
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-### Công cụ CLI Backend Go
+### Go Backend CLI Tool
 
 <p>
-  Scaffolding REST API cho <b>Go</b>, thiết kế đơn giản,
-  dùng ít tài nguyên, thực dụng cho phát triển thực tế.
+  Công cụ tạo scaffold REST API cho <b>Go</b>, được thiết kế đơn giản,
+  tiết kiệm tài nguyên.
 </p>
 
 <p>
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
   <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
+  <img src="https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis">
+  <img src="https://img.shields.io/badge/Cobra-CLI-4B32C3?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger">
 </p>
 
 </div>
@@ -23,8 +26,8 @@
 
 ## ⚠️ Trạng thái
 
-**Chưa sẵn sàng để dùng.**  
-Đây là dự án cá nhân. Dùng là tự chịu rủi ro.  
+> **Chưa sẵn sàng cho môi trường production.**  
+> Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
 
 ---
 
@@ -32,15 +35,18 @@
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| **Xác thực JWT** | Auth bằng token + Refresh Token |
+| **Xác thực JWT** | Xác thực dựa trên token với cơ chế Refresh Token |
 | **Swagger** | Tự động tạo tài liệu API |
-| **Migration** | Quản lý schema database |
-| **Mã hóa** | Băm mật khẩu an toàn |
-| **Redis** | Hỗ trợ cache (không bắt buộc) |
-| **Giới hạn tốc độ** | Bảo vệ API |
-| **GORM** | ORM cho database |
-|**EASYJSON** | Tự động hóa Sinh mã EasyJSON |
-|****	| Metrics, Timing, Database Tracing, and Structured Logging|
+| **Migration** | Quản lý phiên bản cơ sở dữ liệu |
+| **Hash Utilities** | Mã hóa mật khẩu an toàn |
+| **Hỗ trợ Redis** | Tùy chọn caching và lưu trữ session |
+| **Giới hạn tốc độ** | Bảo vệ API khỏi bị lạm dụng |
+| **Hỗ trợ GORM** | ORM cho các thao tác cơ sở dữ liệu |
+| **EasyJSON** | Tự động tạo mã JSON serialization |
+| **Metrics** | Đo lường, timing và theo dõi |
+| **Logging** | Logging có cấu trúc với Zap |
+| **CLI** | Giao diện dòng lệnh dựa trên Cobra |
+| **Slow Query** | Theo dõi truy vấn database và log truy vấn chậm |
 
 ---
 
@@ -52,7 +58,7 @@
 go install github.com/DVV-15324/witches@latest
 ```
 
-### 2. Tạo project mới
+### 2. Tạo dự án mới
 
 ```bash
 witches create example
@@ -61,9 +67,22 @@ cd example
 
 ### 3. Cấu hình
 
-Sửa file `witches.env` theo nhu cầu.
+Chỉnh sửa file `witches.env`
 
-### 4. Chạy
+### 4. Thiết lập Database
+
+```bash
+witches database generate
+```
+
+### 5. Khởi tạo & Cài đặt Dependencies
+
+```bash
+witches init      # Tạo file template
+witches install   # Cài đặt dependencies
+```
+
+### 6. Chạy Server
 
 ```bash
 witches run
@@ -71,62 +90,29 @@ witches run
 
 ---
 
-## Cấu hình
+## Câu lệnh
 
-Xem file `witches.env` để biết tất cả tùy chọn.
-
----
-
-## Database
-
-Hỗ trợ: MySQL, PostgreSQL, MSSQL
-
-```bash
-witches database generate
-```
-
----
-
-## Migration
-
-```bash
-witches migrate up
-witches migrate down
-```
-
----
-
-## Cấu trúc project
-
-```
-├── cmd/           # Điểm vào
-├── internal/       # Code nội bộ
-│   ├── shared/     # Dùng chung
-│   └── *-service/  # Module nghiệp vụ
-├── migrate/        # SQL migration
-└── pkg/            # Package tái sử dụng
-```
-
----
-
-## Công nghệ sử dụng
-
-- **HTTP:** Gin
-- **ORM:** GORM
-- **Migration:** Golang-Migrate
-- **Cache:** Redis
-- **CLI:** Cobra
+| Câu lệnh | Mô tả |
+|----------|-------|
+| `witches create <name>` | Tạo dự án mới |
+| `witches init` | Tạo file template và cấu trúc |
+| `witches install` | Cài đặt dependencies |
+| `witches run` | Khởi động server |
+| `witches migrate up` | Chạy tất cả migrations |
+| `witches migrate down` | Rollback migration cuối cùng |
+| `witches database generate` | Tạo URL kết nối database |
+| `witches add service=your_service` | Thêm 1 service mới  |
 
 ---
 
 ## Giấy phép
 
-MIT License
+MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
 
 ---
 
 <div align="center">
   <br>
-  Làm bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  Được tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
 </div>

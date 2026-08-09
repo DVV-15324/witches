@@ -6,7 +6,7 @@
 
 ### Go Backend CLI Tool
 
-<p>
+<p> 
   REST API scaffolding for <b>Go</b>, designed for simplicity,
   low-resource usage, and practical development.
 </p>
@@ -15,6 +15,9 @@
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
   <img src="https://img.shields.io/badge/GORM-ORM-25A162?style=for-the-badge&logo=gorm">
+  <img src="https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis">
+  <img src="https://img.shields.io/badge/Cobra-CLI-4B32C3?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger">
 </p>
 
 </div>
@@ -23,8 +26,8 @@
 
 ## ⚠️ Status
 
-**Not ready for use.**  
-This is a personal project. Use at your own risk.
+> **Not ready for production use.**  
+> This is a personal project. Use at your own risk.
 
 ---
 
@@ -32,15 +35,18 @@ This is a personal project. Use at your own risk.
 
 | Feature | Description |
 |---------|-------------|
-| **JWT Auth** | Token-based authentication with Refresh Token |
-| **Swagger** | Auto-generated API docs |
+| **JWT Auth** | Token-based authentication with Refresh Token rotation |
+| **Swagger** | Auto-generated API documentation |
 | **Migration** | Version control for database schema |
-| **Hash Utilities** | Password hashing |
-| **Redis Support** | Optional caching |
-| **Rate Limiting** | Protect your APIs |
+| **Hash Utilities** | Secure password hashing |
+| **Redis Support** | Optional caching and session storage |
+| **Rate Limiting** | Protect your APIs from abuse |
 | **GORM Support** | ORM for database operations |
-|**EASYJSON** | Automate EasyJSON Code Generation |
-|****| Metrics, Timing, Database Tracing, and Structured Logging |
+| **EasyJSON** | Automate JSON serialization code generation |
+| **Metrics** | metrics, timing, and tracing |
+| **Logging** | Structured logging with Zap |
+| **CLI** | Cobra-based command-line interface |
+| **Slow Query** | Database query tracing and slow query logging |
 
 ---
 
@@ -61,9 +67,22 @@ cd example
 
 ### 3. Configure
 
-Edit `witches.env` with your settings.
+Edit `witches.env`
 
-### 4. Run
+### 4. Database Setup
+
+```bash
+witches database generate
+```
+
+### 5. Init & Install Dependencies
+
+```bash
+witches init      # Generate template files
+witches install   # Install dependencies
+```
+
+### 6. Run the Server
 
 ```bash
 witches run
@@ -71,63 +90,29 @@ witches run
 
 ---
 
-## Configuration
+## Commands
 
-See `witches.env` for all available options.
-
----
-
-## Database
-
-Supported: MySQL, PostgreSQL, MSSQL
-
-```bash
-witches database generate
-```
-
----
-
-## Migrations
-
-```bash
-witches migrate up
-witches migrate down
-```
-
----
-
-## Project Structure
-
-```
-├── cmd/           # Entrypoint
-├── internal/       # Private code
-│   ├── shared/     # Shared utilities
-│   └── *-service/  # Domain modules
-├── migrate/        # SQL migrations
-└── pkg/            # Reusable packages
-```
-
----
-
-## Technologies
-
-- **HTTP:** Gin
-- **ORM:** GORM
-- **Migration:** Golang-Migrate
-- **Cache:** Redis
-- **CLI:** Cobra
+| Command | Description |
+|---------|-------------|
+| `witches create <name>` | Create a new project |
+| `witches init` | Generate template files and structure |
+| `witches install` | Install dependencies |
+| `witches run` | Start the server |
+| `witches migrate up` | Apply all migrations |
+| `witches migrate down` | Rollback last migration |
+| `witches database generate` | Generate database URL |
+| `witches add service=your_service` | Add a new service  |
 
 ---
 
 ## License
 
-MIT License
+MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
   <br>
-  Made by <a href="https://github.com/DVV-15324">DVV-15324</a>
+  Made with ❤️ by <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
 </div>
-
