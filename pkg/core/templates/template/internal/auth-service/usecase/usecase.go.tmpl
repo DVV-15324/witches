@@ -2,12 +2,12 @@ package usecase
 
 import (
 	"context"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	"{{.ModuleName}}/cmd/server/config"
 	modelAuth "{{.ModuleName}}/internal/shared/model"
 	modelRefresh "{{.ModuleName}}/internal/shared/model"
 	modelUser "{{.ModuleName}}/internal/shared/model"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 type IAuthReponsitory interface {
@@ -39,7 +39,7 @@ type IJwt interface {
 }
 
 type AuthUseCase struct {
-	Config              *config.Config
+	Config              *wcmd_utils.Config
 	TxManager           w_utils.TxManager
 	Jwt                 IJwt
 	UserUseCase         IUserUseCase
@@ -60,7 +60,7 @@ func NewAuthUseCase(
 	txManager w_utils.TxManager,
 	sessionService *w_utils.SessionService,
 	blacklistService *w_utils.BlacklistService,
-	config *config.Config,
+	config *wcmd_utils.Config,
 ) *AuthUseCase {
 	return &AuthUseCase{
 		Config:              config,
