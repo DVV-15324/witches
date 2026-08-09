@@ -1,0 +1,20 @@
+# Coverage
+*.out
+coverage*.out
+coverage.html
+
+# Logs
+*.log
+
+# Environment
+witches.env
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
