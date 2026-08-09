@@ -1,0 +1,45 @@
+package handler
+
+import (
+	"errors"
+	dtoAuth "example/internal/auth-service/dto/request"
+	mapping "example/internal/auth-service/mapping"
+	utils "example/internal/shared/utils"
+	"time"
+
+	w_easyjson "github.com/DVV-15324/witches/pkg/core/easyjson"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+)
+
+func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var data dtoAuth.Login
+
+		if err := w_easyjson.BindJSON(c, &data); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
+			return
+		}
+
+		// Then validate
+		err_valid := data.Validate()
+		if err_valid != nil {
+			resq := w_resp.NewAppError(401, err_valid, time.Now())
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+
+		entity := mapping.FromLoginToModelAuth(&data)
+
+		// Use utils to get device info
+		deviceID, ipAddress, userAgent, locale, timeZone := utils.GetDeviceInfo(c)
+
+		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), entity, deviceID, ipAddress, userAgent, locale, timeZone)
+		if resq != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			return
+		}
+		w_resp.WriteSuccess(c, claims)
+	}
+}

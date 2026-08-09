@@ -1,0 +1,62 @@
+package usecase
+
+import (
+	"context"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"example/cmd/server/config"
+	modelAuth "example/internal/shared/model"
+	modelRefresh "example/internal/shared/model"
+	modelUser "example/internal/shared/model"
+)
+
+type IRefreshTokenRepository interface {
+	Create(ctx context.Context, token *modelRefresh.RefreshToken) error
+	GetByToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, error)
+	Revoke(ctx context.Context, token string, reason string) error
+}
+
+type IJwt interface {
+	ParseToken(ctx context.Context, tokenStr string) (*w_utils.JwtClaims, error)
+	IssueAccessToken(ctx context.Context, sub string, tid string) (*w_utils.Token, error)
+	IssueRefreshToken(ctx context.Context, sub string, tid string) (*w_utils.Token, error)
+	IssueTokenPair(ctx context.Context, sub string, tid string) (*w_utils.TokenResponse, error)
+}
+
+type IAuthUsecase interface {
+	GetAuthByUserId(ctx context.Context, userId int) (*modelAuth.Auth, *w_resp.AppError)
+	GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, *w_resp.AppError)
+}
+
+type IUserUseCase interface {
+	CreateUser(ctx context.Context, user *modelUser.User) (int, *w_resp.AppError)
+	GetUserById(ctx context.Context, id int) (*modelUser.User, *w_resp.AppError)
+}
+
+type RefreshUseCase struct {
+	Jwt              IJwt
+	AuthUsecase      IAuthUsecase
+	RefreshTokenRepo IRefreshTokenRepository
+	UserUseCase      IUserUseCase
+	SessionService   *w_utils.SessionService
+	BlacklistService *w_utils.BlacklistService
+	Config           *config.Config
+}
+
+func NewRefreshUseCase(userUseCase IUserUseCase, refreshTokenRepo IRefreshTokenRepository, jwt IJwt, sessionService *w_utils.SessionService,
+	blacklistService *w_utils.BlacklistService, config *config.Config) *RefreshUseCase {
+	return &RefreshUseCase{
+		UserUseCase:      userUseCase,
+		Jwt:              jwt,
+		RefreshTokenRepo: refreshTokenRepo,
+		SessionService:   sessionService,
+		BlacklistService: blacklistService,
+		Config:           config,
+	}
+}
+
+func (r *RefreshUseCase) SetAuthUseCase(authUsecase IAuthUsecase) *RefreshUseCase {
+	return &RefreshUseCase{
+		AuthUsecase: authUsecase,
+	}
+}

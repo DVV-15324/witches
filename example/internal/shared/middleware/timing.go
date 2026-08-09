@@ -1,0 +1,46 @@
+package middleware
+
+import (
+	"time"
+
+	utils "example/internal/shared/utils"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
+
+func TimingMiddleware(log *logger.EntityLogger, slowThreshold int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+
+		// Lấy tid từ RequestContext
+		tid := w_utils.GetTid(c.Request.Context(), utils.ReqKey)
+		sub := w_utils.GetSub(c.Request.Context(), utils.ReqKey)
+
+		ms := time.Since(start).Milliseconds()
+
+		if ms > slowThreshold {
+			log.WarnWithFields("Slow request",
+				zap.String("trace_id(tid)", tid),
+				zap.String("subject(sub)", sub),
+				zap.String("method", c.Request.Method),
+				zap.String("path", c.Request.URL.Path),
+				zap.Int("status", c.Writer.Status()),
+				zap.Int64("duration_ms", ms),
+			)
+		} else {
+			log.InfoWithFields("Request completed",
+				zap.String("trace_id(tid)", tid),
+				zap.String("subject(sub)", sub),
+				zap.String("method", c.Request.Method),
+				zap.String("path", c.Request.URL.Path),
+				zap.Int("status", c.Writer.Status()),
+				zap.Int64("duration_ms", ms),
+			)
+		}
+
+		c.Header("X-Response-Time", time.Since(start).String())
+	}
+}

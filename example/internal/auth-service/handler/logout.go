@@ -1,0 +1,50 @@
+package handler
+
+import (
+	"errors"
+	utils "example/internal/shared/utils"
+	"strings"
+	"time"
+
+	w_easyjson "github.com/DVV-15324/witches/pkg/core/easyjson"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+)
+
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var req LogoutRequest
+
+		if err := w_easyjson.BindJSON(c, &req); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
+			return
+		}
+
+		// Get access token from Authorization header
+		authHeader := c.GetHeader("Authorization")
+		var accessToken string
+		if len(authHeader) > 7 && strings.ToLower(authHeader[:7]) == "bearer " {
+			accessToken = authHeader[7:]
+		}
+
+		if accessToken == "" {
+			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(401, errors.New("access token is required"), time.Now()), utils.ReqKey)
+			return
+		}
+
+		// Use utils to get device info
+
+		deviceID, _, _, _, _ := utils.GetDeviceInfo(c)
+
+		if err := h.UsecaseAuth.Logout(c.Request.Context(), accessToken, req.RefreshToken, deviceID); err != nil {
+			w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
+			return
+		}
+
+		w_resp.WriteSuccess(c, gin.H{"message": "logout success"})
+	}
+}

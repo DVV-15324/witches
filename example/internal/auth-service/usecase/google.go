@@ -1,0 +1,224 @@
+package usecase
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/google/uuid"
+	"io"
+	"net/http"
+	"time"
+	modelAuth "example/internal/shared/model"
+	modelToken "example/internal/shared/model"
+	modelUser "example/internal/shared/model"
+	utils "example/internal/shared/utils"
+)
+
+func (a *AuthUseCase) LoginWithGoogle(
+	ctx context.Context,
+	accessToken string,
+	deviceID string,
+	ipAddress string,
+	userAgent string,
+	TimeZone string,
+	Locale string,
+) (*w_utils.TokenResponse, *w_resp.AppError) {
+
+	// 1. Gọi Google API lấy user info
+	userInfo, errResp := a.getGoogleUserInfo(accessToken)
+	if errResp != nil {
+		return nil, errResp
+	}
+
+	// 2. Lấy email + name từ Google response
+	email, ok := userInfo["email"].(string)
+	if !ok || email == "" {
+		return nil, w_resp.NewAppError(400, errors.New("email not found from Google"), time.Now())
+	}
+
+	firstName, _ := userInfo["given_name"].(string)
+	lastName, _ := userInfo["family_name"].(string)
+	fullName := firstName + " " + lastName
+	if fullName == " " {
+		fullName = email // fallback nếu không có name
+	}
+
+	// 3. Kiểm tra user đã tồn tại chưa
+	auth, err := a.AuthReponsitory.GetAuthByEmail(ctx, email)
+	if err != nil {
+		return nil, w_resp.NewAppError(500, err, time.Now())
+	}
+
+	// 4. Nếu user chưa tồn tại → Tạo mới
+	if auth == nil {
+		//  4a. Tạo user mới
+		userID, err := a.UserUseCase.CreateUser(ctx, &modelUser.User{
+			Email: email,
+			Name:  fullName,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		//  4b. Tạo auth record (Google user, không có password)
+		auth = &modelAuth.Auth{
+			UserId:   userID,
+			Email:    email,
+			AuthType: "google",
+			Banned:   false,
+		}
+		if err := a.AuthReponsitory.CreateAuth(ctx, auth); err != nil {
+			return nil, w_resp.NewAppError(500, err, time.Now())
+		}
+	} else {
+		//  5. Nếu user đã tồn tại nhưng auth_type khác
+		if auth.AuthType != "google" {
+			// User đã đăng ký bằng email/password, không cho login Google
+			return nil, w_resp.NewAppError(409,
+				errors.New("account already registered with email/password. Please login with password"),
+				time.Now(),
+			)
+		}
+	}
+
+	//  6. Check banned
+	if auth.Banned {
+		return nil, w_resp.NewAppError(403, errors.New("account has been banned"), time.Now())
+	}
+
+	//  7. Xóa session cũ của thiết bị này (nếu có)
+	// Tránh duplicate session khi login lại cùng device
+	_ = a.SessionService.DeleteSession(ctx, uint32(auth.UserId), deviceID)
+
+	//  8. Tạo token response
+	tokenResp, errResp := a.generateTokenResponse(ctx, auth, deviceID, ipAddress, userAgent, TimeZone, Locale)
+	if errResp != nil {
+		return nil, errResp
+	}
+
+	return tokenResp, nil
+}
+
+// getGoogleUserInfo - Gọi Google API lấy user info
+func (a *AuthUseCase) getGoogleUserInfo(accessToken string) (map[string]interface{}, *w_resp.AppError) {
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
+	if err != nil {
+		return nil, w_resp.NewAppError(500, errors.New("failed to create request"), time.Now())
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	client := http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, w_resp.NewAppError(500, errors.New("cannot connect to Google API"), time.Now())
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, w_resp.NewAppError(401, errors.New("invalid Google token"), time.Now())
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, w_resp.NewAppError(500, errors.New("failed to read response"), time.Now())
+	}
+
+	var userInfo map[string]interface{}
+	if err := json.Unmarshal(body, &userInfo); err != nil {
+		return nil, w_resp.NewAppError(500, errors.New("failed to parse response"), time.Now())
+	}
+
+	return userInfo, nil
+}
+
+// generateTokenResponse - Tạo Access Token + Refresh Token
+func (a *AuthUseCase) generateTokenResponse(
+	ctx context.Context,
+	auth *modelAuth.Auth,
+	deviceID string,
+	ipAddress string,
+	userAgent string,
+	TimeZone string,
+	Locale string,
+) (*w_utils.TokenResponse, *w_resp.AppError) {
+
+	//  1. Lấy thông tin user (role)
+	user, err := a.UserUseCase.GetUserById(ctx, auth.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	//  2. Tạo UID (User ID) encode Base58
+	s := utils.NewUID(uint32(auth.UserId), 1)
+	sub := s.ToBase58()
+	tid := uuid.New().String()
+
+	//  3. Tạo Access Token (JWT)
+	accessToken, err_t := a.Jwt.IssueAccessToken(ctx, sub, tid)
+	if err_t != nil {
+		return nil, w_resp.NewAppError(500,
+			errors.New("failed to issue access token: "+err_t.Error()),
+			time.Now(),
+		)
+	}
+
+	//  4. Tạo Refresh Token (UUID)
+	refreshTokenStr, err_t := a.Jwt.IssueRefreshToken(ctx, sub, tid)
+	if err_t != nil {
+		return nil, w_resp.NewAppError(500,
+			errors.New("failed to issue refresh token"),
+			time.Now(),
+		)
+	}
+
+	// 5. Lưu Refresh Token vào Database
+	refreshToken := &modelToken.RefreshToken{
+		UserID:    uint32(auth.UserId),
+		Token:     refreshTokenStr.Token,
+		DeviceID:  deviceID,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+		Timezone:  TimeZone,
+		Locale:    Locale,
+		ExpiresAt: a.Config.RefreshTokenTTL,
+	}
+
+	if err := a.RefreshTokenUseCase.Create(ctx, refreshToken); err != nil {
+		// Log lỗi nhưng không fail login (token vẫn trả về client)
+		// Nhưng nếu lưu DB fail thì refresh sau này sẽ không dùng được
+		// Nên vẫn phải return error
+		return nil, w_resp.NewAppError(500,
+			errors.New("failed to save refresh token"),
+			time.Now(),
+		)
+	}
+	//  7. Cache Session vào Redis
+	session := &w_utils.SessionCache{
+		UserID:    uint32(auth.UserId),
+		Email:     auth.Email,
+		Role:      user.Role,
+		DeviceID:  deviceID,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+		Timezone:  TimeZone,
+		Locale:    Locale,
+
+		AccessToken: accessToken.Token,
+		LoginAt:     time.Now().Unix(),
+		LastActive:  time.Now().Unix(), //
+	}
+
+	if err := a.SessionService.CreateSession(ctx, session); err != nil {
+		// Log lỗi nhưng không fail login
+		// Session sẽ bị lỗi khi middleware check
+		_ = err
+	}
+
+	return &w_utils.TokenResponse{
+		AccessToken:  *accessToken,
+		RefreshToken: *refreshTokenStr,
+	}, nil
+}
