@@ -101,7 +101,7 @@ witches run
 | `witches migrate up` | Chạy tất cả migrations |
 | `witches migrate down` | Rollback migration cuối cùng |
 | `witches database generate` | Tạo URL kết nối database |
-| `witches add service=your_service` | Thêm 1 service mới  |
+| `witches add your_service` | Thêm 1 service mới  |
 
 ---
 
