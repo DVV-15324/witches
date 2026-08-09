@@ -50,9 +50,6 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		return fmt.Errorf("failed to get absolute output path: %v", err)
 	}
 
-	// fmt.Printf("Input: %s\n", absInput)
-	// fmt.Printf("Output: %s\n", absOutput)
-
 	var targetFiles []string
 
 	if isFile {
