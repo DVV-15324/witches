@@ -36,7 +36,7 @@ func WitchesCreate(project string) {
 	}
 	fmt.Printf("Project '%s' created successfully!\n", project)
 	fmt.Printf("\nNext steps:\n")
-	fmt.Print("  cd ", project)
+	fmt.Printf("  cd %s\n", project)
 	fmt.Printf("  Edit witches.env\n")
 	fmt.Printf("  witches database generate\n")
 }
