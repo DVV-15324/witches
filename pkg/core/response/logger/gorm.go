@@ -16,7 +16,6 @@ type GormZapLogger struct {
 	KeyReq        string
 }
 
-// NewGormLogger - Tạo GORM Logger từ Zap
 func NewGormLogger(zapLogger *EntityLogger, slowThreshold time.Duration, keyReq string) *GormZapLogger {
 	return &GormZapLogger{
 		zapLogger:     zapLogger,
@@ -26,7 +25,6 @@ func NewGormLogger(zapLogger *EntityLogger, slowThreshold time.Duration, keyReq 
 	}
 }
 
-// Implement GORM Logger Interface
 func (l *GormZapLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 	newLogger := *l
 	newLogger.LogLevel = level
@@ -51,7 +49,6 @@ func (l *GormZapLogger) Error(ctx context.Context, msg string, data ...interface
 	}
 }
 
-// TRACE - Ghi log SQL queries
 func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	tid := utils.GetTid(ctx, l.KeyReq)
 	sub := utils.GetSub(ctx, l.KeyReq)
@@ -62,7 +59,6 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 	elapsed := time.Since(begin)
 	sql, rows := fc()
 
-	// Kiểm tra slow query
 	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
 		l.zapLogger.WarnWithFields("SLOW QUERY",
 			zap.String("trace_id(tid)", tid),
@@ -74,7 +70,6 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		)
 		return
 	}
-	//Log tất cả query (nếu level >= Info)
 	if l.LogLevel >= gormlogger.Info {
 		l.zapLogger.InfoWithFields("SQL QUERY",
 			zap.String("trace_id(tid)", tid),
@@ -85,7 +80,6 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		)
 	}
 
-	// Slow query (nếu level >= Warn)
 	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
 		l.zapLogger.WarnWithFields("SLOW QUERY",
 			zap.String("trace_id(tid)", tid),
@@ -96,8 +90,6 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 			zap.Duration("threshold", l.SlowThreshold),
 		)
 	}
-
-	// Log lỗi
 	if err != nil && l.LogLevel >= gormlogger.Error {
 		l.zapLogger.ErrorWithFields("SQL ERROR",
 			zap.String("trace_id(tid)", tid),
