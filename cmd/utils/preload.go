@@ -46,7 +46,7 @@ func PreloadNotDBURL() *Config {
 	return &Config{
 		Port:            os.Getenv("APP_PORT"),
 		Host:            os.Getenv("APP_HOST"),
-		MetrictPort:     os.Getenv("MESTRICT_PORT"),
+		MetrictPort:     os.Getenv("METRIC_PORT"),
 		DBDriver:        os.Getenv("DB_DRIVER"),
 		DBUser:          os.Getenv("DB_USER"),
 		DBHost:          os.Getenv("DB_HOST"),
