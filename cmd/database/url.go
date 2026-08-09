@@ -27,6 +27,8 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) {
 		log.Fatalf("Error: write to witches.env: %v", err)
 	}
 	log.Printf("Info: successfully updated witches.env")
+	fmt.Printf("\nNext steps:\n")
+	fmt.Print("  cd witches init/n")
 }
 
 func GenerateDBURL(DB_DRIVER string,
