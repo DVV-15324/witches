@@ -1,9 +1,11 @@
 package utils
 
 import (
-	godotenv "github.com/joho/godotenv"
 	"log"
 	"os"
+	"path/filepath"
+
+	godotenv "github.com/joho/godotenv"
 )
 
 type PreConfig struct {
@@ -29,7 +31,9 @@ type PreConfig struct {
 }
 
 func PreloadDBURL() *PreConfig {
-	if err := godotenv.Load("witches.env"); err != nil {
+	currentPath := GetCurrentPath()
+	envPath := filepath.Join(currentPath, "witches.env")
+	if err := godotenv.Load(envPath); err != nil {
 		log.Println("Error: not found witches.env")
 	}
 
