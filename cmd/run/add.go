@@ -1,21 +1,18 @@
 package cmd
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
-// En: This function creates template for project
-// Vi : Hàm tạo templates cho dự án
-func WitchesAdd(serviceN string) {
-	projectPath, _ := os.Getwd()
-	//Vi: Kiểm tra thư mục hiện tại và tên dự án
-	//En: Check the current directory and project name
+func WitchesAdd(serviceName string) {
+	projectPath, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 	moduleName := filepath.Base(projectPath)
-	// n: Execute template
-	//Vi: Thực thi template
-
-	templates.AddGoService(projectPath, moduleName, serviceN)
+	templates.AddGoService(projectPath, moduleName, serviceName)
 }

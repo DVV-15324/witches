@@ -11,38 +11,29 @@ import (
 
 func WitchesCreate(project string) {
 	projectPath := filepath.Join(".", project)
-
-	// Kiểm tra project đã tồn tại chưa
 	if _, err := os.Stat(projectPath); !os.IsNotExist(err) {
 		log.Fatalf("Error: Project '%s' already exists!", project)
 		return
 	}
-
 	err := os.MkdirAll(projectPath, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %v", err)
 	}
-
 	envPath := filepath.Join(projectPath, "witches.env")
-
-	// Kiểm tra file env đã tồn tại chưa
 	if _, err := os.Stat(envPath); err == nil {
 		log.Fatalf("Error: File 'witches.env' already exists in '%s'", projectPath)
 		return
 	}
-
 	file, err := os.OpenFile(envPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %v", err)
 	}
 	defer file.Close()
-
 	contentData := content.CreateContentRefresh()
 	_, err = file.WriteString(contentData)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %v", err)
 	}
-
 	fmt.Printf("Project '%s' created successfully!\n", project)
 	fmt.Printf("\nNext steps:\n")
 	fmt.Print("  cd ", project)
