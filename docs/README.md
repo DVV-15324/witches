@@ -40,6 +40,8 @@ May be ready in 30 years. Or never.
 | **Redis Support** | Optional caching |
 | **Rate Limiting** | Protect your APIs |
 | **GORM Support** | ORM for database operations |
+|**EASYJSON** | Automate EasyJSON Code Generation |
+|****| Metrics, Timing, Database Tracing, and Structured Logging |
 
 ---
 

@@ -40,6 +40,8 @@ Có thể 30 năm nữa mới xong. Hoặc không bao giờ.
 | **Redis** | Hỗ trợ cache (không bắt buộc) |
 | **Giới hạn tốc độ** | Bảo vệ API |
 | **GORM** | ORM cho database |
+|**EASYJSON** | Tự động hóa Sinh mã EasyJSON |
+|****	| Metrics, Timing, Database Tracing, and Structured Logging|
 
 ---
 
