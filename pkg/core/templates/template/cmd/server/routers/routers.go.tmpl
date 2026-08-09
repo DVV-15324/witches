@@ -1,12 +1,12 @@
 package routers
 
 import (
-	"log"
-	"time"
-	"{{.ModuleName}}/cmd/server/config"
 	dtoAuth "{{.ModuleName}}/internal/auth-service/dto/request"
 	dtoRefresh "{{.ModuleName}}/internal/refresh-service/dto/request"
 	middleware "{{.ModuleName}}/internal/shared/middleware"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	"log"
+	"time"
 
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
@@ -16,7 +16,7 @@ import (
 	"github.com/ulule/limiter/v3"
 )
 
-func Start(r *gin.Engine, host string, cfg *config.Config) {
+func Start(r *gin.Engine, host string, cfg *wcmd_utils.Config) {
 
 	// 1. Khởi tạo services
 	services := Services()
