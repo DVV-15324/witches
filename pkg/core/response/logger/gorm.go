@@ -9,7 +9,6 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 )
 
-// GormZapLogger - Wrapper để GORM dùng Zap
 type GormZapLogger struct {
 	zapLogger     *EntityLogger
 	LogLevel      gormlogger.LogLevel

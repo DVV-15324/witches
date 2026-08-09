@@ -24,7 +24,6 @@ type PaginationResponseWrapper struct {
 	Timestamp  time.Time                 `json:"timestamp"`
 }
 
-// WriteSuccess gửi response thành công => không log
 func WriteSuccess(c *gin.Context, data interface{}) {
 	r := AppResponse{
 		Status:    http.StatusOK,
@@ -35,7 +34,6 @@ func WriteSuccess(c *gin.Context, data interface{}) {
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithPagination - Response thành công có kèm pagination  => không log
 func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *utils.PaginationResponse) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
@@ -47,7 +45,6 @@ func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *ut
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithLog gửi response thành công => log
 func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interface{}, keyReq string) {
 	r := AppResponse{
 		Status:    http.StatusOK,
@@ -68,7 +65,6 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interfac
 	c.JSON(r.Status, r)
 }
 
-// WriteSuccessWithPaginationAndLog - Response thành công có pagination => log
 func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, data interface{}, pagination *utils.PaginationResponse, keyReq string) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
@@ -91,7 +87,6 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, 
 	c.JSON(r.Status, r)
 }
 
-// WriteError gửi response lỗi => không log
 func WriteError(c *gin.Context, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
@@ -101,7 +96,6 @@ func WriteError(c *gin.Context, re *AppError) {
 	c.JSON(r.Status, r)
 }
 
-// WriteError gửi response lỗi => log
 func WriteErrorWithLog(c *gin.Context, log *logger.EntityLogger, re *AppError, keyReq string) {
 	r := AppResponse{
 		Status:    re.Status,
@@ -111,7 +105,6 @@ func WriteErrorWithLog(c *gin.Context, log *logger.EntityLogger, re *AppError, k
 	tid := utils.GetTid(c, keyReq)
 	sub := utils.GetSub(c, keyReq)
 
-	// Ghi log lỗi với đầy đủ context
 	log.ErrorWithFields("API error",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
