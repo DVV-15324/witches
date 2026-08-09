@@ -21,6 +21,7 @@ DB_MAX_OPEN_CONNS=100
 DB_MAX_IDLE_CONNS=10
 DB_CONN_MAX_LIFETIME=60
 DB_CONN_MAX_IDLE_TIME=600
+SLOW_THRESHOLD=5
 
 # REDIS CONFIGURATION
 REDIS_HOST=localhost
@@ -64,6 +65,7 @@ DB_MAX_OPEN_CONNS=%d
 DB_MAX_IDLE_CONNS=%d
 DB_CONN_MAX_LIFETIME=%d
 DB_CONN_MAX_IDLE_TIME=%d 
+SLOW_THRESHOLD=%d
 
 # REDIS CONFIGURATION
 REDIS_HOST=%s
@@ -87,7 +89,8 @@ RATE_LIMIT_MAX=%d
 `, cfg.Port, cfg.Host, cfg.MetrictPort,
 		cfg.DBDriver, cfg.DBUser, cfg.DBHost,
 		cfg.DBPort, cfg.DBName, cfg.DBPassword, DB_URL,
-		cfg.MaxOpenConns, cfg.MaxIdleConns, cfg.ConnMaxLifetime, cfg.ConnMaxIdleTime,
+		cfg.MaxOpenConns, cfg.MaxIdleConns, cfg.ConnMaxLifetime,
+		cfg.ConnMaxIdleTime, cfg.SlowThreshold,
 		cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword,
 		cfg.AccessTokenTTL, cfg.RefreshTokenTTL,
 		cfg.SessionTTL, cfg.IdleTimeout,
