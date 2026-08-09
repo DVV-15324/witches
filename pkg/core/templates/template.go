@@ -3,11 +3,10 @@ package template
 import (
 	"embed"
 	"fmt"
+	"github.com/DVV-15324/witches/pkg/core/templates/utils"
 	"log"
 	"os"
 	"path/filepath"
-
-	"github.com/DVV-15324/witches/pkg/core/templates/utils"
 )
 
 //go:embed template/*.tmpl
@@ -69,7 +68,6 @@ func CreateGoArcRefresh(projectName string, typeDb string) {
 
 	fmt.Println("Project created successfully!")
 	fmt.Printf("\nNext steps:\n")
-	fmt.Printf("  cd %s\n", projectName)
 	fmt.Printf("  witches install\n")
 	fmt.Printf("  witches run\n")
 }
