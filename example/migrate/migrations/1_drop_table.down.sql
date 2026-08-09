@@ -1,2 +1,0 @@
-DROP TABLE auth;
-DROP TABLE user;
