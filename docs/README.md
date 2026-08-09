@@ -101,7 +101,7 @@ witches run
 | `witches migrate up` | Apply all migrations |
 | `witches migrate down` | Rollback last migration |
 | `witches database generate` | Generate database URL |
-| `witches add your_service` | Add a new service  |
+| `witches add <your_service>` | Add a new service  |
 
 ---
 
