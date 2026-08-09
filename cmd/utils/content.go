@@ -16,6 +16,12 @@ DB_PORT=3306
 DB_NAME=your_database
 DB_PASSWORD=your_password
 
+# Database Connection Pool
+DB_MAX_OPEN_CONNS=100
+DB_MAX_IDLE_CONNS=10
+DB_CONN_MAX_LIFETIME=60
+DB_CONN_MAX_IDLE_TIME=600
+
 # REDIS CONFIGURATION
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -38,69 +44,55 @@ RATE_LIMIT_MAX=100
 `
 }
 
-func CreateContentRefreshUsed(
-	APP_PORT string,
-	APP_HOST string,
-	METRIC_PORT string,
-	DB_DRIVER string,
-	DB_USER string,
-	DB_HOST string,
-	DB_PORT string,
-	DB_NAME string,
-	DB_PASSWORD string,
-	DB_URL string,
-	REDIS_HOST string,
-	REDIS_PORT string,
-	REDIS_PASSWORD string,
-	ACCESS_TOKEN_TTL string,
-	REFRESH_TOKEN_TTL string,
-	SESSION_TTL string,
-	IDLE_TIMEOUT string,
-	REVOKED_TTL string,
-	RATE_LIMIT_PERIOD string,
-	RATE_LIMIT_MAX string,
-) string {
+func CreateContentRefreshUsed(DB_URL string, cfg *Config) string {
 	return fmt.Sprintf(`# SERVER CONFIGURATION
-APP_PORT=%s
+APP_PORT=%d
 APP_HOST=%s
-METRIC_PORT=%s
+METRIC_PORT=%d
 
 # DATABASE CONFIGURATION
 DB_DRIVER=%s
 DB_USER=%s
 DB_HOST=%s
-DB_PORT=%s
+DB_PORT=%d
 DB_NAME=%s
 DB_PASSWORD=%s
 DB_URL=%s
 
+# Database Connection Pool
+DB_MAX_OPEN_CONNS=%d
+DB_MAX_IDLE_CONNS=%d
+DB_CONN_MAX_LIFETIME=%d
+DB_CONN_MAX_IDLE_TIME=%d 
+
 # REDIS CONFIGURATION
 REDIS_HOST=%s
-REDIS_PORT=%s
+REDIS_PORT=%d
 REDIS_PASSWORD=%s
 
 # TOKEN EXPIRATION
-ACCESS_TOKEN_TTL=%s
-REFRESH_TOKEN_TTL=%s
+ACCESS_TOKEN_TTL=%d
+REFRESH_TOKEN_TTL=%d
 
 # SESSION SETTINGS
-SESSION_TTL=%s
-IDLE_TIMEOUT=%s
+SESSION_TTL=%d
+IDLE_TIMEOUT=%d
 
 # BLACKLIST SETTINGS
-REVOKED_TTL=%s
+REVOKED_TTL=%d
 
 # RATE LIMIT
-RATE_LIMIT_PERIOD=%s
-RATE_LIMIT_MAX=%s
-`, APP_PORT, APP_HOST, METRIC_PORT,
-		DB_DRIVER, DB_USER, DB_HOST,
-		DB_PORT, DB_NAME, DB_PASSWORD, DB_URL,
-		REDIS_HOST, REDIS_PORT, REDIS_PASSWORD,
-		ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
-		SESSION_TTL, IDLE_TIMEOUT,
-		REVOKED_TTL,
-		RATE_LIMIT_PERIOD,
-		RATE_LIMIT_MAX,
+RATE_LIMIT_PERIOD=%d
+RATE_LIMIT_MAX=%d
+`, cfg.Port, cfg.Host, cfg.MetrictPort,
+		cfg.DBDriver, cfg.DBUser, cfg.DBHost,
+		cfg.DBPort, cfg.DBName, cfg.DBPassword, DB_URL,
+		cfg.MaxOpenConns, cfg.MaxIdleConns, cfg.ConnMaxLifetime, cfg.ConnMaxIdleTime,
+		cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword,
+		cfg.AccessTokenTTL, cfg.RefreshTokenTTL,
+		cfg.SessionTTL, cfg.IdleTimeout,
+		cfg.RevokedTTL,
+		cfg.RateLimitPeriod,
+		cfg.RateLimitMax,
 	)
 }
