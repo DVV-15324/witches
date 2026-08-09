@@ -7,12 +7,9 @@ import (
 	"os/exec"
 )
 
-// En: Force set migration version
-// Vi: Thiết lập phiên bản migration
 func WitchesMigrateForce(DB_URL string, DB_DRIVER string, VERSION string) {
 	migratePath := utils.GetMigrationsURL()
 	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
-
 	cmd := exec.Command(
 		"migrate",
 		"-path", migratePath,
@@ -21,7 +18,6 @@ func WitchesMigrateForce(DB_URL string, DB_DRIVER string, VERSION string) {
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)

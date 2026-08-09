@@ -7,12 +7,9 @@ import (
 	"os/exec"
 )
 
-// En: Drop all tables in database (force)
-// Vi: Xóa tất cả bảng trong database (force)
 func WitchesMigrateDrop(DB_URL string, DB_DRIVER string) {
 	migratePath := utils.GetMigrationsURL()
 	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
-
 	cmd := exec.Command(
 		"migrate",
 		"-path", migratePath,
@@ -21,7 +18,6 @@ func WitchesMigrateDrop(DB_URL string, DB_DRIVER string) {
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
