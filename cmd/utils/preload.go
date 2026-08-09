@@ -8,16 +8,17 @@ import (
 	godotenv "github.com/joho/godotenv"
 )
 
-type PreConfig struct {
+type Config struct {
 	Port            string
 	Host            string
 	MetrictPort     string
+	DBDriver        string
 	DBHost          string
 	DBPort          string
-	DBPassword      string
-	DBName          string
-	DBDriver        string
 	DBUser          string
+	DBName          string
+	DBPassword      string
+	DBUrl           string
 	RedisHost       string
 	RedisPort       string
 	RedisPassword   string
@@ -30,14 +31,19 @@ type PreConfig struct {
 	RateLimitMax    string
 }
 
-func PreloadDBURL() *PreConfig {
+func LoadDbUrl(cfg *Config) *Config {
+	cfg.DBUrl = os.Getenv("DB_URL")
+	return cfg
+}
+
+func PreloadNotDBURL() *Config {
 	currentPath := GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
 	if err := godotenv.Load(envPath); err != nil {
 		log.Println("Error: not found witches.env")
 	}
 
-	return &PreConfig{
+	return &Config{
 		Port:            os.Getenv("APP_PORT"),
 		Host:            os.Getenv("APP_HOST"),
 		MetrictPort:     os.Getenv("MESTRICT_PORT"),
@@ -60,7 +66,7 @@ func PreloadDBURL() *PreConfig {
 	}
 }
 
-func Validate(cfg *PreConfig) {
+func Validate(cfg *Config) {
 	if cfg.Port == "" {
 		log.Fatal("Error: APP_PORT is not set in environment")
 	}
