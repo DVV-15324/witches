@@ -6,46 +6,34 @@ import (
 	"os/exec"
 )
 
-// En: This function installs dependencies
-// Vi: Hàm cài đặt các thư viện cần dùng
 func WitchesInstall(DB_DRIVER string) {
 	tools := []string{
-		"github.com/mailru/easyjson/...@latest",
+		"github.com/mailru/easyjson/easyjson@latest",
+		"github.com/golang-migrate/migrate/v4/cmd/migrate@latest",
 	}
-	dbTools := map[string][]string{
-		"mysql": {
-			"github.com/golang-migrate/migrate/v4/database/mysql@latest",
-		},
-		"postgres": {
-			"github.com/golang-migrate/migrate/v4/database/postgres@latest",
-		},
-		"postgresql": {
-			"github.com/golang-migrate/migrate/v4/database/postgres@latest",
-		},
-		"mssql": {
-			"github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
-		},
-		"sqlserver": {
-			"github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
-		},
+	drivers := map[string]string{
+		"mysql":      "github.com/golang-migrate/migrate/v4/database/mysql@latest",
+		"postgres":   "github.comgolang-migrate/migrate/v4/database/postgres@latest",
+		"postgresql": "github.com/golang-migrate/migrate/v4/database/postgres@latest",
+		"mssql":      "github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
+		"sqlserver":  "github.com/golang-migrate/migrate/v4/database/sqlserver@latest",
 	}
-	if driverTools, ok := dbTools[DB_DRIVER]; ok {
-		tools = append(tools, driverTools...)
-	}
-	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Printf("Error: failed to install  %v", err)
+	runCmd("go", "mod", "tidy")
+	if driverPath, ok := drivers[DB_DRIVER]; ok {
+		runCmd("go", "get", driverPath)
 	}
 	for _, tool := range tools {
-		cmd := exec.Command("go", "install", tool)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			log.Printf("Error: failed to install %s: %v", tool, err)
-		}
+		runCmd("go", "install", tool)
+	}
+}
+
+func runCmd(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Printf("Error: %v", err)
+	} else {
+		log.Printf("%s %v", name, args)
 	}
 }
