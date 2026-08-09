@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func WitchesDBURL(DB_DRIVER string, config *utils.PreConfig) {
+func WitchesDBURL(DB_DRIVER string, config *utils.Config) {
 	currentPath := utils.GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
 	file, err := os.OpenFile(envPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
