@@ -16,7 +16,6 @@ type PreConfig struct {
 	DBName          string
 	DBDriver        string
 	DBUser          string
-	DBURL           string
 	RedisHost       string
 	RedisPort       string
 	RedisPassword   string
