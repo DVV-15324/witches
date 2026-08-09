@@ -16,11 +16,10 @@ type RouteBuilder struct {
 	rateLimit   *limiter.Limiter
 }
 
-// RateLimit thêm rate limit cho route với headers tự động
 func (b *RouteBuilder) RateLimit(rate limiter.Rate) *RouteBuilder {
 	store, err := b.gen.storeFactory()
 	if err != nil {
-		fmt.Printf("Failed to create rate limit store: %v\n", err)
+		fmt.Printf("Error: Failed to create rate limit store: %v\n", err)
 		return b
 	}
 
@@ -99,9 +98,7 @@ func (b *RouteBuilder) Response(code int, model interface{}, desc string) *Route
 	}
 
 	if model != nil {
-		// Kiểm tra nếu là string (không cần schema)
 		if _, ok := model.(string); ok {
-			// Không thêm schema
 		} else {
 			modelName := b.gen.RegisterModel(model)
 			resp.Schema = &SchemaRef{
@@ -120,33 +117,23 @@ func (b *RouteBuilder) Handler(h gin.HandlerFunc) *RouteBuilder {
 	return b
 }
 
-// Build hoàn tất route với tất cả middleware đã được thêm
 func (b *RouteBuilder) Build() {
 	fullPath := b.gen.doc.BasePath + b.path
-
-	// Gom tất cả handlers: middlewares + handler
 	var handlers []gin.HandlerFunc
 
-	// Thêm global middlewares từ generator
 	if b.gen.globalSecurity != nil {
 		handlers = append(handlers, b.gen.globalMiddlewares...)
 	}
-	// Thêm rate limit middleware với headers (nếu có)
 	if b.rateLimit != nil {
 		rateLimitHandler := b.gen.rateLimitMiddleware.CreateRateLimitMiddleware(b.rateLimit)
 		handlers = append(handlers, rateLimitHandler)
 	}
-	// Thêm route-specific middlewares
 	if len(b.middlewares) > 0 {
 		handlers = append(handlers, b.middlewares...)
 	}
-
-	// Thêm handler cuối cùng
 	if b.handler != nil {
 		handlers = append(handlers, b.handler)
 	}
-
-	// Register vào Gin
 	switch b.method {
 	case "get":
 		b.gen.engine.GET(fullPath, handlers...)
@@ -161,8 +148,6 @@ func (b *RouteBuilder) Build() {
 	case "options":
 		b.gen.engine.OPTIONS(fullPath, handlers...)
 	}
-
-	// Add vào Swagger doc
 	if b.gen.doc.Paths[b.path] == nil {
 		b.gen.doc.Paths[b.path] = make(PathItem)
 	}

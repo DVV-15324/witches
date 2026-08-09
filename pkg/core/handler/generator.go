@@ -50,13 +50,11 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 	}
 }
 
-// SetEngine gán engine
 func (g *SwaggerGenerator) SetEngine(engine *gin.Engine) *SwaggerGenerator {
 	g.engine = engine
 	return g
 }
 
-// SetRedisClient gán redis client
 func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGenerator {
 	g.redisClient = redisClient
 	g.storeFactory = func() (limiter.Store, error) {
@@ -68,18 +66,15 @@ func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGen
 	return g
 }
 
-// SetRateLimitMiddleware set middleware rate limit cho generator
 func (g *SwaggerGenerator) SetRateLimitMiddleware(middleware IRateLimitMiddleware) *SwaggerGenerator {
 	g.rateLimitMiddleware = middleware
 	return g
 }
 
-// GetRateLimitMiddleware lấy middleware hiện tại
 func (g *SwaggerGenerator) GetRateLimitMiddleware() IRateLimitMiddleware {
 	return g.rateLimitMiddleware
 }
 
-// Use thêm middleware global
 func (g *SwaggerGenerator) Use(middlewares ...gin.HandlerFunc) *SwaggerGenerator {
 	g.globalMiddlewares = append(g.globalMiddlewares, middlewares...)
 	if g.engine != nil {
@@ -88,7 +83,6 @@ func (g *SwaggerGenerator) Use(middlewares ...gin.HandlerFunc) *SwaggerGenerator
 	return g
 }
 
-// Thêm vào SwaggerGenerator
 func (g *SwaggerGenerator) AddBearerAuth(name string) {
 	g.doc.SecurityDefinitions[name] = SecurityScheme{
 		Type:        "apiKey",
@@ -98,7 +92,6 @@ func (g *SwaggerGenerator) AddBearerAuth(name string) {
 	}
 }
 
-// Hoặc chi tiết hơn
 func (g *SwaggerGenerator) AddBearerAuthWithDescription(name, description string) {
 	g.doc.SecurityDefinitions[name] = SecurityScheme{
 		Type:        "apiKey",
@@ -107,13 +100,10 @@ func (g *SwaggerGenerator) AddBearerAuthWithDescription(name, description string
 		Description: description,
 	}
 }
-
-// AddTag thêm tag để nhóm routes
 func (g *SwaggerGenerator) AddTag(name, description string) {
 	g.doc.Tags = append(g.doc.Tags, Tag{Name: name, Description: description})
 }
 
-// AddRoute thêm route
 func (g *SwaggerGenerator) AddRoute(method, path string, op Operation) {
 	if g.doc.Paths[path] == nil {
 		g.doc.Paths[path] = make(PathItem)
@@ -121,12 +111,10 @@ func (g *SwaggerGenerator) AddRoute(method, path string, op Operation) {
 	g.doc.Paths[path][method] = op
 }
 
-// RegisterModel đăng ký model để gen schema
 func (g *SwaggerGenerator) RegisterModel(model interface{}) string {
 	return g.modelParser.Register(model)
 }
 
-// GenerateJSON sinh file swagger.json
 func (g *SwaggerGenerator) GenerateJSON() string {
 	// Merge definitions từ model parser
 	for name, schema := range g.modelParser.GetSchemas() {
@@ -137,7 +125,6 @@ func (g *SwaggerGenerator) GenerateJSON() string {
 	return string(data)
 }
 
-// Save lưu ra file
 func (g *SwaggerGenerator) Save(filename string) error {
 	pwd, err := os.Getwd()
 	if err != nil {

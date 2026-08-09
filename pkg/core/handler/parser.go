@@ -23,12 +23,9 @@ func (p *ModelParser) Register(model interface{}) string {
 
 	t := reflect.TypeOf(model)
 
-	//  Nếu là slice hoặc array
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		elemType := t.Elem()
-		// Đăng ký element type trước
 		elemName := p.registerType(elemType)
-		// Tạo schema cho slice
 		sliceName := "[]" + elemName
 		if _, exists := p.schemas[sliceName]; !exists {
 			p.schemas[sliceName] = Schema{
@@ -113,8 +110,6 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 		if enum := field.Tag.Get("enum"); enum != "" {
 			prop.Enum = strings.Split(enum, ",")
 		}
-
-		//  Nếu field là slice, set items
 		if field.Type.Kind() == reflect.Slice || field.Type.Kind() == reflect.Array {
 			elemType := field.Type.Elem()
 			if elemType.Kind() == reflect.Struct {
@@ -150,7 +145,7 @@ func (p *ModelParser) getType(t reflect.Type) string {
 	case reflect.Bool:
 		return "boolean"
 	case reflect.Interface:
-		return "object" // or omit the type if you want to allow anything
+		return "object"
 	case reflect.Struct:
 		if t.PkgPath() == "time" && t.Name() == "Time" {
 			return "string"

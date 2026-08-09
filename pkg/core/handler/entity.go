@@ -60,7 +60,7 @@ type Operation struct {
 
 type Parameter struct {
 	Name        string      `json:"name"`
-	In          string      `json:"in"` // path, query, header, body
+	In          string      `json:"in"`
 	Description string      `json:"description,omitempty"`
 	Required    bool        `json:"required"`
 	Type        string      `json:"type,omitempty"`
@@ -96,6 +96,5 @@ type Property struct {
 	MaxLength   *int        `json:"maxLength,omitempty"`
 	Enum        []string    `json:"enum,omitempty"`
 	Ref         string      `json:"$ref,omitempty"`
-	Items       *SchemaRef  `json:"items,omitempty"` // <-- thêm dòng này
-
+	Items       *SchemaRef  `json:"items,omitempty"`
 }
