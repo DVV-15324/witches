@@ -2,11 +2,10 @@ package database
 
 import (
 	"fmt"
+	utils "github.com/DVV-15324/witches/cmd/utils"
 	"log"
 	"os"
 	"path/filepath"
-
-	utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
 func WitchesDBURL(DB_DRIVER string, config *utils.PreConfig) {
@@ -36,7 +35,6 @@ func WitchesDBURL(DB_DRIVER string, config *utils.PreConfig) {
 
 	if _, err := file.WriteString(content); err != nil {
 		log.Fatalf("Error: write to witches.env: %v", err)
-
 	}
 	log.Printf("Info: successfully updated witches.env")
 }
