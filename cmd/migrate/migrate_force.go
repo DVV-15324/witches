@@ -20,6 +20,6 @@ func WitchesMigrateForce(DB_URL string, DB_DRIVER string, VERSION string) {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %v", err)
 	}
 }
