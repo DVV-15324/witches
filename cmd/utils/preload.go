@@ -24,6 +24,7 @@ type Config struct {
 	MaxIdleConns    int64
 	ConnMaxLifetime int64
 	ConnMaxIdleTime int64
+	SlowThreshold   int64
 	RedisHost       string
 	RedisPort       int64
 	RedisPassword   string
@@ -61,6 +62,7 @@ func PreloadNotDBURL() *Config {
 		MaxIdleConns:    getEnvAsInt64("DB_MAX_IDLE_CONNS"),
 		ConnMaxLifetime: getEnvAsInt64("DB_CONN_MAX_LIFETIME"),
 		ConnMaxIdleTime: getEnvAsInt64("DB_CONN_MAX_IDLE_TIME"),
+		SlowThreshold:   getEnvAsInt64("SLOW_THRESHOLD"),
 		DBName:          os.Getenv("DB_NAME"),
 		RedisHost:       os.Getenv("REDIS_HOST"),
 		RedisPort:       getEnvAsInt64("REDIS_PORT"),
@@ -118,6 +120,9 @@ func Validate(cfg *Config) {
 	}
 	if cfg.ConnMaxIdleTime == 0 {
 		log.Fatal("Error: DB_CONN_MAX_IDLE_TIME is not set in environment")
+	}
+	if cfg.SlowThreshold == 0 {
+		log.Fatal("Error: SLOW_THRESHOLD is not set in environment")
 	}
 	if cfg.RedisHost == "" {
 		log.Fatal("Error: REDIS_HOST is required for refresh project")
