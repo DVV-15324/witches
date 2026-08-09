@@ -25,7 +25,6 @@
 
 **Chưa sẵn sàng để dùng.**  
 Đây là dự án cá nhân. Dùng là tự chịu rủi ro.  
-Có thể 30 năm nữa mới xong. Hoặc không bao giờ.
 
 ---
 

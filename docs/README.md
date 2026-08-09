@@ -24,8 +24,7 @@
 ## ⚠️ Status
 
 **Not ready for use.**  
-This is a personal project. Use at your own risk.  
-May be ready in 30 years. Or never.
+This is a personal project. Use at your own risk.
 
 ---
 
