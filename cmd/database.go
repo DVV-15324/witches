@@ -8,18 +8,15 @@ import (
 
 var databaseCmd = &cobra.Command{
 	Use: "database",
-	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadDBURL()
-
-		cmd_database.WitchesDBURL(cfg.DBDriver, cfg)
-	},
+	Run: func(cmd *cobra.Command, args []string) {},
 }
 
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate DB_URL from witches.env",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadDBURL()
+		cfg := utils.PreloadNotDBURL()
+		utils.Validate(cfg)
 		cmd_database.WitchesDBURL(cfg.DBDriver, cfg)
 	},
 }
