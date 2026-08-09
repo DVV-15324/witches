@@ -19,19 +19,9 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) {
 
 	DB_URL := GenerateDBURL(DB_DRIVER,
 		config.DBUser, config.DBPassword,
-		config.DBHost, config.DBPort,
-		config.DBName)
+		config.DBHost, config.DBName, config.DBPort)
 
-	content := utils.CreateContentRefreshUsed(config.Port,
-		config.MetrictPort, config.Host, DB_DRIVER,
-		config.DBUser, config.DBHost,
-		config.DBPort, config.DBName,
-		config.DBPassword, DB_URL,
-		config.RedisHost, config.RedisPort,
-		config.RedisPassword, config.AccessTokenTTL,
-		config.RefreshTokenTTL, config.SessionTTL,
-		config.IdleTimeout, config.RevokedTTL,
-		config.RateLimitPeriod, config.RateLimitMax)
+	content := utils.CreateContentRefreshUsed(DB_URL, config)
 
 	if _, err := file.WriteString(content); err != nil {
 		log.Fatalf("Error: write to witches.env: %v", err)
@@ -42,12 +32,12 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) {
 func GenerateDBURL(DB_DRIVER string,
 	DB_USER,
 	DB_PASSWORD, DB_HOST,
-	DB_PORT, DB_NAME string) string {
+	DB_NAME string, DB_PORT int64) string {
 
 	switch DB_DRIVER {
 	case "mysql":
 		DB_URL := fmt.Sprintf(
-			"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
@@ -57,7 +47,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL
 	case "postgresql", "postgres":
 		DB_URL := fmt.Sprintf(
-			"%s:%s@%s:%s/%s?sslmode=disable",
+			"%s:%s@%s:%d/%s?sslmode=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
@@ -67,7 +57,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL
 	case "mssql", "sqlserver":
 		DB_URL := fmt.Sprintf(
-			"%s:%s@%s:%s?database=%s&encrypt=disable",
+			"%s:%s@%s:%d?database=%s&encrypt=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
