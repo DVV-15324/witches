@@ -34,6 +34,58 @@ func TestGetEnvAsInt64(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
+	// Set biến môi trường cho test
+	os.Setenv("APP_PORT", "8080")
+	os.Setenv("APP_HOST", "localhost")
+	os.Setenv("METRIC_PORT", "8088")
+	os.Setenv("DB_DRIVER", "mysql")
+	os.Setenv("DB_USER", "root")
+	os.Setenv("DB_HOST", "localhost")
+	os.Setenv("DB_PORT", "3306")
+	os.Setenv("DB_NAME", "testdb")
+	os.Setenv("DB_PASSWORD", "password")
+	os.Setenv("DB_MAX_OPEN_CONNS", "100")
+	os.Setenv("DB_MAX_IDLE_CONNS", "10")
+	os.Setenv("DB_CONN_MAX_LIFETIME", "60")
+	os.Setenv("DB_CONN_MAX_IDLE_TIME", "600")
+	os.Setenv("SLOW_THRESHOLD", "5")
+	os.Setenv("REDIS_HOST", "localhost")
+	os.Setenv("REDIS_PORT", "6379")
+	os.Setenv("ACCESS_TOKEN_TTL", "900")
+	os.Setenv("REFRESH_TOKEN_TTL", "604800")
+	os.Setenv("SESSION_TTL", "604800")
+	os.Setenv("IDLE_TIMEOUT", "1800")
+	os.Setenv("REVOKED_TTL", "300")
+	os.Setenv("RATE_LIMIT_PERIOD", "60")
+	os.Setenv("RATE_LIMIT_MAX", "100")
+
+	// Cleanup sau khi test
+	defer func() {
+		os.Unsetenv("APP_PORT")
+		os.Unsetenv("APP_HOST")
+		os.Unsetenv("METRIC_PORT")
+		os.Unsetenv("DB_DRIVER")
+		os.Unsetenv("DB_USER")
+		os.Unsetenv("DB_HOST")
+		os.Unsetenv("DB_PORT")
+		os.Unsetenv("DB_NAME")
+		os.Unsetenv("DB_PASSWORD")
+		os.Unsetenv("DB_MAX_OPEN_CONNS")
+		os.Unsetenv("DB_MAX_IDLE_CONNS")
+		os.Unsetenv("DB_CONN_MAX_LIFETIME")
+		os.Unsetenv("DB_CONN_MAX_IDLE_TIME")
+		os.Unsetenv("SLOW_THRESHOLD")
+		os.Unsetenv("REDIS_HOST")
+		os.Unsetenv("REDIS_PORT")
+		os.Unsetenv("ACCESS_TOKEN_TTL")
+		os.Unsetenv("REFRESH_TOKEN_TTL")
+		os.Unsetenv("SESSION_TTL")
+		os.Unsetenv("IDLE_TIMEOUT")
+		os.Unsetenv("REVOKED_TTL")
+		os.Unsetenv("RATE_LIMIT_PERIOD")
+		os.Unsetenv("RATE_LIMIT_MAX")
+	}()
+
 	validConfig := &Config{
 		Port:            8080,
 		Host:            "localhost",
@@ -65,6 +117,9 @@ func TestValidate(t *testing.T) {
 	})
 
 	t.Run("missing APP_PORT - should panic", func(t *testing.T) {
+		os.Unsetenv("APP_PORT")
+		defer os.Setenv("APP_PORT", "8080")
+
 		cfg := *validConfig
 		cfg.Port = 0
 		assert.Panics(t, func() {
@@ -73,6 +128,9 @@ func TestValidate(t *testing.T) {
 	})
 
 	t.Run("missing DB_HOST - should panic", func(t *testing.T) {
+		os.Unsetenv("DB_HOST")
+		defer os.Setenv("DB_HOST", "localhost")
+
 		cfg := *validConfig
 		cfg.DBHost = ""
 		assert.Panics(t, func() {
@@ -81,6 +139,9 @@ func TestValidate(t *testing.T) {
 	})
 
 	t.Run("missing REDIS_HOST - should panic", func(t *testing.T) {
+		os.Unsetenv("REDIS_HOST")
+		defer os.Setenv("REDIS_HOST", "localhost")
+
 		cfg := *validConfig
 		cfg.RedisHost = ""
 		assert.Panics(t, func() {
