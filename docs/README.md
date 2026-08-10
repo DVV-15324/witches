@@ -11,6 +11,7 @@
   low-resource usage, and practical development.
 </p>
 
+[![Security Scan](https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg)](https://github.com/DVV-15324/witches/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg)](https://app.codecov.io/github/DVV-15324/witches)
 
 <p>

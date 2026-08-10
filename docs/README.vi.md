@@ -11,6 +11,7 @@
   tiết kiệm tài nguyên.
 </p>
 
+[![Security Scan](https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg)](https://github.com/DVV-15324/witches/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg)](https://codecov.io/gh/DVV-15324/witches)
 
 <p>
