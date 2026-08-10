@@ -44,6 +44,7 @@ func AddGoService(project string, moduleName string, serviceName string) {
 	serviceName = strings.ReplaceAll(serviceName, " ", "")
 	serviceName = strings.ToLower(serviceName)
 	serviceNameCap := cases.Title(language.English).String(serviceName)
+	serviceNameCap = strings.ReplaceAll(serviceNameCap, " ", "")
 	config := ServiceConfig{
 		NameCap:    serviceNameCap,
 		Name:       serviceName,
