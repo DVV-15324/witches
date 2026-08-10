@@ -21,7 +21,7 @@ func TestHttpShutDown(t *testing.T) {
 		context.Background(),
 		mux,
 		"localhost",
-		"8080",
+		"8084",
 	)
 }
 
@@ -36,6 +36,6 @@ func TestGin(t *testing.T) {
 		context.Background(),
 		r,
 		"localhost",
-		"8080",
+		"8085",
 	)
 }
