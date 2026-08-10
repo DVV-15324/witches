@@ -27,7 +27,8 @@ jobs:
 
       - name: Run unit tests (skip easyjson packages)
         run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic $(go list ./... | grep -v easyjson) ./test/handler/...
+          PACKAGES=$(go list ./... | grep -v easyjson | tr '\n' ' ')
+          go test -short -race -coverprofile=coverage.out -covermode=atomic $PACKAGES ./test/handler/...
 
       - name: Run integration tests (if exist)
         run: |
