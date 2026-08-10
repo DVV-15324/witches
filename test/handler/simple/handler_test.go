@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -419,7 +418,4 @@ func TestHandleSwagger(t *testing.T) {
 		assert.Equal(t, 200, w.Code)
 	})
 
-	srv := &http.Server{Addr: ":8083", Handler: r}
-	go srv.ListenAndServe()
-	defer srv.Shutdown(context.Background())
 }
