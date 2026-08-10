@@ -4,11 +4,14 @@
 
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-### Go Backend CLI Tool
+<p>
+  <i>
+    For building your <b>personal brand</b>, your <b>side project</b>, or your <b>small organization's</b> backbone.
+  </i>
+</p>
 
-<p> 
-  REST API scaffolding for <b>Go</b>, designed for simplicity,
-  low-resource usage, and practical development.
+<p>
+  <b>Start small. Stay stable. Build trust.</b>
 </p>
 
 [![Security Scan](https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg)](https://github.com/DVV-15324/witches/actions/workflows/security.yml)
