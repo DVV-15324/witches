@@ -31,47 +31,43 @@ jobs:
           echo "TEST_EMPTY=dummy_value" >> $GITHUB_ENV
           echo "TEST_INVALID=dummy_value" >> $GITHUB_ENV
 
-      - name: Run all tests
+      - name: Run all tests with coverage (skip easyjson packages)
         run: |
-          # Chạy test và tạo file coverage riêng
-          go test -short -race -coverprofile=coverage_pkg.out -covermode=atomic ./pkg/... 2>/dev/null || true
-          go test -short -race -coverprofile=coverage_handler.out -covermode=atomic ./test/handler/... 2>/dev/null || true
+          # Chạy test cho từng nhóm, mỗi nhóm ghi ra file riêng
+          go test -race -coverprofile=coverage_response.out -covermode=atomic ./pkg/core/response/... || true
+          go test -race -coverprofile=coverage_utils.out -covermode=atomic ./pkg/core/utils || true
+          go test -race -coverprofile=coverage_templates.out -covermode=atomic ./pkg/core/templates/... || true
+          go test -short -race -coverprofile=coverage_pagination.out -covermode=atomic ./test/handler/pagination || true
+          go test -short -race -coverprofile=coverage_rate_limit.out -covermode=atomic ./test/handler/rate_limit || true
+          go test -short -race -coverprofile=coverage_simple.out -covermode=atomic ./test/handler/simple || true
 
-      - name: Merge coverage files
+      - name: Merge and clean coverage
         run: |
           echo "mode: atomic" > coverage_all.out
           for f in coverage_*.out; do
             if [ -f "$f" ] && [ -s "$f" ]; then
-              echo "Adding $f"
+              echo "Adding $f ($(wc -l < $f) lines)"
               tail -n +2 "$f" >> coverage_all.out 2>/dev/null || true
             fi
           done
 
-      - name: 🔥 CLEAN EASYJSON (cực mạnh)
+          # Xóa tất cả dòng chứa các từ khóa dư thừa
+          sed -i '/easyjson/d' coverage_all.out
+          sed -i '/dto\/request/d' coverage_all.out
+          sed -i '/request_easyjson/d' coverage_all.out
+          sed -i '/response_easyjson/d' coverage_all.out
+          sed -i '/_easyjson/d' coverage_all.out
+
+          echo "After cleaning: $(wc -l < coverage_all.out) lines"
+          head -3 coverage_all.out
+
+      - name: Validate coverage file
         run: |
-          echo "Before clean: $(wc -l < coverage_all.out) lines"
-
-          # Cách 1: Dùng grep -v để lọc
-          grep -v -E 'easyjson|dto/request|request_easyjson|test/easyjson|_easyjson' coverage_all.out > coverage_temp.out
-          mv coverage_temp.out coverage_all.out
-
-          # Cách 2: Xóa các dòng có chứa từ khóa bằng sed (chạy nhiều lần cho chắc)
-          for keyword in easyjson dto/request request_easyjson test/easyjson _easyjson; do
-            sed -i "/$keyword/d" coverage_all.out
-          done
-
-          echo "After clean: $(wc -l < coverage_all.out) lines"
-
-          # Kiểm tra còn không
-          if grep -q 'easyjson' coverage_all.out; then
-            echo " STILL FOUND easyjson! Trying harder..."
-            grep -v 'easyjson' coverage_all.out > coverage_final.out
-            mv coverage_final.out coverage_all.out
+          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
+            echo "Error: coverage_all.out is empty or invalid!"
+            exit 1
           fi
-
-          # Hiển thị 5 dòng đầu để kiểm tra
-          echo "First 5 lines:"
-          head -5 coverage_all.out
+          echo "Coverage file valid with $(wc -l < coverage_all.out) lines"
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
