@@ -1,0 +1,22 @@
+package {{.Name}}
+
+import "context"
+
+type {{.NameCap}}Service interface {
+	Create(ctx context.Context, data *{{.NameCap}}) error
+	Get(ctx context.Context, id string) (*{{.NameCap}}, error)
+	Update(ctx context.Context, id string, data *{{.NameCap}}) error
+	Delete(ctx context.Context, id string) error
+}
+
+type {{.NameCap}} struct {
+	ID   string
+	Name string
+}
+
+func New{{.NameCap}}(name string) *{{.NameCap}} {
+	return &{{.NameCap}}{
+		ID:   "generated-id",
+		Name: name,
+	}
+}
