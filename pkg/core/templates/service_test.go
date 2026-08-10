@@ -27,6 +27,7 @@ func TestServiceNameProcessing(t *testing.T) {
 			// Test logic của AddGoService
 			serviceName := strings.TrimSpace(tt.input)
 			serviceName = strings.ToLower(serviceName)
+			serviceName = strings.ReplaceAll(serviceName, " ", "")
 			serviceNameCap := cases.Title(language.English).String(serviceName)
 
 			assert.Equal(t, tt.expected, serviceNameCap)
