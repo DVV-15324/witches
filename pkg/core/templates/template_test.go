@@ -195,7 +195,7 @@ func TestUpdateKeyObject_InvalidContent(t *testing.T) {
 func BenchmarkServiceNameProcessing(b *testing.B) {
 	input := "user-profile-service"
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		serviceName := strings.TrimSpace(input)
 		serviceName = strings.ToLower(serviceName)
 		_ = cases.Title(language.English).String(serviceName)
@@ -212,7 +212,7 @@ var (
 )`
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		fset := token.NewFileSet()
 		node, _ := parser.ParseFile(fset, "", content, parser.ParseComments)
 
@@ -263,7 +263,7 @@ type {{.NameCap}} struct {
 	require.NoError(b, err)
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		destFile := filepath.Join(tmpDir, "output.go")
 		file, _ := os.Create(destFile)
 		tmpl.Execute(file, config)
