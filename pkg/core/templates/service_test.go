@@ -29,6 +29,7 @@ func TestServiceNameProcessing(t *testing.T) {
 			serviceName = strings.ToLower(serviceName)
 			serviceName = strings.ReplaceAll(serviceName, " ", "")
 			serviceNameCap := cases.Title(language.English).String(serviceName)
+			serviceNameCap = strings.ReplaceAll(serviceNameCap, " ", "")
 
 			assert.Equal(t, tt.expected, serviceNameCap)
 		})
