@@ -5,7 +5,6 @@
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
 ### Go Backend CLI Tool
-
 <p>
     REST API scaffolding for <b>Go</b>, built for <b>simplicity</b>, <b>low-resource usage</b>, 
     and <b>practical development</b>.
