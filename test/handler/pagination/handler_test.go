@@ -20,6 +20,9 @@ import (
 )
 
 func TestHandleSwaggerPagination(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
@@ -369,7 +372,6 @@ func TestHandleSwaggerPagination(t *testing.T) {
 
 		assert.Equal(t, 200, w.Code)
 	})
-
 	srv := &http.Server{Addr: ":8081", Handler: r}
 	go srv.ListenAndServe()
 	defer srv.Shutdown(context.Background())
