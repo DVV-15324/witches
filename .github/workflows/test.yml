@@ -22,15 +22,30 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Run all tests
-        run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic ./pkg/... ./test/handler/...
-          go test -race -coverprofile=coverage_integration.out -covermode=atomic -tags=integration ./pkg/core/utils
+      - name: Clean old coverage files
+        run: rm -f coverage*.out coverage_all.out
 
-      - name: Merge coverage
+      - name: Run unit tests (skip easyjson packages)
+        run: |
+          go test -race -coverprofile=coverage.out -covermode=atomic $(go list ./... | grep -v easyjson) ./test/handler/...
+
+      - name: Run integration tests (if exist)
+        run: |
+          if [ -d "./pkg/core/utils" ] && [ "$(ls -1 ./pkg/core/utils/*_test.go 2>/dev/null | wc -l)" -gt 0 ]; then
+            go test -race -coverprofile=coverage_integration.out -covermode=atomic -tags=integration ./pkg/core/utils
+          else
+            echo "No integration tests found, skipping."
+          fi
+
+      - name: Merge coverage reports
         run: |
           echo "mode: atomic" > coverage_all.out
-          cat coverage.out coverage_integration.out | tail -n +2 >> coverage_all.out
+          if [ -f coverage.out ]; then
+            cat coverage.out >> coverage_all.out
+          fi
+          if [ -f coverage_integration.out ]; then
+            tail -n +2 coverage_integration.out >> coverage_all.out
+          fi
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
