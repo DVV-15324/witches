@@ -40,7 +40,15 @@ jobs:
           else
             echo "No integration tests found, skipping."
           fi
-
+      - name: Check coverage file
+        run: |
+          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
+            echo "Error: coverage_all.out is empty or invalid!"
+            cat coverage_all.out  # In ra để debug
+            exit 1
+          fi
+          echo "Coverage file has $(wc -l < coverage_all.out) lines"
+          head -5 coverage_all.out  # In 5 dòng đầu
       - name: Merge coverage reports
         run: |
           echo "mode: atomic" > coverage_all.out
