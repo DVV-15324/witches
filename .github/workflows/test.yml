@@ -29,7 +29,7 @@ jobs:
         run: |
           PACKAGES=$(go list ./... | grep -v easyjson | tr '\n' ' ')
           PACKAGES=$(go list ./... | grep -v -e easyjson -e github.com/DVV-15324/witches/cmd/utils | tr '\n' ' ')
-          go test -short -race -coverprofile=coverage.out -covermode=atomic $PACKAGES ./test/handler/...
+          go test -race -coverprofile=coverage.out -covermode=atomic $PACKAGES ./test/handler/...
 
       - name: Run integration tests (if exist)
         run: |
