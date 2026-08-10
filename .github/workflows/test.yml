@@ -12,6 +12,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -23,6 +24,13 @@ jobs:
 
       - name: Clean old coverage files
         run: rm -f coverage*.out coverage_all.out
+
+      # SET BIẾN MÔI TRƯỜNG
+      - name: Set environment variables for tests
+        run: |
+          echo "APP_PORT=8080" >> $GITHUB_ENV
+          echo "TEST_EMPTY=dummy_value" >> $GITHUB_ENV
+          echo "TEST_INVALID=dummy_value" >> $GITHUB_ENV
 
       - name: Run unit tests (skip easyjson packages)
         run: |
@@ -46,6 +54,11 @@ jobs:
           if [ -f coverage_integration.out ]; then
             tail -n +2 coverage_integration.out >> coverage_all.out
           fi
+          # Nếu file rỗng, xóa để tránh upload lỗi
+          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
+            echo "No coverage data collected. Removing empty file."
+            rm -f coverage_all.out
+          fi
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
@@ -53,3 +66,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage_all.out
           fail_ci_if_error: true
+          verbose: true
