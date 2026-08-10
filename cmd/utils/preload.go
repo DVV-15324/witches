@@ -46,110 +46,125 @@ func PreloadNotDBURL() *Config {
 	currentPath := GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
 	if err := godotenv.Load(envPath); err != nil {
-		log.Println("Error: not found witches.env")
+		log.Println("Error: not found witches.env, using default values")
 	}
 
-	return &Config{
-		Port:            getEnvAsInt64("APP_PORT"),
-		Host:            os.Getenv("APP_HOST"),
-		MetrictPort:     getEnvAsInt64("METRIC_PORT"),
-		DBDriver:        os.Getenv("DB_DRIVER"),
-		DBUser:          os.Getenv("DB_USER"),
-		DBHost:          os.Getenv("DB_HOST"),
-		DBPort:          getEnvAsInt64("DB_PORT"),
-		DBPassword:      os.Getenv("DB_PASSWORD"),
-		MaxOpenConns:    getEnvAsInt64("DB_MAX_OPEN_CONNS"),
-		MaxIdleConns:    getEnvAsInt64("DB_MAX_IDLE_CONNS"),
-		ConnMaxLifetime: getEnvAsInt64("DB_CONN_MAX_LIFETIME"),
-		ConnMaxIdleTime: getEnvAsInt64("DB_CONN_MAX_IDLE_TIME"),
-		SlowThreshold:   getEnvAsInt64("SLOW_THRESHOLD"),
-		DBName:          os.Getenv("DB_NAME"),
-		RedisHost:       os.Getenv("REDIS_HOST"),
-		RedisPort:       getEnvAsInt64("REDIS_PORT"),
-		RedisPassword:   os.Getenv("REDIS_PASSWORD"),
-		AccessTokenTTL:  getEnvAsInt64("ACCESS_TOKEN_TTL"),
-		RefreshTokenTTL: getEnvAsInt64("REFRESH_TOKEN_TTL"),
-		SessionTTL:      getEnvAsInt64("SESSION_TTL"),
-		RevokedTTL:      getEnvAsInt64("REVOKED_TTL"),
-		IdleTimeout:     getEnvAsInt64("IDLE_TIMEOUT"),
-		RateLimitPeriod: getEnvAsInt64("RATE_LIMIT_PERIOD"),
-		RateLimitMax:    getEnvAsInt64("RATE_LIMIT_MAX"),
+	cfg := DefaultConfig()
+
+	if val := os.Getenv("APP_PORT"); val != "" {
+		cfg.Port = getEnvAsInt64("APP_PORT")
 	}
+	if val := os.Getenv("APP_HOST"); val != "" {
+		cfg.Host = os.Getenv("APP_HOST")
+	}
+	if val := os.Getenv("METRIC_PORT"); val != "" {
+		cfg.MetrictPort = getEnvAsInt64("METRIC_PORT")
+	}
+	if val := os.Getenv("DB_DRIVER"); val != "" {
+		cfg.DBDriver = os.Getenv("DB_DRIVER")
+	}
+	if val := os.Getenv("DB_USER"); val != "" {
+		cfg.DBUser = os.Getenv("DB_USER")
+	}
+	if val := os.Getenv("DB_HOST"); val != "" {
+		cfg.DBHost = os.Getenv("DB_HOST")
+	}
+	if val := os.Getenv("DB_PORT"); val != "" {
+		cfg.DBPort = getEnvAsInt64("DB_PORT")
+	}
+	if val := os.Getenv("DB_NAME"); val != "" {
+		cfg.DBName = os.Getenv("DB_NAME")
+	}
+	if val := os.Getenv("DB_PASSWORD"); val != "" {
+		cfg.DBPassword = os.Getenv("DB_PASSWORD")
+	}
+	if val := os.Getenv("DB_MAX_OPEN_CONNS"); val != "" {
+		cfg.MaxOpenConns = getEnvAsInt64("DB_MAX_OPEN_CONNS")
+	}
+	if val := os.Getenv("DB_MAX_IDLE_CONNS"); val != "" {
+		cfg.MaxIdleConns = getEnvAsInt64("DB_MAX_IDLE_CONNS")
+	}
+	if val := os.Getenv("DB_CONN_MAX_LIFETIME"); val != "" {
+		cfg.ConnMaxLifetime = getEnvAsInt64("DB_CONN_MAX_LIFETIME")
+	}
+	if val := os.Getenv("DB_CONN_MAX_IDLE_TIME"); val != "" {
+		cfg.ConnMaxIdleTime = getEnvAsInt64("DB_CONN_MAX_IDLE_TIME")
+	}
+	if val := os.Getenv("SLOW_THRESHOLD"); val != "" {
+		cfg.SlowThreshold = getEnvAsInt64("SLOW_THRESHOLD")
+	}
+	if val := os.Getenv("REDIS_HOST"); val != "" {
+		cfg.RedisHost = os.Getenv("REDIS_HOST")
+	}
+	if val := os.Getenv("REDIS_PORT"); val != "" {
+		cfg.RedisPort = getEnvAsInt64("REDIS_PORT")
+	}
+	if val := os.Getenv("REDIS_PASSWORD"); val != "" {
+		cfg.RedisPassword = os.Getenv("REDIS_PASSWORD")
+	}
+	if val := os.Getenv("ACCESS_TOKEN_TTL"); val != "" {
+		cfg.AccessTokenTTL = getEnvAsInt64("ACCESS_TOKEN_TTL")
+	}
+	if val := os.Getenv("REFRESH_TOKEN_TTL"); val != "" {
+		cfg.RefreshTokenTTL = getEnvAsInt64("REFRESH_TOKEN_TTL")
+	}
+	if val := os.Getenv("SESSION_TTL"); val != "" {
+		cfg.SessionTTL = getEnvAsInt64("SESSION_TTL")
+	}
+	if val := os.Getenv("IDLE_TIMEOUT"); val != "" {
+		cfg.IdleTimeout = getEnvAsInt64("IDLE_TIMEOUT")
+	}
+	if val := os.Getenv("REVOKED_TTL"); val != "" {
+		cfg.RevokedTTL = getEnvAsInt64("REVOKED_TTL")
+	}
+	if val := os.Getenv("RATE_LIMIT_PERIOD"); val != "" {
+		cfg.RateLimitPeriod = getEnvAsInt64("RATE_LIMIT_PERIOD")
+	}
+	if val := os.Getenv("RATE_LIMIT_MAX"); val != "" {
+		cfg.RateLimitMax = getEnvAsInt64("RATE_LIMIT_MAX")
+	}
+
+	return cfg
 }
 
 func getEnvAsInt64(key string) int64 {
 	strValue := os.Getenv(key)
-
+	if strValue == "" {
+		return 0
+	}
 	val, err := strconv.ParseInt(strValue, 10, 64)
 	if err != nil {
-		log.Printf("Error: Get key: %v", key)
+		log.Printf("Error: Get key: %v, using default value 0", key)
+		return 0
 	}
 	return val
 }
 
-func Validate(cfg *Config) {
-	if cfg.Port == 0 {
-		log.Fatal("Error: APP_PORT is not set in environment")
-	}
-	if cfg.Host == "" {
-		log.Fatal("Error: APP_HOST is not set in environment")
-	}
-	if cfg.MetrictPort == 0 {
-		log.Fatal("Error: METRIC_PORT is not set in environment")
-	}
-	if cfg.DBHost == "" {
-		log.Fatal("Error: DB_HOST is not set in environment")
-	}
-	if cfg.DBPort == 0 {
-		log.Fatal("Error: DB_PORT is not set in environment")
-	}
-	if cfg.DBName == "" {
-		log.Fatal("Error: DB_NAME is not set in environment")
-	}
-	if cfg.DBPassword == "" {
-		log.Fatal("Error: DB_PASSWORD is not set in environment")
-	}
-	if cfg.MaxOpenConns == 0 {
-		log.Fatal("Error: DB_MAX_OPEN_CONNS is not set in environment")
-	}
-	if cfg.MaxIdleConns == 0 {
-		log.Fatal("Error: DB_MAX_IDLE_CONNS is not set in environment")
-	}
-	if cfg.ConnMaxLifetime == 0 {
-		log.Fatal("Error: DB_CONN_MAX_LIFETIME is not set in environment")
-	}
-	if cfg.ConnMaxIdleTime == 0 {
-		log.Fatal("Error: DB_CONN_MAX_IDLE_TIME is not set in environment")
-	}
-	if cfg.SlowThreshold == 0 {
-		log.Fatal("Error: SLOW_THRESHOLD is not set in environment")
-	}
-	if cfg.RedisHost == "" {
-		log.Fatal("Error: REDIS_HOST is required for refresh project")
-	}
-	if cfg.RedisPort == 0 {
-		log.Fatal("Error: REDIS_PORT is required for refresh project")
-	}
-	if cfg.AccessTokenTTL == 0 {
-		log.Fatal("Error: ACCESS_TOKEN_TTL not set")
-	}
-	if cfg.RefreshTokenTTL == 0 {
-		log.Fatal("Error: REFRESH_TOKEN_TTL not set")
-	}
-	if cfg.SessionTTL == 0 {
-		log.Fatal("Error: SESSION_TTL not set")
-	}
-	if cfg.IdleTimeout == 0 {
-		log.Fatal("Error: IDLE_TIMEOUT not set")
-	}
-	if cfg.RevokedTTL == 0 {
-		log.Fatal("Error: REVOKED_TTL not set")
-	}
-
-	if cfg.RateLimitPeriod == 0 {
-		log.Fatal("Error: RATE_LIMIT_PERIOD not set")
-	}
-	if cfg.RateLimitMax == 0 {
-		log.Fatal("Error: RATE_LIMIT_MAX not set")
+func DefaultConfig() *Config {
+	return &Config{
+		Port:            8080,
+		Host:            "localhost",
+		MetrictPort:     8088,
+		DBDriver:        "mysql",
+		DBUser:          "root",
+		DBHost:          "localhost",
+		DBPort:          3306,
+		DBName:          "your_database",
+		DBPassword:      "your_password",
+		MaxOpenConns:    100,
+		MaxIdleConns:    10,
+		ConnMaxLifetime: 60,
+		ConnMaxIdleTime: 600,
+		SlowThreshold:   5,
+		RedisHost:       "localhost",
+		RedisPort:       6379,
+		RedisPassword:   "",
+		AccessTokenTTL:  900,
+		RefreshTokenTTL: 604800,
+		SessionTTL:      604800,
+		IdleTimeout:     1800,
+		RevokedTTL:      300,
+		RateLimitPeriod: 60,
+		RateLimitMax:    100,
 	}
 }
