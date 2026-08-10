@@ -18,3 +18,7 @@ witches.env
 # OS
 .DS_Store
 Thumbs.db
+
+# !!! Cho phép file easyjson sinh ra
+!test/easyjson/dto/request/request_easyjson.go
+!test\easyjson\dto\response\response_easyjson.go
