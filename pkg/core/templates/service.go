@@ -40,14 +40,10 @@ func (p ServiceConfig) GetMuduleName() string {
 	return p.ModuleName
 }
 func AddGoService(project string, moduleName string, serviceName string) {
-	// Xóa cách
 	serviceName = strings.TrimSpace(serviceName)
-	// Chỉnh chữ thường
-	serviceName = strings.ToLower(serviceName)
-	// Chữ Hoa đầu
-	serviceNameCap := cases.Title(language.English).String(serviceName)
-	serviceNameCap = strings.ReplaceAll(serviceNameCap, " ", "")
 	serviceName = strings.ReplaceAll(serviceName, " ", "")
+	serviceName = strings.ToLower(serviceName)
+	serviceNameCap := cases.Title(language.English).String(serviceName)
 	config := ServiceConfig{
 		NameCap:    serviceNameCap,
 		Name:       serviceName,
