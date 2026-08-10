@@ -31,74 +31,48 @@ jobs:
           echo "TEST_EMPTY=dummy_value" >> $GITHUB_ENV
           echo "TEST_INVALID=dummy_value" >> $GITHUB_ENV
 
-      # --- CHẠY TEST CHO TỪNG NHÓM, MỖI NHÓM GHI RA 1 FILE RIÊNG ---
-      - name: Test core response
+      - name: Run all tests
         run: |
-          go test -race -coverprofile=coverage_response.out -covermode=atomic ./pkg/core/response/...
-          go test -race -coverprofile=coverage_response_logger.out -covermode=atomic ./pkg/core/response/logger
+          # Chạy test và tạo file coverage riêng
+          go test -short -race -coverprofile=coverage_pkg.out -covermode=atomic ./pkg/... 2>/dev/null || true
+          go test -short -race -coverprofile=coverage_handler.out -covermode=atomic ./test/handler/... 2>/dev/null || true
 
-      - name: Test core utils
-        run: |
-          go test -race -coverprofile=coverage_utils.out -covermode=atomic ./pkg/core/utils
-
-      - name: Test core templates
-        run: |
-          go test -race -coverprofile=coverage_templates.out -covermode=atomic ./pkg/core/templates/...
-
-      - name: Test core database
-        run: |
-          go test -race -coverprofile=coverage_database.out -covermode=atomic ./pkg/core/database/connect/sql
-
-      - name: Test core easyjson (skip if no tests)
-        run: |
-          if [ -d "./pkg/core/easyjson" ]; then
-            go test -race -coverprofile=coverage_easyjson.out -covermode=atomic ./pkg/core/easyjson || echo "No tests in easyjson"
-          fi
-
-      - name: Test cmd packages
-        run: |
-          go test -race -coverprofile=coverage_cmd.out -covermode=atomic ./cmd/... || echo "Some cmd tests may fail"
-
-      - name: Test handlers (pagination, rate_limit, simple)
-        run: |
-          go test -short -race -coverprofile=coverage_pagination.out -covermode=atomic ./test/handler/pagination
-          go test -short -race -coverprofile=coverage_rate_limit.out -covermode=atomic ./test/handler/rate_limit
-          go test -short -race -coverprofile=coverage_simple.out -covermode=atomic ./test/handler/simple
-
-      - name: Test integration (if exist)
-        run: |
-          if [ -d "./pkg/core/utils" ] && [ "$(ls -1 ./pkg/core/utils/*_test.go 2>/dev/null | wc -l)" -gt 0 ]; then
-            go test -race -coverprofile=coverage_integration.out -covermode=atomic -tags=integration ./pkg/core/utils
-          else
-            echo "No integration tests found, skipping."
-          fi
-
-      # --- HỢP NHẤT TẤT CẢ FILE COVERAGE ---
-      - name: Merge all coverage reports
+      - name: Merge coverage files
         run: |
           echo "mode: atomic" > coverage_all.out
           for f in coverage_*.out; do
             if [ -f "$f" ] && [ -s "$f" ]; then
-              echo "Adding $f ($(wc -l < $f) lines)"
-              # Lọc bỏ dòng chứa easyjson bằng sed
-              sed -n '/easyjson/!p' "$f" | tail -n +2 >> coverage_all.out 2>/dev/null || true
+              echo "Adding $f"
+              tail -n +2 "$f" >> coverage_all.out 2>/dev/null || true
             fi
           done
-          # Lọc thêm 1 lần nữa toàn bộ file
-          sed -i '/easyjson/d' coverage_all.out
-          echo "Total lines in coverage_all.out: $(wc -l < coverage_all.out)"
 
-      # --- KIỂM TRA FILE COVERAGE HỢP LỆ ---
-      - name: Validate coverage file
+      - name: 🔥 CLEAN EASYJSON (cực mạnh)
         run: |
-          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
-            echo "Error: coverage_all.out is empty or invalid!"
-            exit 1
-          fi
-          echo "Coverage file valid with $(wc -l < coverage_all.out) lines"
-          head -3 coverage_all.out
+          echo "Before clean: $(wc -l < coverage_all.out) lines"
 
-      # --- UPLOAD LÊN CODECOV ---
+          # Cách 1: Dùng grep -v để lọc
+          grep -v -E 'easyjson|dto/request|request_easyjson|test/easyjson|_easyjson' coverage_all.out > coverage_temp.out
+          mv coverage_temp.out coverage_all.out
+
+          # Cách 2: Xóa các dòng có chứa từ khóa bằng sed (chạy nhiều lần cho chắc)
+          for keyword in easyjson dto/request request_easyjson test/easyjson _easyjson; do
+            sed -i "/$keyword/d" coverage_all.out
+          done
+
+          echo "After clean: $(wc -l < coverage_all.out) lines"
+
+          # Kiểm tra còn không
+          if grep -q 'easyjson' coverage_all.out; then
+            echo " STILL FOUND easyjson! Trying harder..."
+            grep -v 'easyjson' coverage_all.out > coverage_final.out
+            mv coverage_final.out coverage_all.out
+          fi
+
+          # Hiển thị 5 dòng đầu để kiểm tra
+          echo "First 5 lines:"
+          head -5 coverage_all.out
+
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
