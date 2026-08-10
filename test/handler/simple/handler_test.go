@@ -20,6 +20,9 @@ import (
 )
 
 func TestHandleSwagger(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
