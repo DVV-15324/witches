@@ -37,7 +37,6 @@ var initCmd = &cobra.Command{
 			return
 		}
 		cfg := utils.PreloadNotDBURL()
-		utils.Validate(cfg)
 		utils.LoadDbUrl(cfg)
 		run.WitchesInit(cfg.DBDriver)
 	},
@@ -51,7 +50,6 @@ var installCmd = &cobra.Command{
 			return
 		}
 		cfg := utils.PreloadNotDBURL()
-		utils.Validate(cfg)
 		utils.LoadDbUrl(cfg)
 		run.WitchesInstall(cfg.DBDriver)
 	},
