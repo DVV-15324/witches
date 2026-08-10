@@ -80,12 +80,12 @@ jobs:
           for f in coverage_*.out; do
             if [ -f "$f" ] && [ -s "$f" ]; then
               echo "Adding $f ($(wc -l < $f) lines)"
-              # Lọc bỏ dòng mode (nếu có) và bỏ qua easyjson
-              grep -v -e 'mode:' -e 'easyjson' "$f" | tail -n +2 >> coverage_all.out 2>/dev/null || true
-            else
-              echo "Warning: $f not found or empty"
+              # Lọc bỏ dòng chứa easyjson bằng sed
+              sed -n '/easyjson/!p' "$f" | tail -n +2 >> coverage_all.out 2>/dev/null || true
             fi
           done
+          # Lọc thêm 1 lần nữa toàn bộ file
+          sed -i '/easyjson/d' coverage_all.out
           echo "Total lines in coverage_all.out: $(wc -l < coverage_all.out)"
 
       # --- KIỂM TRA FILE COVERAGE HỢP LỆ ---
