@@ -17,12 +17,28 @@ type RouteBuilder struct {
 }
 
 func (b *RouteBuilder) RateLimit(rate limiter.Rate) *RouteBuilder {
+	if b == nil {
+		fmt.Printf("Warning: RouteBuilder is nil\n")
+		return b
+	}
+	if b.gen == nil {
+		fmt.Printf("Warning: generator is nil\n")
+		return b
+	}
+
+	if b.gen.storeFactory == nil {
+		fmt.Printf("Warning: storeFactory is nil\n")
+		return b
+	}
 	store, err := b.gen.storeFactory()
 	if err != nil {
 		fmt.Printf("Error: Failed to create rate limit store: %v\n", err)
 		return b
 	}
-
+	if store == nil {
+		fmt.Printf("Warning: store is nil\n")
+		return b
+	}
 	b.rateLimit = limiter.New(store, rate)
 	return b
 }
