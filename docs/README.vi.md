@@ -4,14 +4,10 @@
 
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-<p>
-  <i>
-  Dành cho việc xây dựng <b>thương hiệu cá nhân</b>, <b>dự án phụ</b> hoặc nền tảng cốt lõi cho <b>tổ chức quy mô nhỏ</b> của bạn. 
-  </i>
-</p>
+### Go Backend CLI Tool
 
 <p>
-  <b>Khởi đầu nhỏ. Duy trì sự ổn định. Xây dựng lòng tin.</b>
+  Công cụ tạo scaffold REST API cho <b>Go</b>, được thiết kế đơn giản, tiết kiệm tài nguyên.
 </p>
 
 [![Security Scan](https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg)](https://github.com/DVV-15324/witches/actions/workflows/security.yml)

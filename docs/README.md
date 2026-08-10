@@ -4,16 +4,13 @@
 
 <img src="../logo/logo.png" alt="witches Logo" width="250"/>
 
-<p>
-  <i>
-    For building your <b>personal brand</b>, your <b>side project</b>, or your <b>small organization's</b> backbone.
-  </i>
-</p>
+### Go Backend CLI Tool
 
 <p>
-  <b>Start small. Stay stable. Build trust.</b>
-</p>
-
+    REST API scaffolding for <b>Go</b>, built for <b>simplicity</b>, <b>low-resource usage</b>, 
+    and <b>practical development</b>.
+  </p>
+  
 [![Security Scan](https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg)](https://github.com/DVV-15324/witches/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg)](https://app.codecov.io/github/DVV-15324/witches)
 
