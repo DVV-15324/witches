@@ -22,23 +22,12 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      #  Dọn dẹp sạch sẽ ---
       - name: Clean old coverage files
         run: rm -f coverage*.out coverage_all.out
 
-      # --- CẢI TIẾN 2: Thiết lập biến môi trường để tránh lỗi ---
-      - name: Set environment variables for tests
-        run: |
-          echo "APP_PORT=8080" >> $GITHUB_ENV
-          echo "TEST_EMPTY=dummy_value" >> $GITHUB_ENV
-          echo "TEST_INVALID=dummy_value" >> $GITHUB_ENV
-
-      # Chạy test an toàn hơn ---
       - name: Run unit tests (skip easyjson packages)
         run: |
-          # Lấy danh sách package, loại bỏ easyjson
-          PACKAGES=$(go list ./... | grep -v easyjson | tr '\n' ' ')
-          go test -race -coverprofile=coverage.out -covermode=atomic $PACKAGES ./test/handler/...
+          go test -race -coverprofile=coverage.out -covermode=atomic $(go list ./... | grep -v easyjson) ./test/handler/...
 
       - name: Run integration tests (if exist)
         run: |
@@ -48,7 +37,6 @@ jobs:
             echo "No integration tests found, skipping."
           fi
 
-      #  Merge coverage an toàn tuyệt đối ---
       - name: Merge coverage reports
         run: |
           echo "mode: atomic" > coverage_all.out
@@ -58,17 +46,10 @@ jobs:
           if [ -f coverage_integration.out ]; then
             tail -n +2 coverage_integration.out >> coverage_all.out
           fi
-          # Nếu file tổng chỉ có 1 dòng (mode), thì xóa nó để tránh upload lỗi
-          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
-            echo "Error: No coverage data collected. Removing empty file."
-            rm -f coverage_all.out
-          fi
 
-      # Upload lên Codecov với kiểm tra lỗi ---
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage_all.out
           fail_ci_if_error: true
-          verbose: true
