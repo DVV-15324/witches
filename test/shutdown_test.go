@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	utils "github.com/DVV-15324/witches/pkg/core/utils"
 
@@ -11,14 +12,17 @@ import (
 )
 
 func TestHttpShutDown(t *testing.T) {
-	mux := http.NewServeMux()
+	// Tạo context với timeout 2 giây
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
+	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello world"))
 	})
 
 	utils.ShutdownServer(
-		context.Background(),
+		ctx,
 		mux,
 		"localhost",
 		"8084",
@@ -26,14 +30,17 @@ func TestHttpShutDown(t *testing.T) {
 }
 
 func TestGin(t *testing.T) {
-	r := gin.Default()
+	// Tạo context với timeout 2 giây
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
+	r := gin.Default()
 	r.GET("/hello", func(c *gin.Context) {
 		c.String(200, "hello gin")
 	})
 
 	utils.ShutdownServer(
-		context.Background(),
+		ctx,
 		r,
 		"localhost",
 		"8085",
