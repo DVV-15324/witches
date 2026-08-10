@@ -26,9 +26,7 @@ func resetRedis(mr *miniredis.Miniredis) {
 	mr.FlushAll()
 }
 func TestHandleSwaggerRateLimit(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
