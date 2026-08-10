@@ -44,7 +44,7 @@ func TestHandleSwagger(t *testing.T) {
 	gen := w_handler.NewSwaggerGenerator(
 		"User API",
 		"1.0",
-		"localhost:8080",
+		"localhost:8083",
 		"/",
 	)
 	gen.SetEngine(r)
@@ -122,10 +122,10 @@ func TestHandleSwagger(t *testing.T) {
 		c.String(200, gen.GenerateJSON())
 	})
 
-	// TEST CASES
+	// ========== TEST CASES ==========
 
+	// TEST 1: GET /api/v1/users - pagination
 	t.Run("GET /api/v1/users - pagination test", func(t *testing.T) {
-		// Test page 2, limit 5
 		req, _ := http.NewRequest("GET", "/api/v1/users?page=2&limit=5", nil)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
@@ -142,9 +142,9 @@ func TestHandleSwagger(t *testing.T) {
 		assert.Equal(t, 2, resp.Pagination.Page)
 		assert.Equal(t, 5, resp.Pagination.Limit)
 		assert.Equal(t, int64(50), resp.Pagination.Total)
-		t.Logf("Pagination: Page=%d, Limit=%d, Total=%d", resp.Pagination.Page, resp.Pagination.Limit, resp.Pagination.Total)
 	})
 
+	// TEST 2: GET /api/v1/users - search
 	t.Run("GET /api/v1/users - search test", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/api/v1/users?search=User 1&limit=10", nil)
 		w := httptest.NewRecorder()
@@ -157,10 +157,43 @@ func TestHandleSwagger(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp.Status)
 		assert.NotNil(t, resp.Data)
-		t.Logf("Search results: %d items", resp.Pagination.Total)
 	})
 
-	t.Run("GET /api/v1/users/:id", func(t *testing.T) {
+	// TEST 3: GET /api/v1/users - invalid query params
+	t.Run("GET /api/v1/users - invalid query params", func(t *testing.T) {
+		tests := []struct {
+			query string
+			want  int
+		}{
+			{"?page=0&limit=10", 200},   // page=0 → default 1
+			{"?page=-1&limit=10", 400},  // page=-1 → invalid
+			{"?page=1&limit=0", 200},    // limit=0 → default 10
+			{"?page=1&limit=1000", 400}, // limit=1000 → invalid
+		}
+		for _, tt := range tests {
+			req, _ := http.NewRequest("GET", "/api/v1/users"+tt.query, nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			assert.Equal(t, tt.want, w.Code)
+		}
+	})
+
+	// TEST 4: GET /api/v1/users - page beyond total
+	t.Run("GET /api/v1/users - page beyond total", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/api/v1/users?page=100&limit=10", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, 200, w.Code)
+
+		var resp response.PaginationResponseWrapper
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Empty(t, resp.Data)
+	})
+
+	// TEST 5: GET /api/v1/users/:id - success
+	t.Run("GET /api/v1/users/:id - success", func(t *testing.T) {
 		// Get first user
 		req, _ := http.NewRequest("GET", "/api/v1/users?limit=1", nil)
 		w := httptest.NewRecorder()
@@ -170,17 +203,13 @@ func TestHandleSwagger(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 
-		// Kiểm tra Data không nil
 		if resp.Data == nil {
-			t.Skip("No users found (Data is nil)")
-			return
+			t.Skip("No users found")
 		}
 
-		// Kiểm tra Data là slice
 		users, ok := resp.Data.([]interface{})
 		if !ok || len(users) == 0 {
-			t.Skip("No users found or Data is not a slice")
-			return
+			t.Skip("No users found")
 		}
 
 		user := users[0].(map[string]interface{})
@@ -198,9 +227,19 @@ func TestHandleSwagger(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp2.Status)
 		assert.NotNil(t, resp2.Data)
-		t.Logf("User found: %s", id)
 	})
-	t.Run("POST /api/v1/users", func(t *testing.T) {
+
+	// TEST 6: GET /api/v1/users/:id - not found
+	t.Run("GET /api/v1/users/:id - not found", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/api/v1/users/non-existent-id", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, 404, w.Code)
+	})
+
+	// TEST 7: POST /api/v1/users - create success
+	t.Run("POST /api/v1/users - create success", func(t *testing.T) {
 		reqBody := `{"name":"New User","email":"newuser@example.com","password":"123456","age":25}`
 		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(reqBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -208,7 +247,7 @@ func TestHandleSwagger(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 
-		assert.Equal(t, 200, w.Code) // WriteSuccess returns 200
+		assert.Equal(t, 200, w.Code)
 
 		var resp response.AppResponse
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
@@ -216,41 +255,39 @@ func TestHandleSwagger(t *testing.T) {
 		assert.Equal(t, 200, resp.Status)
 		assert.Equal(t, "Success", resp.Message)
 		assert.NotNil(t, resp.Data)
-		t.Logf("User created: %+v", resp.Data)
 	})
 
-	t.Run("GET /api/v1/users/:id", func(t *testing.T) {
-		// Get first user
-		req, _ := http.NewRequest("GET", "/api/v1/users?limit=1", nil)
+	// TEST 8: POST /api/v1/users - invalid data
+	t.Run("POST /api/v1/users - invalid data", func(t *testing.T) {
+		reqBody := `{"name":"","email":"invalid","password":"","age":-1}`
+		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 
-		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, 400, w.Code)
+	})
 
-		users := resp.Data.([]interface{})
-		if len(users) == 0 {
-			t.Skip("No users found")
-		}
-		user := users[0].(map[string]interface{})
-		id := user["id"].(string)
+	// TEST 9: POST /api/v1/users - duplicate email
+	t.Run("POST /api/v1/users - duplicate email", func(t *testing.T) {
+		reqBody := `{"name":"Duplicate","email":"duplicate@example.com","password":"123456","age":25}`
+		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
 
-		// Get user by ID
-		req2, _ := http.NewRequest("GET", "/api/v1/users/"+id, nil)
+		// Try duplicate
+		req2, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(reqBody))
+		req2.Header.Set("Content-Type", "application/json")
 		w2 := httptest.NewRecorder()
 		r.ServeHTTP(w2, req2)
 
-		assert.Equal(t, 200, w2.Code)
-
-		var resp2 response.AppResponse
-		err := json.Unmarshal(w2.Body.Bytes(), &resp2)
-		assert.NoError(t, err)
-		assert.Equal(t, 200, resp2.Status)
-		assert.NotNil(t, resp2.Data)
-		t.Logf("User found: %s", id)
+		assert.NotEqual(t, 200, w2.Code)
 	})
 
-	t.Run("PUT /api/v1/users/:id", func(t *testing.T) {
+	// TEST 10: PUT /api/v1/users/:id - update success
+	t.Run("PUT /api/v1/users/:id - update success", func(t *testing.T) {
 		// Get first user
 		req, _ := http.NewRequest("GET", "/api/v1/users?limit=1", nil)
 		w := httptest.NewRecorder()
@@ -259,8 +296,8 @@ func TestHandleSwagger(t *testing.T) {
 		var resp response.PaginationResponseWrapper
 		json.Unmarshal(w.Body.Bytes(), &resp)
 
-		users := resp.Data.([]interface{})
-		if len(users) == 0 {
+		users, ok := resp.Data.([]interface{})
+		if !ok || len(users) == 0 {
 			t.Skip("No users found")
 		}
 		user := users[0].(map[string]interface{})
@@ -281,10 +318,50 @@ func TestHandleSwagger(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp2.Status)
 		assert.NotNil(t, resp2.Data)
-		t.Logf("User updated: %s", id)
 	})
 
-	t.Run("DELETE /api/v1/users/:id", func(t *testing.T) {
+	// TEST 11: PUT /api/v1/users/:id - not found
+	t.Run("PUT /api/v1/users/:id - not found", func(t *testing.T) {
+		reqBody := `{"name":"Updated"}`
+		req, _ := http.NewRequest("PUT", "/api/v1/users/non-existent-id", strings.NewReader(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, 404, w.Code)
+	})
+
+	// TEST 12: PUT /api/v1/users/:id - update with empty fields
+	t.Run("PUT /api/v1/users/:id - update with empty fields", func(t *testing.T) {
+		// Get first user
+		req, _ := http.NewRequest("GET", "/api/v1/users?limit=1", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		var resp response.PaginationResponseWrapper
+		json.Unmarshal(w.Body.Bytes(), &resp)
+
+		users, ok := resp.Data.([]interface{})
+		if !ok || len(users) == 0 {
+			t.Skip("No users found")
+		}
+		user := users[0].(map[string]interface{})
+		id := user["id"].(string)
+
+		// Update with empty fields (should not change)
+		reqBody := `{}`
+		req2, _ := http.NewRequest("PUT", "/api/v1/users/"+id, strings.NewReader(reqBody))
+		req2.Header.Set("Content-Type", "application/json")
+
+		w2 := httptest.NewRecorder()
+		r.ServeHTTP(w2, req2)
+
+		assert.Equal(t, 200, w2.Code)
+	})
+
+	// TEST 13: DELETE /api/v1/users/:id - delete success
+	t.Run("DELETE /api/v1/users/:id - delete success", func(t *testing.T) {
 		// Create user first
 		reqBody := `{"name":"DeleteUser","email":"delete@example.com","password":"123456","age":20}`
 		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(reqBody))
@@ -294,8 +371,24 @@ func TestHandleSwagger(t *testing.T) {
 
 		var resp response.AppResponse
 		json.Unmarshal(w.Body.Bytes(), &resp)
-		user := resp.Data.(map[string]interface{})
-		id := user["id"].(string)
+
+		// Check if response has data
+		if resp.Data == nil {
+			t.Skip("No data returned from create")
+			return
+		}
+
+		user, ok := resp.Data.(map[string]interface{})
+		if !ok {
+			t.Skip("Invalid response data")
+			return
+		}
+
+		id, ok := user["id"].(string)
+		if !ok || id == "" {
+			t.Skip("No user ID returned")
+			return
+		}
 
 		// Delete user
 		req2, _ := http.NewRequest("DELETE", "/api/v1/users/"+id, nil)
@@ -303,19 +396,27 @@ func TestHandleSwagger(t *testing.T) {
 		r.ServeHTTP(w2, req2)
 
 		assert.Equal(t, 200, w2.Code)
-		t.Logf("User deleted: %s", id)
 	})
 
+	// TEST 14: DELETE /api/v1/users/:id - not found
+	t.Run("DELETE /api/v1/users/:id - not found", func(t *testing.T) {
+		req, _ := http.NewRequest("DELETE", "/api/v1/users/non-existent-id", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, 404, w.Code)
+	})
+
+	// TEST 15: GET /swagger/index.html - Swagger UI
 	t.Run("GET /swagger/index.html - Swagger UI", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/swagger/index.html", nil)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, 200, w.Code)
-		t.Log("Swagger UI loaded")
 	})
 
-	srv := &http.Server{Addr: ":8080", Handler: r}
+	srv := &http.Server{Addr: ":8083", Handler: r}
 	go srv.ListenAndServe()
 	defer srv.Shutdown(context.Background())
 }

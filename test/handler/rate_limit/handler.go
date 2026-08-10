@@ -129,7 +129,13 @@ func (r *UserRepository) Update(user *User) error {
 	return r.db.Save(user).Error
 }
 
+// ==================== REPOSITORY ====================
+
 func (r *UserRepository) Delete(id string) error {
+	var user User
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
+		return err // Trả về lỗi record not found
+	}
 	return r.db.Where("id = ?", id).Delete(&User{}).Error
 }
 
@@ -310,10 +316,22 @@ func DeleteUser(c *gin.Context) {
 	setupRepo()
 	id := c.Param("id")
 
-	if err := repo.Delete(id); err != nil {
+	// Kiểm tra user tồn tại trước khi xóa
+	_, err := repo.FindByID(id)
+	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusNotFound,
 			Error:     fmt.Errorf("user not found"),
+			TimeStamp: time.Now(),
+		})
+		return
+	}
+
+	// Xóa user
+	if err := repo.Delete(id); err != nil {
+		response.WriteError(c, &response.AppError{
+			Status:    http.StatusInternalServerError,
+			Error:     err,
 			TimeStamp: time.Now(),
 		})
 		return

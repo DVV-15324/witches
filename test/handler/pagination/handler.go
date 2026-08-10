@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// ENTITY
+// ==================== ENTITY ====================
 
 type User struct {
 	ID        string    `json:"id" gorm:"primaryKey;type:varchar(36)"`
@@ -31,7 +31,7 @@ func (User) TableName() string {
 	return "users"
 }
 
-// DTO
+// ==================== DTO ====================
 
 type CreateUserRequest struct {
 	Name     string `json:"name" binding:"required"`
@@ -46,7 +46,7 @@ type UpdateUserRequest struct {
 	Age   int    `json:"age"`
 }
 
-// PAGINATION
+// ==================== PAGINATION ====================
 
 type PaginationRequest struct {
 	Page   int    `form:"page" binding:"omitempty,min=1"`
@@ -80,7 +80,7 @@ func (p *PaginationRequest) TotalPages(total int64) int {
 	return int((total + int64(limit) - 1) / int64(limit))
 }
 
-// REPOSITORY
+// ==================== REPOSITORY ====================
 
 type UserRepository struct {
 	db *gorm.DB
@@ -129,11 +129,17 @@ func (r *UserRepository) Update(user *User) error {
 	return r.db.Save(user).Error
 }
 
+// ==================== REPOSITORY ====================
+
 func (r *UserRepository) Delete(id string) error {
+	var user User
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
+		return err // Trả về lỗi record not found
+	}
 	return r.db.Where("id = ?", id).Delete(&User{}).Error
 }
 
-// HANDLERS (Dùng response của Witches)
+// ==================== HANDLERS (Dùng response của Witches) ====================
 
 var repo *UserRepository
 
@@ -310,10 +316,22 @@ func DeleteUser(c *gin.Context) {
 	setupRepo()
 	id := c.Param("id")
 
-	if err := repo.Delete(id); err != nil {
+	// Kiểm tra user tồn tại trước khi xóa
+	_, err := repo.FindByID(id)
+	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusNotFound,
 			Error:     fmt.Errorf("user not found"),
+			TimeStamp: time.Now(),
+		})
+		return
+	}
+
+	// Xóa user
+	if err := repo.Delete(id); err != nil {
+		response.WriteError(c, &response.AppError{
+			Status:    http.StatusInternalServerError,
+			Error:     err,
 			TimeStamp: time.Now(),
 		})
 		return

@@ -4,7 +4,7 @@
     "title": "User API",
     "version": "1.0"
   },
-  "host": "localhost:8080",
+  "host": "localhost:8082",
   "basePath": "/",
   "schemes": [
     "http",
@@ -56,6 +56,163 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "description": "Create a new user",
+        "tags": [
+          "users"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "User data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/:id": {
+      "delete": {
+        "summary": "Delete user",
+        "description": "Delete a user by ID",
+        "tags": [
+          "users"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get user by ID",
+        "description": "Returns a single user by ID",
+        "tags": [
+          "users"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user",
+        "description": "Update an existing user",
+        "tags": [
+          "users"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "User data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/AppResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/AppResponse"
             }
@@ -120,6 +277,20 @@
           "type": "integer"
         },
         "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "UpdateUserRequest": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         }
       }
