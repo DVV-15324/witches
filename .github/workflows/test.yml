@@ -2,74 +2,188 @@ name: Run tests and upload coverage
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Go
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: "1.24"
           cache: true
 
-      - name: Install dependencies
+      # Dependencies
+
+      - name: Download dependencies
         run: go mod download
 
+      - name: Verify dependencies
+        run: go mod verify
+
+      # Clean
+
       - name: Clean old coverage files
-        run: rm -f coverage*.out coverage_all.out
-
-      - name: Set environment variables
         run: |
-          echo "APP_PORT=8080" >> $GITHUB_ENV
-          echo "TEST_EMPTY=dummy_value" >> $GITHUB_ENV
-          echo "TEST_INVALID=dummy_value" >> $GITHUB_ENV
+          rm -f coverage*.out
+          rm -f coverage*.html
+          rm -f coverage_all.out
 
-      - name: Run all tests with coverage (skip easyjson packages)
-        run: |
-          # Chạy test cho từng nhóm, mỗi nhóm ghi ra file riêng
-          go test -race -coverprofile=coverage_response.out -covermode=atomic ./pkg/core/response/... || true
-          go test -race -coverprofile=coverage_utils.out -covermode=atomic ./pkg/core/utils || true
-          go test -race -coverprofile=coverage_templates.out -covermode=atomic ./pkg/core/templates/... || true
-          go test -short -race -coverprofile=coverage_pagination.out -covermode=atomic ./test/handler/pagination || true
-          go test -short -race -coverprofile=coverage_rate_limit.out -covermode=atomic ./test/handler/rate_limit || true
-          go test -short -race -coverprofile=coverage_simple.out -covermode=atomic ./test/handler/simple || true
+      # Install coverage merger
 
-      - name: Merge and clean coverage
+      - name: Install gocovmerge
         run: |
-          echo "mode: atomic" > coverage_all.out
+          go install github.com/wadey/gocovmerge@latest
+
+      # Run tests
+
+      - name: Run response tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_response.out \
+            ./pkg/core/response/...
+
+      - name: Run utils tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_utils.out \
+            ./pkg/core/utils
+
+      - name: Run templates tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_templates.out \
+            ./pkg/core/templates/...
+
+      - name: Run pagination handler tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_pagination.out \
+            ./test/handler/pagination
+
+      - name: Run rate limit handler tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_rate_limit.out \
+            ./test/handler/rate_limit
+
+      - name: Run simple handler tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_simple.out \
+            ./test/handler/simple
+
+      # Merge coverage
+
+      - name: Merge coverage reports
+        run: |
+          echo "Merging coverage reports..."
+
+          files=""
+
           for f in coverage_*.out; do
-            if [ -f "$f" ] && [ -s "$f" ]; then
-              echo "Adding $f ($(wc -l < $f) lines)"
-              tail -n +2 "$f" >> coverage_all.out 2>/dev/null || true
+            if [ -f "$f" ]; then
+              echo "Found: $f"
+              files="$files $f"
             fi
           done
 
-          # Xóa tất cả dòng chứa các từ khóa dư thừa
-          sed -i '/easyjson/d' coverage_all.out
-          sed -i '/dto\/request/d' coverage_all.out
-          sed -i '/request_easyjson/d' coverage_all.out
-          sed -i '/response_easyjson/d' coverage_all.out
-          sed -i '/_easyjson/d' coverage_all.out
-
-          echo "After cleaning: $(wc -l < coverage_all.out) lines"
-          head -3 coverage_all.out
-
-      - name: Validate coverage file
-        run: |
-          if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
-            echo "Error: coverage_all.out is empty or invalid!"
+          if [ -z "$files" ]; then
+            echo "ERROR: No coverage files found."
             exit 1
           fi
-          echo "Coverage file valid with $(wc -l < coverage_all.out) lines"
 
-      - name: Upload to Codecov
+          "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
+
+          echo ""
+          echo "Coverage file generated:"
+          wc -l coverage_all.out
+
+          echo ""
+          echo "First lines:"
+          head -5 coverage_all.out
+
+      # Validate coverage
+
+      - name: Validate coverage
+        run: |
+          if [ ! -s coverage_all.out ]; then
+            echo "ERROR: coverage_all.out is empty."
+            exit 1
+          fi
+
+          if ! grep -q "^mode:" coverage_all.out; then
+            echo "ERROR: Invalid Go coverage profile."
+            exit 1
+          fi
+
+          echo "Coverage profile is valid."
+
+      # Coverage summary
+
+      - name: Coverage summary
+        run: |
+          echo "========================================"
+          echo "          COVERAGE SUMMARY"
+          echo "========================================"
+
+          go tool cover -func=coverage_all.out
+
+          echo ""
+          echo "========================================"
+          echo "              TOTAL"
+          echo "========================================"
+
+          go tool cover -func=coverage_all.out | grep total
+
+      # HTML coverage
+
+      - name: Generate HTML coverage
+        run: |
+          go tool cover \
+            -html=coverage_all.out \
+            -o coverage.html
+
+      # Upload coverage artifact
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage_all.out
+            coverage.html
+
+      # Codecov
+
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
