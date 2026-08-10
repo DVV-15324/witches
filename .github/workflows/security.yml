@@ -1,0 +1,37 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 5 * * *" # Chạy tự động mỗi ngày lúc 5:17 UTC để bắt CVE mới
+  workflow_dispatch: # Cho phép chạy thủ công
+
+permissions:
+  contents: read
+  security-events: write # Cần để upload kết quả lên GitHub Security Tab
+
+jobs:
+  trivy-fs:
+    name: Scan filesystem (dependencies + configs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Quét toàn bộ filesystem: tìm lỗ hổng trong thư viện (Go mod), secret, và cấu hình sai
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # PINNED SHA
+        with:
+          scan-type: fs
+          scanners: vuln,secret,config # Quét cả lỗ hổng, secret và cấu hình
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH,MEDIUM # Chỉ báo cáo các lỗ hổng nghiêm trọng
+
+      - name: Upload results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-filesystem
