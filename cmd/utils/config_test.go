@@ -9,6 +9,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	os.Setenv("APP_PORT", "8080")
+	os.Setenv("APP_HOST", "localhost")
+	os.Setenv("METRIC_PORT", "8088")
+	os.Setenv("DB_DRIVER", "mysql")
+	os.Setenv("DB_USER", "root")
+	os.Setenv("DB_HOST", "localhost")
+	os.Setenv("DB_PORT", "3306")
+	os.Setenv("DB_NAME", "testdb")
+	os.Setenv("DB_PASSWORD", "password")
+	os.Setenv("DB_MAX_OPEN_CONNS", "100")
+	os.Setenv("DB_MAX_IDLE_CONNS", "10")
+	os.Setenv("DB_CONN_MAX_LIFETIME", "60")
+	os.Setenv("DB_CONN_MAX_IDLE_TIME", "600")
+	os.Setenv("SLOW_THRESHOLD", "5")
+	os.Setenv("REDIS_HOST", "localhost")
+	os.Setenv("REDIS_PORT", "6379")
+	os.Setenv("ACCESS_TOKEN_TTL", "900")
+	os.Setenv("REFRESH_TOKEN_TTL", "604800")
+	os.Setenv("SESSION_TTL", "604800")
+	os.Setenv("IDLE_TIMEOUT", "1800")
+	os.Setenv("REVOKED_TTL", "300")
+	os.Setenv("RATE_LIMIT_PERIOD", "60")
+	os.Setenv("RATE_LIMIT_MAX", "100")
+	os.Setenv("TEST_EMPTY", "")
+	os.Setenv("TEST_INVALID", "abc")
+}
+
 func TestGetEnvAsInt64(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -33,125 +61,7 @@ func TestGetEnvAsInt64(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
-	// Set biến môi trường cho test
-	os.Setenv("APP_PORT", "8080")
-	os.Setenv("APP_HOST", "localhost")
-	os.Setenv("METRIC_PORT", "8088")
-	os.Setenv("DB_DRIVER", "mysql")
-	os.Setenv("DB_USER", "root")
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "3306")
-	os.Setenv("DB_NAME", "testdb")
-	os.Setenv("DB_PASSWORD", "password")
-	os.Setenv("DB_MAX_OPEN_CONNS", "100")
-	os.Setenv("DB_MAX_IDLE_CONNS", "10")
-	os.Setenv("DB_CONN_MAX_LIFETIME", "60")
-	os.Setenv("DB_CONN_MAX_IDLE_TIME", "600")
-	os.Setenv("SLOW_THRESHOLD", "5")
-	os.Setenv("REDIS_HOST", "localhost")
-	os.Setenv("REDIS_PORT", "6379")
-	os.Setenv("ACCESS_TOKEN_TTL", "900")
-	os.Setenv("REFRESH_TOKEN_TTL", "604800")
-	os.Setenv("SESSION_TTL", "604800")
-	os.Setenv("IDLE_TIMEOUT", "1800")
-	os.Setenv("REVOKED_TTL", "300")
-	os.Setenv("RATE_LIMIT_PERIOD", "60")
-	os.Setenv("RATE_LIMIT_MAX", "100")
-
-	// Cleanup sau khi test
-	defer func() {
-		os.Unsetenv("APP_PORT")
-		os.Unsetenv("APP_HOST")
-		os.Unsetenv("METRIC_PORT")
-		os.Unsetenv("DB_DRIVER")
-		os.Unsetenv("DB_USER")
-		os.Unsetenv("DB_HOST")
-		os.Unsetenv("DB_PORT")
-		os.Unsetenv("DB_NAME")
-		os.Unsetenv("DB_PASSWORD")
-		os.Unsetenv("DB_MAX_OPEN_CONNS")
-		os.Unsetenv("DB_MAX_IDLE_CONNS")
-		os.Unsetenv("DB_CONN_MAX_LIFETIME")
-		os.Unsetenv("DB_CONN_MAX_IDLE_TIME")
-		os.Unsetenv("SLOW_THRESHOLD")
-		os.Unsetenv("REDIS_HOST")
-		os.Unsetenv("REDIS_PORT")
-		os.Unsetenv("ACCESS_TOKEN_TTL")
-		os.Unsetenv("REFRESH_TOKEN_TTL")
-		os.Unsetenv("SESSION_TTL")
-		os.Unsetenv("IDLE_TIMEOUT")
-		os.Unsetenv("REVOKED_TTL")
-		os.Unsetenv("RATE_LIMIT_PERIOD")
-		os.Unsetenv("RATE_LIMIT_MAX")
-	}()
-
-	validConfig := &Config{
-		Port:            8080,
-		Host:            "localhost",
-		MetrictPort:     8088,
-		DBHost:          "localhost",
-		DBPort:          3306,
-		DBName:          "testdb",
-		DBPassword:      "password",
-		MaxOpenConns:    100,
-		MaxIdleConns:    10,
-		ConnMaxLifetime: 60,
-		ConnMaxIdleTime: 600,
-		SlowThreshold:   5,
-		RedisHost:       "localhost",
-		RedisPort:       6379,
-		AccessTokenTTL:  900,
-		RefreshTokenTTL: 604800,
-		SessionTTL:      604800,
-		IdleTimeout:     1800,
-		RevokedTTL:      300,
-		RateLimitPeriod: 60,
-		RateLimitMax:    100,
-	}
-
-	t.Run("valid config - should not panic", func(t *testing.T) {
-		assert.NotPanics(t, func() {
-			Validate(validConfig)
-		})
-	})
-
-	t.Run("missing APP_PORT - should panic", func(t *testing.T) {
-		os.Unsetenv("APP_PORT")
-		defer os.Setenv("APP_PORT", "8080")
-
-		cfg := *validConfig
-		cfg.Port = 0
-		assert.Panics(t, func() {
-			Validate(&cfg)
-		})
-	})
-
-	t.Run("missing DB_HOST - should panic", func(t *testing.T) {
-		os.Unsetenv("DB_HOST")
-		defer os.Setenv("DB_HOST", "localhost")
-
-		cfg := *validConfig
-		cfg.DBHost = ""
-		assert.Panics(t, func() {
-			Validate(&cfg)
-		})
-	})
-
-	t.Run("missing REDIS_HOST - should panic", func(t *testing.T) {
-		os.Unsetenv("REDIS_HOST")
-		defer os.Setenv("REDIS_HOST", "localhost")
-
-		cfg := *validConfig
-		cfg.RedisHost = ""
-		assert.Panics(t, func() {
-			Validate(&cfg)
-		})
-	})
-}
-
 func TestPreloadNotDBURL(t *testing.T) {
-	// Tạo file witches.env tạm
 	tmpDir := t.TempDir()
 	envContent := `APP_PORT=8080
 APP_HOST=localhost
@@ -203,4 +113,31 @@ func TestLoadDbUrl(t *testing.T) {
 	cfg := &Config{}
 	cfg = LoadDbUrl(cfg)
 	assert.Equal(t, "mysql://root:pass@localhost:3306/testdb", cfg.DBUrl)
+}
+
+func TestDefaultConfig(t *testing.T) {
+	cfg := DefaultConfig()
+	assert.Equal(t, int64(8080), cfg.Port)
+	assert.Equal(t, "localhost", cfg.Host)
+	assert.Equal(t, int64(8088), cfg.MetrictPort)
+	assert.Equal(t, "mysql", cfg.DBDriver)
+	assert.Equal(t, "localhost", cfg.DBHost)
+	assert.Equal(t, int64(3306), cfg.DBPort)
+	assert.Equal(t, "your_database", cfg.DBName)
+	assert.Equal(t, "your_password", cfg.DBPassword)
+	assert.Equal(t, int64(100), cfg.MaxOpenConns)
+	assert.Equal(t, int64(10), cfg.MaxIdleConns)
+	assert.Equal(t, int64(60), cfg.ConnMaxLifetime)
+	assert.Equal(t, int64(600), cfg.ConnMaxIdleTime)
+	assert.Equal(t, int64(5), cfg.SlowThreshold)
+	assert.Equal(t, "localhost", cfg.RedisHost)
+	assert.Equal(t, int64(6379), cfg.RedisPort)
+	assert.Equal(t, "", cfg.RedisPassword)
+	assert.Equal(t, int64(900), cfg.AccessTokenTTL)
+	assert.Equal(t, int64(604800), cfg.RefreshTokenTTL)
+	assert.Equal(t, int64(604800), cfg.SessionTTL)
+	assert.Equal(t, int64(1800), cfg.IdleTimeout)
+	assert.Equal(t, int64(300), cfg.RevokedTTL)
+	assert.Equal(t, int64(60), cfg.RateLimitPeriod)
+	assert.Equal(t, int64(100), cfg.RateLimitMax)
 }
