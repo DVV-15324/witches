@@ -11,6 +11,8 @@
   tiết kiệm tài nguyên.
 </p>
 
+[![codecov](https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg)](https://codecov.io/gh/DVV-15324/witches)
+
 <p>
   <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=for-the-badge&logo=go">
   <img src="https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=for-the-badge">
