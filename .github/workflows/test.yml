@@ -55,7 +55,7 @@ jobs:
             fi
           done
           echo "Total lines in coverage_all.out: $(wc -l < coverage_all.out)"
--
+
       - name: Validate coverage file
         run: |
           if [ ! -s coverage_all.out ] || [ "$(wc -l < coverage_all.out)" -le 1 ]; then
