@@ -16,42 +16,31 @@ jobs:
 
     steps:
       # Checkout
-
       - name: Checkout
         uses: actions/checkout@v4
-
       # Go
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.24"
           cache: true
-
       # Dependencies
-
       - name: Download dependencies
         run: go mod download
 
       - name: Verify dependencies
         run: go mod verify
-
       # Clean
-
       - name: Clean old coverage files
         run: |
           rm -f coverage*.out
           rm -f coverage*.html
           rm -f coverage_all.out
-
       # Install coverage merger
-
       - name: Install gocovmerge
         run: |
           go install github.com/wadey/gocovmerge@latest
-
       # Run tests
-
       - name: Run response tests
         run: |
           go test \
@@ -59,7 +48,6 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_response.out \
             ./pkg/core/response/...
-
       - name: Run utils tests
         run: |
           go test \
@@ -67,7 +55,6 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_utils.out \
             ./pkg/core/utils
-
       - name: Run templates tests
         run: |
           go test \
@@ -75,7 +62,6 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_templates.out \
             ./pkg/core/templates/...
-
       - name: Run pagination handler tests
         run: |
           go test \
@@ -91,7 +77,6 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_rate_limit.out \
             ./test/handler/rate_limit
-
       - name: Run simple handler tests
         run: |
           go test \
@@ -99,13 +84,10 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_simple.out \
             ./test/handler/simple
-
       # Merge coverage
-
       - name: Merge coverage reports
         run: |
           echo "Merging coverage reports..."
-
           files=""
 
           for f in coverage_*.out; do
@@ -131,7 +113,6 @@ jobs:
           head -5 coverage_all.out
 
       # Validate coverage
-
       - name: Validate coverage
         run: |
           if [ ! -s coverage_all.out ]; then
@@ -147,7 +128,6 @@ jobs:
           echo "Coverage profile is valid."
 
       # Coverage summary
-
       - name: Coverage summary
         run: |
           echo "========================================"
@@ -164,7 +144,6 @@ jobs:
           go tool cover -func=coverage_all.out | grep total
 
       # HTML coverage
-
       - name: Generate HTML coverage
         run: |
           go tool cover \
@@ -182,7 +161,6 @@ jobs:
             coverage.html
 
       # Codecov
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
