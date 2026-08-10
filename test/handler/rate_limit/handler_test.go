@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -343,7 +342,5 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		assert.Equal(t, 404, w.Code)
 		t.Log("Delete non-existent user - 404")
 	})
-	srv := &http.Server{Addr: ":8082", Handler: r}
-	go srv.ListenAndServe()
-	defer srv.Shutdown(context.Background())
+
 }
