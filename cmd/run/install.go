@@ -10,6 +10,8 @@ func WitchesInstall(DB_DRIVER string) {
 	tools := []string{
 		"github.com/mailru/easyjson/easyjson@latest",
 		"github.com/golang-migrate/migrate/v4/cmd/migrate@latest",
+		"github.com/mailru/easyjson/jwriter",
+		"github.com/mailru/easyjson/jlexer",
 	}
 	drivers := map[string]string{
 		"mysql":      "github.com/golang-migrate/migrate/v4/database/mysql@latest",
