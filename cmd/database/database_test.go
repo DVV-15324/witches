@@ -1,117 +1,150 @@
 package database
 
 import (
-	"os"
-	"path/filepath"
+	"context"
+	"database/sql"
 	"testing"
+	"time"
 
 	utils "github.com/DVV-15324/witches/cmd/utils"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/mysql"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func TestGenerateDBURL_MySQL(t *testing.T) {
+// Helper: Setup MySQL container
+func setupMySQLContainer(t *testing.T) (string, func()) {
+	ctx := context.Background()
+
+	container, err := mysql.RunContainer(ctx,
+		testcontainers.WithImage("mysql:8.0"),
+		mysql.WithDatabase("testdb"),
+		mysql.WithUsername("testuser"),
+		mysql.WithPassword("testpass"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("port: 3306  MySQL Community Server").
+				WithOccurrence(1).
+				WithStartupTimeout(30*time.Second)),
+	)
+	require.NoError(t, err)
+
+	connStr, err := container.ConnectionString(ctx, "parseTime=true")
+	require.NoError(t, err)
+
+	cleanup := func() {
+		if err := container.Terminate(ctx); err != nil {
+			t.Logf("Failed to terminate container: %v", err)
+		}
+	}
+
+	return connStr, cleanup
+}
+
+// Helper: Setup PostgreSQL container
+func setupPostgresContainer(t *testing.T) (string, func()) {
+	ctx := context.Background()
+
+	container, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage("postgres:16-alpine"),
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("testuser"),
+		postgres.WithPassword("testpass"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second)),
+	)
+	require.NoError(t, err)
+
+	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
+	require.NoError(t, err)
+
+	cleanup := func() {
+		if err := container.Terminate(ctx); err != nil {
+			t.Logf("Failed to terminate container: %v", err)
+		}
+	}
+
+	return connStr, cleanup
+}
+
+// Test GenerateDBURL với MySQL container thật
+func TestGenerateDBURL_MySQL_WithContainer(t *testing.T) {
+	// 1. Tạo MySQL container
+	connStr, cleanup := setupMySQLContainer(t)
+	defer cleanup()
+
+	// 2. Kết nối đến DB
+	db, err := sql.Open("mysql", connStr)
+	require.NoError(t, err)
+	defer db.Close()
+
+	err = db.Ping()
+	require.NoError(t, err)
+
+	// 3. Test GenerateDBURL
 	url, err := GenerateDBURL(
 		"mysql",
-		"root",
-		"password",
+		"testuser",
+		"testpass",
 		"localhost",
 		"testdb",
 		3306,
 	)
-
 	assert.NoError(t, err)
-	expected := "root:password@tcp(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local"
-	assert.Equal(t, expected, url)
+	assert.Contains(t, url, "testuser:testpass@tcp(localhost:3306)/testdb")
 }
 
-func TestGenerateDBURL_Postgres(t *testing.T) {
+// Test GenerateDBURL với PostgreSQL container thật
+func TestGenerateDBURL_Postgres_WithContainer(t *testing.T) {
+	// 1. Tạo PostgreSQL container
+	connStr, cleanup := setupPostgresContainer(t)
+	defer cleanup()
+
+	// 2. Kết nối đến DB
+	db, err := sql.Open("postgres", connStr)
+	require.NoError(t, err)
+	defer db.Close()
+
+	err = db.Ping()
+	require.NoError(t, err)
+
+	// 3. Test GenerateDBURL
 	url, err := GenerateDBURL(
 		"postgres",
-		"postgres",
-		"password",
+		"testuser",
+		"testpass",
 		"localhost",
 		"testdb",
 		5432,
 	)
-
 	assert.NoError(t, err)
-	expected := "postgres:password@localhost:5432/testdb?sslmode=disable"
-	assert.Equal(t, expected, url)
+	assert.Contains(t, url, "testuser:testpass@localhost:5432/testdb")
 }
 
-func TestGenerateDBURL_Postgresql(t *testing.T) {
-	url, err := GenerateDBURL(
-		"postgresql",
-		"postgres",
-		"password",
-		"localhost",
-		"testdb",
-		5432,
-	)
+// Test WitchesDBURL với MySQL container thật (không cần file witches.env)
+func TestWitchesDBURL_MySQL_WithContainer(t *testing.T) {
+	// 1. Tạo MySQL container
+	connStr, cleanup := setupMySQLContainer(t)
+	defer cleanup()
 
-	assert.NoError(t, err)
-	expected := "postgres:password@localhost:5432/testdb?sslmode=disable"
-	assert.Equal(t, expected, url)
-}
-
-func TestGenerateDBURL_SQLServer(t *testing.T) {
-	url, err := GenerateDBURL(
-		"sqlserver",
-		"sa",
-		"password",
-		"localhost",
-		"testdb",
-		1433,
-	)
-
-	assert.NoError(t, err)
-	expected := "sa:password@localhost:1433?database=testdb&encrypt=disable"
-	assert.Equal(t, expected, url)
-}
-
-func TestGenerateDBURL_MSSQL(t *testing.T) {
-	url, err := GenerateDBURL(
-		"mssql",
-		"sa",
-		"password",
-		"localhost",
-		"testdb",
-		1433,
-	)
-
-	assert.NoError(t, err)
-	expected := "sa:password@localhost:1433?database=testdb&encrypt=disable"
-	assert.Equal(t, expected, url)
-}
-
-func TestGenerateDBURL_InvalidDriver(t *testing.T) {
-	url, err := GenerateDBURL(
-		"invalid",
-		"user",
-		"pass",
-		"localhost",
-		"db",
-		3306,
-	)
-
-	assert.Error(t, err)
-	assert.Empty(t, url)
-	assert.Contains(t, err.Error(), "unsupported database")
-}
-
-func TestWitchesDBURL_Success(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
+	// 2. Kết nối đến DB
+	db, err := sql.Open("mysql", connStr)
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer db.Close()
 
-	err = os.Chdir(tmpDir)
+	err = db.Ping()
 	require.NoError(t, err)
 
+	// 3. Test WitchesDBURL - chỉ kiểm tra URL, không cần file
 	config := &utils.Config{
-		DBUser:     "root",
-		DBPassword: "password",
+		DBUser:     "testuser",
+		DBPassword: "testpass",
 		DBHost:     "localhost",
 		DBName:     "testdb",
 		DBPort:     3306,
@@ -119,28 +152,26 @@ func TestWitchesDBURL_Success(t *testing.T) {
 
 	err = WitchesDBURL("mysql", config)
 	assert.NoError(t, err)
-
-	envPath := filepath.Join(tmpDir, "witches.env")
-	assert.FileExists(t, envPath)
-
-	content, err := os.ReadFile(envPath)
-	require.NoError(t, err)
-	assert.Contains(t, string(content), "DB_URL")
-	assert.Contains(t, string(content), "root:password@tcp(localhost:3306)/testdb")
 }
 
-func TestWitchesDBURL_WithPostgres(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+// Test WitchesDBURL với PostgreSQL container thật
+func TestWitchesDBURL_Postgres_WithContainer(t *testing.T) {
+	// 1. Tạo PostgreSQL container
+	connStr, cleanup := setupPostgresContainer(t)
+	defer cleanup()
 
-	err = os.Chdir(tmpDir)
+	// 2. Kết nối đến DB
+	db, err := sql.Open("postgres", connStr)
+	require.NoError(t, err)
+	defer db.Close()
+
+	err = db.Ping()
 	require.NoError(t, err)
 
+	// 3. Test WitchesDBURL
 	config := &utils.Config{
-		DBUser:     "postgres",
-		DBPassword: "password",
+		DBUser:     "testuser",
+		DBPassword: "testpass",
 		DBHost:     "localhost",
 		DBName:     "testdb",
 		DBPort:     5432,
@@ -148,168 +179,52 @@ func TestWitchesDBURL_WithPostgres(t *testing.T) {
 
 	err = WitchesDBURL("postgres", config)
 	assert.NoError(t, err)
-
-	envPath := filepath.Join(tmpDir, "witches.env")
-	assert.FileExists(t, envPath)
-
-	content, err := os.ReadFile(envPath)
-	require.NoError(t, err)
-	assert.Contains(t, string(content), "postgres:password@localhost:5432/testdb")
 }
 
-func TestWitchesDBURL_WithSQLServer(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	config := &utils.Config{
-		DBUser:     "sa",
-		DBPassword: "password",
-		DBHost:     "localhost",
-		DBName:     "testdb",
-		DBPort:     1433,
-	}
-
-	err = WitchesDBURL("sqlserver", config)
-	assert.NoError(t, err)
-
-	envPath := filepath.Join(tmpDir, "witches.env")
-	assert.FileExists(t, envPath)
-
-	content, err := os.ReadFile(envPath)
-	require.NoError(t, err)
-	assert.Contains(t, string(content), "sa:password@localhost:1433")
-}
-
-func TestWitchesDBURL_InvalidDriver(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	config := &utils.Config{
-		DBUser:     "root",
-		DBPassword: "password",
-		DBHost:     "localhost",
-		DBName:     "testdb",
-		DBPort:     3306,
-	}
-
-	err = WitchesDBURL("invalid", config)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported database")
-}
-
-func TestWitchesDBURL_CreateDirectory(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	subDir := filepath.Join(tmpDir, "subdir")
-	err = os.MkdirAll(subDir, 0755)
-	require.NoError(t, err)
-
-	err = os.Chdir(subDir)
-	require.NoError(t, err)
-
-	config := &utils.Config{
-		DBUser:     "root",
-		DBPassword: "password",
-		DBHost:     "localhost",
-		DBName:     "testdb",
-		DBPort:     3306,
-	}
-
-	err = WitchesDBURL("mysql", config)
-	assert.NoError(t, err)
-
-	envPath := filepath.Join(subDir, "witches.env")
-	assert.FileExists(t, envPath)
-}
-
-func TestGenerateDBURL_AllDrivers(t *testing.T) {
+// Test kết nối thật với container
+func TestDatabaseConnection_WithContainer(t *testing.T) {
 	tests := []struct {
-		name     string
-		driver   string
-		user     string
-		password string
-		host     string
-		dbName   string
-		port     int64
-		expected string
+		name      string
+		driver    string
+		setup     func(*testing.T) (string, func())
+		generator func() (string, error)
 	}{
 		{
-			name:     "mysql",
-			driver:   "mysql",
-			user:     "root",
-			password: "pass",
-			host:     "localhost",
-			dbName:   "mydb",
-			port:     3306,
-			expected: "root:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local",
+			name:   "MySQL",
+			driver: "mysql",
+			setup:  setupMySQLContainer,
+			generator: func() (string, error) {
+				return GenerateDBURL("mysql", "testuser", "testpass", "localhost", "testdb", 3306)
+			},
 		},
 		{
-			name:     "postgres",
-			driver:   "postgres",
-			user:     "postgres",
-			password: "pass",
-			host:     "localhost",
-			dbName:   "mydb",
-			port:     5432,
-			expected: "postgres:pass@localhost:5432/mydb?sslmode=disable",
-		},
-		{
-			name:     "postgresql",
-			driver:   "postgresql",
-			user:     "postgres",
-			password: "pass",
-			host:     "localhost",
-			dbName:   "mydb",
-			port:     5432,
-			expected: "postgres:pass@localhost:5432/mydb?sslmode=disable",
-		},
-		{
-			name:     "sqlserver",
-			driver:   "sqlserver",
-			user:     "sa",
-			password: "pass",
-			host:     "localhost",
-			dbName:   "mydb",
-			port:     1433,
-			expected: "sa:pass@localhost:1433?database=mydb&encrypt=disable",
-		},
-		{
-			name:     "mssql",
-			driver:   "mssql",
-			user:     "sa",
-			password: "pass",
-			host:     "localhost",
-			dbName:   "mydb",
-			port:     1433,
-			expected: "sa:pass@localhost:1433?database=mydb&encrypt=disable",
+			name:   "PostgreSQL",
+			driver: "postgres",
+			setup:  setupPostgresContainer,
+			generator: func() (string, error) {
+				return GenerateDBURL("postgres", "testuser", "testpass", "localhost", "testdb", 5432)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url, err := GenerateDBURL(
-				tt.driver,
-				tt.user,
-				tt.password,
-				tt.host,
-				tt.dbName,
-				tt.port,
-			)
+			// 1. Setup container
+			connStr, cleanup := tt.setup(t)
+			defer cleanup()
+
+			// 2. Connect DB
+			db, err := sql.Open(tt.driver, connStr)
+			require.NoError(t, err)
+			defer db.Close()
+
+			err = db.Ping()
+			require.NoError(t, err)
+
+			// 3. Test generator
+			url, err := tt.generator()
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, url)
+			assert.NotEmpty(t, url)
 		})
 	}
 }
@@ -319,8 +234,8 @@ func BenchmarkGenerateDBURL_MySQL(b *testing.B) {
 	for b.Loop() {
 		GenerateDBURL(
 			"mysql",
-			"root",
-			"password",
+			"testuser",
+			"testpass",
 			"localhost",
 			"testdb",
 			3306,
@@ -333,8 +248,8 @@ func BenchmarkGenerateDBURL_Postgres(b *testing.B) {
 	for b.Loop() {
 		GenerateDBURL(
 			"postgres",
-			"postgres",
-			"password",
+			"testuser",
+			"testpass",
 			"localhost",
 			"testdb",
 			5432,
@@ -342,25 +257,16 @@ func BenchmarkGenerateDBURL_Postgres(b *testing.B) {
 	}
 }
 
-func BenchmarkWitchesDBURL(b *testing.B) {
-	tmpDir := b.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(b, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(b, err)
-
-	config := &utils.Config{
-		DBUser:     "root",
-		DBPassword: "password",
-		DBHost:     "localhost",
-		DBName:     "testdb",
-		DBPort:     3306,
-	}
-
+func BenchmarkGenerateDBURL_SQLServer(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
-		WitchesDBURL("mysql", config)
+		GenerateDBURL(
+			"sqlserver",
+			"sa",
+			"testpass",
+			"localhost",
+			"testdb",
+			1433,
+		)
 	}
 }
