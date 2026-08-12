@@ -31,6 +31,10 @@ func GetFrameworkPath() string {
 }
 
 func GetMigrationsURL() string {
+	// Cho phép override bằng biến môi trường
+	if customPath := os.Getenv("WITCHES_MIGRATIONS_PATH"); customPath != "" {
+		return filepath.ToSlash(customPath)
+	}
 	pwd, _ := os.Getwd()
 	path := filepath.ToSlash(filepath.Join(pwd, "migrate", "migrations"))
 	return path
