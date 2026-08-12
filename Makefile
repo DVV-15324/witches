@@ -73,7 +73,7 @@ test-cmd-utils:
 	go tool cover -func=coverage_cmdutils.out | findstr total
 
 test-cmd:
-	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/root_test.go
+	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/...
 	go tool cover -html=coverage_cmd.out -o coverage_cmd.html
 	go tool cover -func=coverage_cmd.out | findstr total
 
@@ -104,7 +104,7 @@ test: clean
 	go test -race -covermode=atomic -coverprofile=coverage_response.out ./pkg/core/response/...
 	go test -race -covermode=atomic -coverprofile=coverage_utils.out ./pkg/core/utils
 	go test -race -covermode=atomic -coverprofile=coverage_templates.out ./pkg/core/templates/...
-	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/root.go
+	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/...
 	go test -race -covermode=atomic -coverprofile=coverage_cmdutils.out ./cmd/utils
 	go test -race -covermode=atomic -coverprofile=coverage_cmd_database.out ./cmd/database
 	go test -race -covermode=atomic -coverprofile=coverage_integration.out -tags=integration ./pkg/core/utils
