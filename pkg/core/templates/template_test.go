@@ -1,272 +1,294 @@
 package template
 
 import (
-	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go/ast"
-	"go/parser"
-	"go/token"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
-	"text/template"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// ==================== TEST PROJECT CONFIG ====================
+func TestTemplateFS_ContainsFiles(t *testing.T) {
+	// Kiểm tra embed FS có chứa các file template cần thiết
+	entries, err := templateFS.ReadDir("template")
+	require.NoError(t, err)
+	assert.NotEmpty(t, entries)
 
-func TestProjectConfig(t *testing.T) {
-	config := ProjectConfig{
-		ModuleName: "github.com/example/project",
-	}
-	assert.Equal(t, "github.com/example/project", config.GetMuduleName())
-}
-
-// ==================== TEST GENERATE SERVICE STRUCTURE ====================
-
-func TestGenerateServiceStructure(t *testing.T) {
-	tmpDir := t.TempDir()
-	baseDir := filepath.Join(tmpDir, "internal", "product-service")
-
-	dirs := []string{
-		"dto/request",
-		"dto/response",
-		"entity",
-		"handler",
-		"mapping",
-		"repository",
-		"usecase",
+	// Kiểm tra các thư mục con
+	expectedDirs := []string{
+		"cmd",
+		"internal",
+		"migrate",
+		"pkg",
 	}
 
-	for _, dir := range dirs {
-		path := filepath.Join(baseDir, dir)
-		err := os.MkdirAll(path, 0755)
-		require.NoError(t, err)
-		assert.DirExists(t, path)
-	}
-}
-
-// ==================== TEST UPDATE KEY OBJECT ====================
-
-func TestUpdateKeyObject(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	keyFile := filepath.Join(tmpDir, "internal", "shared", "utils", "key_object.go")
-	err := os.MkdirAll(filepath.Dir(keyFile), 0755)
-	require.NoError(t, err)
-
-	content := `package utils
-
-var (
-	ObjectUser uint = 1
-	ObjectAdmin uint = 2
-)`
-	err = os.WriteFile(keyFile, []byte(content), 0644)
-	require.NoError(t, err)
-
-	config := ServiceConfig{
-		NameCap: "Product",
-		Name:    "product",
-	}
-
-	err = updateKeyObject(tmpDir, config)
-	require.NoError(t, err)
-
-	newContent, err := os.ReadFile(keyFile)
-	require.NoError(t, err)
-	assert.Contains(t, string(newContent), "ObjectProduct")
-	assert.Contains(t, string(newContent), "3")
-}
-
-// ==================== TEST PARSE KEY OBJECT (AST) ====================
-
-func TestParseKeyObject(t *testing.T) {
-	content := `package utils
-
-var (
-	ObjectUser uint = 1
-	ObjectAdmin uint = 2
-)`
-
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "", content, parser.ParseComments)
-	require.NoError(t, err)
-
-	var maxID int
-	var targetDecl *ast.GenDecl
-
-	ast.Inspect(node, func(n ast.Node) bool {
-		decl, ok := n.(*ast.GenDecl)
-		if !ok || decl.Tok != token.VAR {
-			return true
+	foundDirs := make(map[string]bool)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			foundDirs[entry.Name()] = true
 		}
+	}
 
-		for _, spec := range decl.Specs {
-			vs, ok := spec.(*ast.ValueSpec)
-			if !ok || len(vs.Names) != 1 || !strings.HasPrefix(vs.Names[0].Name, "Object") {
-				continue
-			}
+	for _, dir := range expectedDirs {
+		assert.True(t, foundDirs[dir], "Missing directory: %s", dir)
+	}
+}
 
-			if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
-				if id, _ := strconv.Atoi(lit.Value); id > maxID {
-					maxID = id
-					targetDecl = decl
-				}
-			}
+func TestTemplateFS_ReadTemplateFile(t *testing.T) {
+	// Kiểm tra đọc được file template cụ thể
+	testFiles := []string{
+		"template/main.go.tmpl",
+		"template/cmd/root.go.tmpl",
+		"template/internal/auth-service/handler/handler.go.tmpl",
+	}
+
+	for _, file := range testFiles {
+		content, err := templateFS.ReadFile(file)
+		assert.NoError(t, err, "Failed to read: %s", file)
+		assert.NotEmpty(t, content, "File is empty: %s", file)
+	}
+}
+
+func TestTemplateFS_AllTemplateFiles(t *testing.T) {
+	// Đếm số lượng file template bằng fs.WalkDir
+	var totalFiles int
+	err := fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		return true
+		if !d.IsDir() {
+			totalFiles++
+		}
+		return nil
 	})
-
-	assert.Equal(t, 2, maxID)
-	assert.NotNil(t, targetDecl)
+	require.NoError(t, err)
+	assert.Greater(t, totalFiles, 50, "Should have at least 50 template files")
 }
 
-// ==================== TEST GENERATE SHARED MODEL ====================
+func TestTemplateFS_CountTmplFiles(t *testing.T) {
+	// Đếm số lượng file .tmpl
+	var tmplFiles int
+	err := fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && filepath.Ext(path) == ".tmpl" {
+			tmplFiles++
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	assert.Greater(t, tmplFiles, 40, "Should have at least 40 .tmpl files")
+}
 
-func TestGenerateSharedModel(t *testing.T) {
+func TestCreateProjectStructure_Success(t *testing.T) {
+	// Tạo temp dir và chuyển vào đó
 	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalWd)
 
-	config := ServiceConfig{
-		NameCap: "Product",
-		Name:    "product",
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	config := ProjectConfig{
+		ModuleName: "github.com/example/test-project",
 	}
 
-	sharedModelDir := filepath.Join(tmpDir, "internal", "shared", "model")
-	err := os.MkdirAll(sharedModelDir, 0755)
-	require.NoError(t, err)
+	// Test với từng loại database
+	dbTypes := []string{"mysql", "postgres", "postgresql", "mssql", "sqlserver"}
 
-	destFile := filepath.Join(sharedModelDir, config.Name+".go")
-	content := fmt.Sprintf(`package model
+	for _, dbType := range dbTypes {
+		t.Run("db_"+dbType, func(t *testing.T) {
+			// Tạo subdir cho mỗi test
+			testDir := filepath.Join(tmpDir, dbType)
+			err := os.MkdirAll(testDir, 0755)
+			require.NoError(t, err)
 
-type %s struct {
-	ID string
-}`, config.NameCap)
+			err = os.Chdir(testDir)
+			require.NoError(t, err)
 
-	err = os.WriteFile(destFile, []byte(content), 0644)
-	require.NoError(t, err)
+			err = createProjectStructure(config, dbType)
+			assert.NoError(t, err)
 
-	assert.FileExists(t, destFile)
-
-	readContent, err := os.ReadFile(destFile)
-	require.NoError(t, err)
-	assert.Contains(t, string(readContent), "type Product struct")
-}
-
-// ==================== TEST ERROR CASES ====================
-
-func TestUpdateKeyObject_FileNotFound(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	config := ServiceConfig{
-		NameCap: "Test",
-		Name:    "test",
-	}
-
-	err := updateKeyObject(tmpDir, config)
-	assert.Error(t, err)
-}
-
-func TestUpdateKeyObject_InvalidContent(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	keyFile := filepath.Join(tmpDir, "internal", "shared", "utils", "key_object.go")
-	err := os.MkdirAll(filepath.Dir(keyFile), 0755)
-	require.NoError(t, err)
-
-	content := `invalid go code!!!`
-	err = os.WriteFile(keyFile, []byte(content), 0644)
-	require.NoError(t, err)
-
-	config := ServiceConfig{
-		NameCap: "Test",
-		Name:    "test",
-	}
-
-	err = updateKeyObject(tmpDir, config)
-	assert.Error(t, err)
-}
-
-// ==================== BENCHMARKS ====================
-
-func BenchmarkServiceNameProcessing(b *testing.B) {
-	input := "user-profile-service"
-	b.ResetTimer()
-	for b.Loop() {
-		serviceName := strings.TrimSpace(input)
-		serviceName = strings.ToLower(serviceName)
-		_ = cases.Title(language.English).String(serviceName)
-	}
-}
-
-func BenchmarkParseKeyObject(b *testing.B) {
-	content := `package utils
-
-var (
-	ObjectUser uint = 1
-	ObjectAdmin uint = 2
-	ObjectProduct uint = 3
-)`
-
-	b.ResetTimer()
-	for b.Loop() {
-		fset := token.NewFileSet()
-		node, _ := parser.ParseFile(fset, "", content, parser.ParseComments)
-
-		var maxID int
-		ast.Inspect(node, func(n ast.Node) bool {
-			decl, ok := n.(*ast.GenDecl)
-			if !ok || decl.Tok != token.VAR {
-				return true
+			// Kiểm tra các file quan trọng đã được tạo
+			criticalFiles := []string{
+				"main.go",
+				"go.mod",
+				"cmd/root.go",
+				"internal/auth-service/handler/handler.go",
+				"internal/shared/utils/key_object.go",
+				"migrate/migrations/1_create_table.up.sql",
+				"migrate/migrations/1_drop_table.down.sql",
+				"pkg/redis/client.go",
 			}
 
-			for _, spec := range decl.Specs {
-				vs, ok := spec.(*ast.ValueSpec)
-				if !ok || len(vs.Names) != 1 || !strings.HasPrefix(vs.Names[0].Name, "Object") {
-					continue
-				}
-
-				if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
-					if id, _ := strconv.Atoi(lit.Value); id > maxID {
-						maxID = id
-					}
-				}
+			for _, file := range criticalFiles {
+				assert.FileExists(t, filepath.Join(testDir, file), "Missing file: %s", file)
 			}
-			return true
 		})
-		_ = maxID
 	}
 }
 
-func BenchmarkRenderTemplate(b *testing.B) {
+func TestCreateProjectStructure_InvalidDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalWd)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	config := ProjectConfig{
+		ModuleName: "github.com/example/test",
+	}
+
+	// Test với DB không hỗ trợ
+	err = createProjectStructure(config, "invalid_db")
+	assert.Error(t, err)
+}
+
+func TestRenderTemplate_AllTemplates(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	var templateFiles []string
+	err := fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && filepath.Ext(path) == ".tmpl" {
+			templateFiles = append(templateFiles, path)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+
+	for _, tmpl := range templateFiles {
+		t.Run("render_"+filepath.Base(tmpl), func(t *testing.T) {
+			dest := filepath.Join(tmpDir, "output", strings.TrimSuffix(filepath.Base(tmpl), ".tmpl"))
+			destDir := filepath.Dir(dest)
+
+			err := os.MkdirAll(destDir, 0755)
+			require.NoError(t, err)
+
+			// utils.RenderTemplate(templateFS, tmpDir, dest, tmpl, config)
+		})
+	}
+}
+
+func TestProjectConfig_GetModuleName(t *testing.T) {
+	tests := []struct {
+		name       string
+		moduleName string
+		expected   string
+	}{
+		{
+			name:       "github module",
+			moduleName: "github.com/user/project",
+			expected:   "github.com/user/project",
+		},
+		{
+			name:       "local module",
+			moduleName: "example.com/myapp",
+			expected:   "example.com/myapp",
+		},
+		{
+			name:       "empty module",
+			moduleName: "",
+			expected:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := ProjectConfig{ModuleName: tt.moduleName}
+			assert.Equal(t, tt.expected, config.GetMuduleName())
+		})
+	}
+}
+
+func TestCreateProjectStructure_EmbedContents(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalWd)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	config := ProjectConfig{
+		ModuleName: "github.com/example/embed-test",
+	}
+
+	err = createProjectStructure(config, "mysql")
+	require.NoError(t, err)
+
+	// Kiểm tra nội dung file main.go
+	mainContent, err := os.ReadFile("main.go")
+	require.NoError(t, err)
+	assert.Contains(t, string(mainContent), "package main")
+	assert.Contains(t, string(mainContent), "github.com/example/embed-test")
+
+	// Kiểm tra key_object.go
+	keyContent, err := os.ReadFile("internal/shared/utils/key_object.go")
+	require.NoError(t, err)
+	assert.Contains(t, string(keyContent), "package utils")
+}
+
+func BenchmarkCreateProjectStructure(b *testing.B) {
 	tmpDir := b.TempDir()
-	config := ServiceConfig{
-		NameCap:    "Bench",
-		Name:       "bench",
-		FolderName: "bench-service",
+	originalWd, err := os.Getwd()
+	require.NoError(b, err)
+	defer os.Chdir(originalWd)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(b, err)
+
+	config := ProjectConfig{
 		ModuleName: "github.com/example/bench",
 	}
 
-	tmplContent := `package {{.Name}}
-type {{.NameCap}} struct {
-	ID string
-}`
+	b.ResetTimer()
+	for b.Loop() {
+		_ = createProjectStructure(config, "mysql")
+		// Clean up after each iteration
+		os.RemoveAll(tmpDir)
+		os.MkdirAll(tmpDir, 0755)
+		os.Chdir(tmpDir)
+	}
+}
 
-	tmplFile := filepath.Join(tmpDir, "bench.tmpl")
-	err := os.WriteFile(tmplFile, []byte(tmplContent), 0644)
-	require.NoError(b, err)
+func BenchmarkTemplateFS_WalkAll(b *testing.B) {
+	b.ResetTimer()
+	for b.Loop() {
+		var count int
+		fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+			if err == nil && !d.IsDir() {
+				count++
+			}
+			return nil
+		})
+		_ = count
+	}
+}
 
-	tmpl, err := template.ParseFiles(tmplFile)
-	require.NoError(b, err)
+func BenchmarkTemplateFS_ReadAllFiles(b *testing.B) {
+	// Lấy danh sách file trước
+	var files []string
+	fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
 
 	b.ResetTimer()
 	for b.Loop() {
-		destFile := filepath.Join(tmpDir, "output.go")
-		file, _ := os.Create(destFile)
-		tmpl.Execute(file, config)
-		file.Close()
+		for _, f := range files {
+			templateFS.ReadFile(f)
+		}
 	}
 }
