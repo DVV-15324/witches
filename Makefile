@@ -75,7 +75,7 @@ test-cmd-utils:
 	go tool cover -func=coverage_cmdutils.out | findstr total
 
 test-cmd:
-	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/add ./cmd/create ./cmd/init ./cmd/database ./cmd/migrate ./cmd/utils
+	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/run ./cmd/database ./cmd/migrate ./cmd/utils
 	go tool cover -html=coverage_cmd.out -o coverage_cmd.html
 	go tool cover -func=coverage_cmd.out | findstr total
 
