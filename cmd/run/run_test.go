@@ -212,6 +212,7 @@ func TestFindProjectRoot_Success(t *testing.T) {
 	assert.Equal(t, tmpDir, root)
 }
 
+// cmd/run/run_test.go
 func TestFindProjectRoot_NoGoMod(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -223,8 +224,10 @@ func TestFindProjectRoot_NoGoMod(t *testing.T) {
 	require.NoError(t, err)
 
 	root := findProjectRoot()
-	assert.NotEqual(t, tmpDir, root, "Should NOT return tmpDir when go.mod not found")
-	assert.NotEmpty(t, root, "Should return some path")
+
+	// Logic mới: khi không tìm thấy go.mod, hàm trả về empty string
+	// Nên test sẽ check empty thay vì check not empty
+	assert.Empty(t, root, "Should return empty when go.mod not found")
 }
 
 // ==================== Test WitchesRun ====================
