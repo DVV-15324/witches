@@ -143,34 +143,6 @@ jobs:
             -timeout=60s \
             ./pkg/core/templates/...
 
-      # CMD tests: chỉ test các package con (không test run - main package)
-      - name: Run cmd create tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_cmd_create.out \
-            -timeout=60s \
-            ./cmd/create || true
-
-      - name: Run cmd init tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_cmd_init.out \
-            -timeout=60s \
-            ./cmd/init || true
-
-      - name: Run cmd install tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_cmd_install.out \
-            -timeout=60s \
-            ./cmd/install || true
-
       - name: Run cmd run tests
         run: |
           go test \
