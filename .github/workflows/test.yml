@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,29 +16,61 @@ jobs:
       # Checkout
       - name: Checkout
         uses: actions/checkout@v4
+
       # Go
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: "1.23"
           cache: true
+
       # Dependencies
       - name: Download dependencies
         run: go mod download
 
       - name: Verify dependencies
         run: go mod verify
+
       # Clean
       - name: Clean old coverage files
         run: |
           rm -f coverage*.out
           rm -f coverage*.html
           rm -f coverage_all.out
+
       # Install coverage merger
       - name: Install gocovmerge
         run: |
           go install github.com/wadey/gocovmerge@latest
-      # Run tests
+
+      # ============================================================
+      # Run tests (theo Makefile)
+      # ============================================================
+
+      - name: Run DB connect tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_db_connect.out \
+            ./pkg/core/database/connect/sql/...
+
+      - name: Run handler core tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_handler_core.out \
+            ./pkg/core/handler/...
+
+      - name: Run handler tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_handler.out \
+            ./test/handler/...
+
       - name: Run response tests
         run: |
           go test \
@@ -46,6 +78,15 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_response.out \
             ./pkg/core/response/...
+
+      - name: Run logger tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_logger.out \
+            ./pkg/core/response/logger
+
       - name: Run utils tests
         run: |
           go test \
@@ -53,6 +94,15 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_utils.out \
             ./pkg/core/utils
+
+      - name: Run easyjson tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_easyjson.out \
+            ./pkg/core/easyjson
+
       - name: Run templates tests
         run: |
           go test \
@@ -60,29 +110,44 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_templates.out \
             ./pkg/core/templates/...
-      - name: Run pagination handler tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_pagination.out \
-            ./test/handler/pagination
 
-      - name: Run rate limit handler tests
+      - name: Run cmd tests
         run: |
           go test \
             -race \
             -covermode=atomic \
-            -coverprofile=coverage_rate_limit.out \
-            ./test/handler/rate_limit
-      - name: Run simple handler tests
+            -coverprofile=coverage_cmd.out \
+            ./cmd/root.go
+
+      - name: Run cmd utils tests
         run: |
           go test \
             -race \
             -covermode=atomic \
-            -coverprofile=coverage_simple.out \
-            ./test/handler/simple
+            -coverprofile=coverage_cmdutils.out \
+            ./cmd/utils
+
+      - name: Run cmd database tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_cmd_database.out \
+            ./cmd/database
+
+      - name: Run integration tests
+        run: |
+          go test \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage_integration.out \
+            -tags=integration \
+            ./pkg/core/utils
+
+      # ============================================================
       # Merge coverage
+      # ============================================================
+
       - name: Merge coverage reports
         run: |
           echo "Merging coverage reports..."
@@ -110,7 +175,10 @@ jobs:
           echo "First lines:"
           head -5 coverage_all.out
 
+      # ============================================================
       # Validate coverage
+      # ============================================================
+
       - name: Validate coverage
         run: |
           if [ ! -s coverage_all.out ]; then
@@ -125,7 +193,10 @@ jobs:
 
           echo "Coverage profile is valid."
 
+      # ============================================================
       # Coverage summary
+      # ============================================================
+
       - name: Coverage summary
         run: |
           echo "========================================"
@@ -141,14 +212,19 @@ jobs:
 
           go tool cover -func=coverage_all.out | grep total
 
+      # ============================================================
       # HTML coverage
+      # ============================================================
+
       - name: Generate HTML coverage
         run: |
           go tool cover \
             -html=coverage_all.out \
             -o coverage.html
 
-      # Upload coverage artifact
+      # ============================================================
+      # Upload artifacts
+      # ============================================================
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -158,7 +234,6 @@ jobs:
             coverage_all.out
             coverage.html
 
-      # Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
