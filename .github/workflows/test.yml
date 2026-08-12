@@ -12,22 +12,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # Thêm timeout để tránh treo
     timeout-minutes: 15
 
     steps:
-      # Checkout
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Go
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.25.12"
           cache: true
 
-      # Cache Docker images cho Testcontainers
       - name: Cache Docker images
         uses: actions/cache@v4
         with:
@@ -36,39 +32,34 @@ jobs:
           restore-keys: |
             docker-${{ runner.os }}-
 
-      # Dependencies
       - name: Download dependencies
         run: go mod download
 
       - name: Verify dependencies
         run: go mod verify
 
-      # Clean
       - name: Clean old coverage files
         run: |
           rm -f coverage*.out
           rm -f coverage*.html
           rm -f coverage_all.out
 
-      # Install migrate CLI với postgres driver (cho test)
       - name: Install migrate CLI
         run: |
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           migrate -version
 
-      # Install easyjson (cho test)
       - name: Install easyjson
         run: |
           go install github.com/mailru/easyjson/easyjson@latest
           easyjson -version || true
 
-      # Install coverage merger
       - name: Install gocovmerge
         run: |
           go install github.com/wadey/gocovmerge@latest
 
       # ============================================================
-      # Run tests
+      # Run tests (theo Makefile)
       # ============================================================
 
       - name: Run DB connect tests
@@ -143,6 +134,7 @@ jobs:
             -timeout=60s \
             ./pkg/core/templates/...
 
+      # 👇 CMD tests: test riêng từng package
       - name: Run cmd run tests
         run: |
           go test \
@@ -210,7 +202,7 @@ jobs:
           done
 
           if [ -z "$files" ]; then
-            echo " ERROR: No coverage files found."
+            echo "ERROR: No coverage files found."
             echo "Listing files:"
             ls -la coverage*.out || echo "No coverage files"
             exit 1
@@ -235,12 +227,12 @@ jobs:
       - name: Validate coverage
         run: |
           if [ ! -s coverage_all.out ]; then
-            echo " ERROR: coverage_all.out is empty."
+            echo "ERROR: coverage_all.out is empty."
             exit 1
           fi
 
           if ! grep -q "^mode:" coverage_all.out; then
-            echo " ERROR: Invalid Go coverage profile."
+            echo "ERROR: Invalid Go coverage profile."
             exit 1
           fi
 
