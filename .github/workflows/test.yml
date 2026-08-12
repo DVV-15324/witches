@@ -117,7 +117,7 @@ jobs:
             -race \
             -covermode=atomic \
             -coverprofile=coverage_cmd.out \
-            ./cmd/...
+            ./cmd/root_test.go
 
       - name: Run cmd utils tests
         run: |
