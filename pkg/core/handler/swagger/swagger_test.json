@@ -1,0 +1,25 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Ping",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {}
+      }
+    }
+  },
+  "definitions": {}
+}

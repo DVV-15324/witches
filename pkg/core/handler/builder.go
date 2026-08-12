@@ -43,22 +43,34 @@ func (b *RouteBuilder) RateLimit(rate limiter.Rate) *RouteBuilder {
 	return b
 }
 
-func (b *RouteBuilder) Summary(s string) *RouteBuilder {
-	b.op.Summary = s
-	return b
-}
-
 func (b *RouteBuilder) Use(middlewares ...gin.HandlerFunc) *RouteBuilder {
 	b.middlewares = append(b.middlewares, middlewares...)
 	return b
 }
 
+func (b *RouteBuilder) Summary(s string) *RouteBuilder {
+	if b == nil {
+		fmt.Printf("Warning: RouteBuilder is nil\n")
+		return b
+	}
+	b.op.Summary = s
+	return b
+}
+
 func (b *RouteBuilder) Description(d string) *RouteBuilder {
+	if b == nil {
+		fmt.Printf("Warning: RouteBuilder is nil\n")
+		return b
+	}
 	b.op.Description = d
 	return b
 }
 
 func (b *RouteBuilder) Tags(tags ...string) *RouteBuilder {
+	if b == nil {
+		fmt.Printf("Warning: RouteBuilder is nil\n")
+		return b
+	}
 	b.op.Tags = tags
 	return b
 }
