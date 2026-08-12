@@ -10,7 +10,7 @@ import (
 
 func TestGeneratorEasyJsonRequest(t *testing.T) {
 	rootDir := findProjectRoot(t)
-	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "dto", "request")
+	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "test", "request")
 
 	//  Output vẫn là input, nhưng xóa file gen cũ trước
 	outputDir := inputDir
@@ -34,7 +34,7 @@ func TestGeneratorEasyJsonRequest(t *testing.T) {
 func TestGeneratorEasyJsonResponse(t *testing.T) {
 	rootDir := findProjectRoot(t)
 
-	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "dto", "request")
+	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "test", "request")
 
 	//  Output vẫn là input, nhưng xóa file gen cũ trước
 	outputDir := inputDir
