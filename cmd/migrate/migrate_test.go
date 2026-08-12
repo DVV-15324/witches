@@ -20,7 +20,7 @@ func setupTestWithPostgres(t *testing.T) (dbURL string, cleanup func()) {
 	ctx := context.Background()
 
 	// 1. Tạo thư mục tạm
-	tmpDir := t.TempDir() // 👈 THÊM DÒNG NÀY!
+	tmpDir := t.TempDir()
 
 	// 2. Tạo thư mục migrations trong thư mục tạm
 	migrationsDir := filepath.Join(tmpDir, "migrate", "migrations")

@@ -16,8 +16,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// ==================== HELPERS ====================
-
 func setupPostgresContainer(tb testing.TB) (string, func()) {
 	ctx := context.Background()
 
@@ -70,14 +68,12 @@ func setupTestLogger(tb testing.TB) (*logger.EntityLogger, func()) {
 	return logg, cleanup
 }
 
-// ==================== TESTS ====================
-
 func TestDatabaseInstance_WithPostgres(t *testing.T) {
 	connStr, cleanupContainer := setupPostgresContainer(t)
 	defer cleanupContainer()
 
 	logg, cleanupLogger := setupTestLogger(t)
-	defer cleanupLogger() // 👈 ĐẢM BẢO cleanup sau test
+	defer cleanupLogger() //  ĐẢM BẢO cleanup sau test
 
 	instance, err := NewDatabaseInstance(
 		"postgres",
