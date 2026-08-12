@@ -11,6 +11,8 @@
 	test-templates \
 	test-cmd-utils \
 	test-cmd \
+	test-cmd-migrate \
+	test-cmd-database \
 	test-integration \
 	coverage \
 	coverage-summary \
@@ -73,9 +75,14 @@ test-cmd-utils:
 	go tool cover -func=coverage_cmdutils.out | findstr total
 
 test-cmd:
-	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/root_test.go
+	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/add ./cmd/create ./cmd/init ./cmd/database ./cmd/migrate ./cmd/utils
 	go tool cover -html=coverage_cmd.out -o coverage_cmd.html
 	go tool cover -func=coverage_cmd.out | findstr total
+
+test-cmd-migrate:
+	go test -race -covermode=atomic -coverprofile=coverage_migrate.out ./cmd/migrate/...
+	go tool cover -html=coverage_migrate.out -o coverage_migrate.html
+	go tool cover -func=coverage_migrate.out | findstr total
 
 test-cmd-database:
 	go test -race -covermode=atomic -coverprofile=coverage_cmd_database.out ./cmd/database
@@ -104,7 +111,10 @@ test: clean
 	go test -race -covermode=atomic -coverprofile=coverage_response.out ./pkg/core/response/...
 	go test -race -covermode=atomic -coverprofile=coverage_utils.out ./pkg/core/utils
 	go test -race -covermode=atomic -coverprofile=coverage_templates.out ./pkg/core/templates/...
+	
 	go test -race -covermode=atomic -coverprofile=coverage_cmd.out ./cmd/...
+	
+	go test -race -covermode=atomic -coverprofile=coverage_migrate.out ./cmd/migrate/...
 	go test -race -covermode=atomic -coverprofile=coverage_cmdutils.out ./cmd/utils
 	go test -race -covermode=atomic -coverprofile=coverage_cmd_database.out ./cmd/database
 	go test -race -covermode=atomic -coverprofile=coverage_integration.out -tags=integration ./pkg/core/utils
