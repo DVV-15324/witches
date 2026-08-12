@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"github.com/DVV-15324/witches/pkg/core/templates/utils"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -98,7 +97,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		migraUp = "template/migrate/mssql/1_create_table.up.sql.tmpl"
 		migraDown = "template/migrate/mssql/1_drop_table.down.sql.tmpl"
 	default:
-		log.Fatalf("Error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
+		return fmt.Errorf("Error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
 	}
 
 	// Map template files -> destination files
