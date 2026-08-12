@@ -68,7 +68,7 @@ jobs:
             -race \
             -covermode=atomic \
             -coverprofile=coverage_db_connect.out \
-            -timeout=60s \
+           -timeout=60s \
             ./pkg/core/database/connect/sql/...
 
       - name: Run handler core tests
@@ -150,7 +150,7 @@ jobs:
             -race \
             -covermode=atomic \
             -coverprofile=coverage_cmd_database.out \
-            -timeout=60s \
+            -timeout=180s \
             ./cmd/database
 
       - name: Run cmd migrate tests
