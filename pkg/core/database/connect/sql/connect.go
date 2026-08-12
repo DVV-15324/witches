@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
@@ -94,6 +95,9 @@ func NewDatabaseInstance(
 }
 
 func (d *DatabaseInstance) Close() error {
+	if d == nil || d.DB == nil {
+		return fmt.Errorf("database instance is nil")
+	}
 	sqlDB, err := d.DB.DB()
 	if err != nil {
 		return err
