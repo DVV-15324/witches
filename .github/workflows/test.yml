@@ -68,7 +68,7 @@ jobs:
           go install github.com/wadey/gocovmerge@latest
 
       # ============================================================
-      # Run tests (theo Makefile)
+      # Run tests
       # ============================================================
 
       - name: Run DB connect tests
@@ -205,12 +205,12 @@ jobs:
               echo "Found: $f"
               files="$files $f"
             else
-              echo "Skipping: $f (empty or not found)"
+              echo " Skipping: $f (empty or not found)"
             fi
           done
 
           if [ -z "$files" ]; then
-            echo "ERROR: No coverage files found."
+            echo " ERROR: No coverage files found."
             echo "Listing files:"
             ls -la coverage*.out || echo "No coverage files"
             exit 1
@@ -235,12 +235,12 @@ jobs:
       - name: Validate coverage
         run: |
           if [ ! -s coverage_all.out ]; then
-            echo "ERROR: coverage_all.out is empty."
+            echo " ERROR: coverage_all.out is empty."
             exit 1
           fi
 
           if ! grep -q "^mode:" coverage_all.out; then
-            echo "ERROR: Invalid Go coverage profile."
+            echo " ERROR: Invalid Go coverage profile."
             exit 1
           fi
 
@@ -292,5 +292,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage_all.out
-          fail_ci_if_error: false #  Không fail CI nếu Codecov lỗi
+          fail_ci_if_error: false
           verbose: true
