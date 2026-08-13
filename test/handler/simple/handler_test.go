@@ -442,7 +442,7 @@ func TestHandleSwagger(t *testing.T) {
 	})
 
 	t.Run("PUT /api/v1/users/:id - invalid JSON", func(t *testing.T) {
-		// Lấy user đầu tiên
+		// Lấy user đầu tiê
 		req, _ := http.NewRequest("GET", "/api/v1/users?limit=1", nil)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
