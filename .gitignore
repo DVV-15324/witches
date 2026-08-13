@@ -21,3 +21,4 @@ Thumbs.db
 
 # Allow easyjson generated files
 !**/*_easyjson.go
+pkg/core/easyjson/test/**/*_easyjson.go
