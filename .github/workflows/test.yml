@@ -47,11 +47,13 @@ jobs:
           rm -f coverage*.html
           rm -f coverage_all.out
 
-      - name: Install migrate CLI
+      - name: Install migrate CLI with postgres driver
         run: |
-          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          go build -tags 'postgres' -o /tmp/migrate github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          sudo mv /tmp/migrate /usr/local/bin/migrate
           migrate -version
-          migrate -database "postgres://dummy:dummy@localhost/dummy?sslmode=disable" version || true
+          # Kiểm tra driver
+          migrate -database "postgres://test:test@localhost/test?sslmode=disable" version || echo "Driver check done"
 
       - name: Install easyjson
         run: |
