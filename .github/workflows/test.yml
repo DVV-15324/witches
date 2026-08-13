@@ -35,6 +35,9 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Clean go mod cache (optional)
+        run: go clean -modcache
+
       - name: Verify dependencies
         run: go mod verify
 
@@ -48,6 +51,7 @@ jobs:
         run: |
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           migrate -version
+          migrate -database "postgres://dummy:dummy@localhost/dummy?sslmode=disable" version || true
 
       - name: Install easyjson
         run: |
