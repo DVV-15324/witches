@@ -54,6 +54,7 @@ jobs:
 
       - name: Install easyjson
         run: |
+          go mod tidy
           go install github.com/mailru/easyjson/easyjson@latest
           easyjson -version || true
 
