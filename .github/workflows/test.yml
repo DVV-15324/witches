@@ -158,13 +158,19 @@ jobs:
 
       - name: Run cmd migrate tests
         run: |
-          # Build binary migrate với postgres driver vào thư mục hiện tại
-          go build -tags 'postgres' -o ./migrate-bin github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-          # Thêm thư mục hiện tại vào PATH trước để ưu tiên binary mới
+          # Cài migrate với driver postgres
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+          # Copy binary vào thư mục hiện tại
+          cp $(go env GOPATH)/bin/migrate ./migrate-bin
+
+          # Thêm thư mục hiện tại vào PATH (ưu tiên binary vừa build)
           export PATH=$(pwd):$PATH
+
           # Kiểm tra
           which migrate
           migrate -version
+
           # Chạy test
           go test -race -covermode=atomic -coverprofile=coverage_migrate.out -timeout=120s ./cmd/migrate/...
 
