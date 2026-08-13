@@ -1,0 +1,9 @@
+package main
+
+import (
+	server "github.com/example/project/cmd"
+)
+
+func main() {
+	server.GetExcute().Execute()
+}
