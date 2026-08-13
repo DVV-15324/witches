@@ -368,4 +368,28 @@ func TestHandleSwaggerPagination(t *testing.T) {
 
 		assert.Equal(t, 200, w.Code)
 	})
+	t.Run("GET /api/v1/users - search no results", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/api/v1/users?search=nonexistent", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+		var resp response.PaginationResponseWrapper
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Empty(t, resp.Data)
+	})
+
+	t.Run("GET /api/v1/users - invalid page parameter (non-int)", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/api/v1/users?page=abc", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 400, w.Code)
+	})
+
+	t.Run("GET /api/v1/users - invalid limit parameter (non-int)", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/api/v1/users?limit=xyz", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 400, w.Code)
+	})
 }

@@ -340,5 +340,58 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		assert.Equal(t, 404, w.Code)
 		t.Log("Delete non-existent user - 404")
 	})
+	t.Run("GET /api/v1/users - search no results", func(t *testing.T) {
+		resetRedis(mr)
+		req, _ := http.NewRequest("GET", "/api/v1/users?search=nonexistent", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+		var resp response.PaginationResponseWrapper
+		json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Empty(t, resp.Data)
+		t.Log("Search no results handled")
+	})
+
+	t.Run("GET /api/v1/users - invalid page (non-int)", func(t *testing.T) {
+		resetRedis(mr)
+		req, _ := http.NewRequest("GET", "/api/v1/users?page=abc", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 400, w.Code)
+	})
+
+	t.Run("POST /api/v1/users - empty body", func(t *testing.T) {
+		resetRedis(mr)
+		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(""))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, 400, w.Code)
+	})
+
+	t.Run("PUT /api/v1/users/:id - invalid JSON", func(t *testing.T) {
+		resetRedis(mr)
+		// Tạo user trước
+		createReq := `{"name":"Temp","email":"temp@example.com","password":"123456","age":20}`
+		req, _ := http.NewRequest("POST", "/api/v1/users", strings.NewReader(createReq))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		var resp response.AppResponse
+		json.Unmarshal(w.Body.Bytes(), &resp)
+		if resp.Data == nil {
+			t.Skip("Cannot create user for test")
+			return
+		}
+		user := resp.Data.(map[string]interface{})
+		id := user["id"].(string)
+
+		// Gửi PUT với JSON invalid
+		req2, _ := http.NewRequest("PUT", "/api/v1/users/"+id, strings.NewReader(`{invalid}`))
+		req2.Header.Set("Content-Type", "application/json")
+		w2 := httptest.NewRecorder()
+		r.ServeHTTP(w2, req2)
+		assert.Equal(t, 400, w2.Code)
+	})
 
 }
