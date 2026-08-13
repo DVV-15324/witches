@@ -23,7 +23,7 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	if err != nil {
 		return err
 	}
-
+	config.DBUrl = DB_URL
 	content := utils.CreateContentRefreshUsed(DB_URL, config)
 
 	if _, err := file.WriteString(content); err != nil {
