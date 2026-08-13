@@ -47,19 +47,10 @@ jobs:
           rm -f coverage*.html
           rm -f coverage_all.out
 
-      - name: Install migrate CLI with postgres driver
+      - name: Install migrate CLI
         run: |
-          # Xóa binary cũ nếu có
-          sudo rm -f /usr/local/bin/migrate /usr/bin/migrate
-          # Build với tag postgres
-          go build -tags 'postgres' -o /tmp/migrate github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-          # Di chuyển và set permission
-          sudo mv /tmp/migrate /usr/local/bin/migrate
-          sudo chmod +x /usr/local/bin/migrate
-          # Kiểm tra
-          /usr/local/bin/migrate -version
-          # Kiểm tra driver (sẽ báo lỗi kết nối nhưng nếu lỗi "unknown driver" là fail)
-          /usr/local/bin/migrate -database "postgres://test:test@localhost/test?sslmode=disable" version 2>&1 | grep -q "unknown driver" && echo "DRIVER FAILED" && exit 1 || echo "Driver OK"
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          migrate -version
 
       - name: Install easyjson
         run: |
@@ -146,6 +137,7 @@ jobs:
             -timeout=60s \
             ./pkg/core/templates/...
 
+      # 👇 CMD tests: test riêng từng package
       - name: Run cmd run tests
         run: |
           go test \
