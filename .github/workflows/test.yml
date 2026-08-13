@@ -158,12 +158,15 @@ jobs:
 
       - name: Run cmd migrate tests
         run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_migrate.out \
-            -timeout=120s \
-            ./cmd/migrate/...
+          # Build binary migrate với postgres driver vào thư mục hiện tại
+          go build -tags 'postgres' -o ./migrate-bin github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          # Thêm thư mục hiện tại vào PATH trước để ưu tiên binary mới
+          export PATH=$(pwd):$PATH
+          # Kiểm tra
+          which migrate
+          migrate -version
+          # Chạy test
+          go test -race -covermode=atomic -coverprofile=coverage_migrate.out -timeout=120s ./cmd/migrate/...
 
       - name: Run cmd utils tests
         run: |
