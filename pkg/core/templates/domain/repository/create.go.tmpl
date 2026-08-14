@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
 )
 
-func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *model{{.NameCap}}.{{.NameCap}}) (error) {
-	entity := mapping.FromModelToEntity{{.NameCap}}(e)
+func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}) (error) {
+	entity := mapping.FromDomainToEntity{{.NameCap}}(e)
 	err := r.db.WithContext(ctx).Create(entity).Error
 	return err
 }

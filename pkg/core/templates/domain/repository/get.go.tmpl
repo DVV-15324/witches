@@ -4,18 +4,18 @@ import (
 	"context"
 	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	entity{{.NameCap}} "{{.ModuleName}}/internal/{{.FolderName}}/entity"
 )
 
-func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id uint) (*model{{.NameCap}}.{{.NameCap}}, error) {
+func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id uint) (*domain{{.NameCap}}.{{.NameCap}}, error) {
 	var e entity{{.NameCap}}.{{.NameCap}}
 	err := r.db.WithContext(ctx).First(&e, id).Error
-	model := mapping.FromEntityToModel{{.NameCap}}(&e)
-	return model, err
+	domain := mapping.FromEntityToDomain{{.NameCap}}(&e)
+	return domain, err
 }
 
-func (r *{{.NameCap}}Repository) GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*model{{.NameCap}}.{{.NameCap}}, int64, error) {
+func (r *{{.NameCap}}Repository) GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*domain{{.NameCap}}.{{.NameCap}}, int64, error) {
 	var list []*entity{{.NameCap}}.{{.NameCap}}
 	var total int64
 
@@ -42,6 +42,6 @@ func (r *{{.NameCap}}Repository) GetAll(ctx context.Context, req *w_utils.Pagina
 		return nil, 0, err
 	}
 	//mapping
-	modelsMapping := mapping.FromEntityToModel{{.NameCap}}List(list)
-	return modelsMapping, total, nil
+	domainsMapping := mapping.FromEntityToDomain{{.NameCap}}List(list)
+	return domainsMapping, total, nil
 }
