@@ -123,8 +123,8 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/auth/dto/request/gg.go.tmpl":       filepath.Join("internal", "auth", "dto", "request", "gg.go"),
 		// AUTH SERVICE - DTO RESPONSE
 		"template/internal/auth/dto/response/auth.go.tmpl": filepath.Join("internal", "auth", "dto", "response", "auth.go"),
-		// AUTH SERVICE - ENTITY
-		"template/internal/auth/entity/entity.go.tmpl": filepath.Join("internal", "auth", "entity", "entity.go"),
+		// AUTH SERVICE - model
+		"template/internal/auth/model/model.go.tmpl": filepath.Join("internal", "auth", "model", "model.go"),
 		// AUTH SERVICE - HANDLER
 		"template/internal/auth/handler/handler.go.tmpl":  filepath.Join("internal", "auth", "handler", "handler.go"),
 		"template/internal/auth/handler/login.go.tmpl":    filepath.Join("internal", "auth", "handler", "login.go"),
@@ -152,8 +152,8 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		// REFRESH SERVICE - DTO
 		"template/internal/refresh/dto/request/request.go.tmpl":   filepath.Join("internal", "refresh", "dto", "request", "request.go"),
 		"template/internal/refresh/dto/response/response.go.tmpl": filepath.Join("internal", "refresh", "dto", "response", "response.go"),
-		// REFRESH SERVICE - ENTITY
-		"template/internal/refresh/entity/entity.go.tmpl": filepath.Join("internal", "refresh", "entity", "entity.go"),
+		// REFRESH SERVICE - model
+		"template/internal/refresh/model/model.go.tmpl": filepath.Join("internal", "refresh", "model", "model.go"),
 		// REFRESH SERVICE - HANDLER
 		"template/internal/refresh/handler/handler.go.tmpl":  filepath.Join("internal", "refresh", "handler", "handler.go"),
 		"template/internal/refresh/handler/re_token.go.tmpl": filepath.Join("internal", "refresh", "handler", "re_token.go"),
@@ -178,8 +178,8 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/user/dto/request/errors.go.tmpl":    filepath.Join("internal", "user", "dto", "request", "errors.go"),
 		"template/internal/user/dto/request/validate.go.tmpl":  filepath.Join("internal", "user", "dto", "request", "validate.go"),
 		"template/internal/user/dto/response/response.go.tmpl": filepath.Join("internal", "user", "dto", "response", "response.go"),
-		// USER SERVICE - ENTITY
-		"template/internal/user/entity/entity.go.tmpl": filepath.Join("internal", "user", "entity", "entity.go"),
+		// USER SERVICE - model
+		"template/internal/user/model/model.go.tmpl": filepath.Join("internal", "user", "model", "model.go"),
 		// USER SERVICE - HANDLER
 		"template/internal/user/handler/handler.go.tmpl": filepath.Join("internal", "user", "handler", "handler.go"),
 		"template/internal/user/handler/get.go.tmpl":     filepath.Join("internal", "user", "handler", "get.go"),
