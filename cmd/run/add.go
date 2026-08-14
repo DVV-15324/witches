@@ -8,11 +8,11 @@ import (
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
-func WitchesAdd(serviceName string) {
+func WitchesAdd(domainName string) {
 	projectPath, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 	moduleName := filepath.Base(projectPath)
-	templates.AddGoService(projectPath, moduleName, serviceName)
+	templates.AddGoDomain(projectPath, moduleName, domainName)
 }
