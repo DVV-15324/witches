@@ -17,19 +17,19 @@ func TestBuildDatabaseURL(t *testing.T) {
 		{
 			name:   "mysql",
 			driver: "mysql",
-			dbURL:  "mysql://user:pass@localhost:3306/db",
+			dbURL:  "user:pass@localhost:3306/db",
 			want:   "mysql://user:pass@localhost:3306/db",
 		},
 		{
 			name:   "postgres",
 			driver: "postgres",
-			dbURL:  "postgres://user:pass@localhost:5432/db",
+			dbURL:  "user:pass@localhost:5432/db",
 			want:   "postgres://user:pass@localhost:5432/db",
 		},
 		{
 			name:   "sqlserver",
 			driver: "sqlserver",
-			dbURL:  "sqlserver://user:pass@localhost:1433?database=db",
+			dbURL:  "user:pass@localhost:1433?database=db",
 			want:   "sqlserver://user:pass@localhost:1433?database=db",
 		},
 		{
@@ -41,7 +41,7 @@ func TestBuildDatabaseURL(t *testing.T) {
 		{
 			name:   "unknown driver",
 			driver: "unknown",
-			dbURL:  "unknown://user:pass@localhost/db",
+			dbURL:  "user:pass@localhost/db",
 			want:   "unknown://user:pass@localhost/db",
 		},
 	}

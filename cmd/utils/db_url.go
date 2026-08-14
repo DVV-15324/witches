@@ -2,29 +2,20 @@ package utils
 
 import (
 	"fmt"
-
-	"strings"
 )
 
 func BuildDatabaseURL(driver, dbURL string) string {
-	cleanURL := strings.TrimPrefix(dbURL, driver+"://")
-	cleanURL = strings.TrimPrefix(cleanURL, "mysql://")
-	cleanURL = strings.TrimPrefix(cleanURL, "postgres://")
-	cleanURL = strings.TrimPrefix(cleanURL, "postgresql://")
-	cleanURL = strings.TrimPrefix(cleanURL, "sqlserver://")
-	cleanURL = strings.TrimPrefix(cleanURL, "mssql://")
-
 	switch driver {
 	case "mysql":
-		return fmt.Sprintf("mysql://%s", cleanURL)
+		return fmt.Sprintf("mysql://%s", dbURL)
 
 	case "postgres", "postgresql":
-		return fmt.Sprintf("postgres://%s", cleanURL)
+		return fmt.Sprintf("postgres://%s", dbURL)
 
 	case "sqlserver", "mssql":
-		return fmt.Sprintf("sqlserver://%s", cleanURL)
+		return fmt.Sprintf("sqlserver://%s", dbURL)
 
 	default:
-		return fmt.Sprintf("%s://%s", driver, cleanURL)
+		return fmt.Sprintf("%s://%s", driver, dbURL)
 	}
 }

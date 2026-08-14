@@ -5,36 +5,46 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	godotenv "github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port            int64
-	Host            string
-	MetrictPort     int64
-	DBDriver        string
-	DBHost          string
-	DBPort          int64
-	DBUser          string
-	DBName          string
-	DBPassword      string
-	DBUrl           string
-	MaxOpenConns    int64
-	MaxIdleConns    int64
-	ConnMaxLifetime int64
-	ConnMaxIdleTime int64
-	SlowThreshold   int64
-	RedisHost       string
-	RedisPort       int64
-	RedisPassword   string
-	AccessTokenTTL  int64
-	RefreshTokenTTL int64
-	SessionTTL      int64
-	RevokedTTL      int64
-	IdleTimeout     int64
-	RateLimitPeriod int64
-	RateLimitMax    int64
+	Port               int64
+	Host               string
+	MetrictPort        int64
+	UIDBits            int
+	RequestKey         string
+	LogPath            string
+	CorsAllowOrigins   string
+	CorsAllowMethods   string
+	CorsAllowHeaders   string
+	Timezone           string
+	SupportedLanguages []string
+	JWTSecret          string
+	DBDriver           string
+	DBHost             string
+	DBPort             int64
+	DBUser             string
+	DBName             string
+	DBPassword         string
+	DBUrl              string
+	MaxOpenConns       int64
+	MaxIdleConns       int64
+	ConnMaxLifetime    int64
+	ConnMaxIdleTime    int64
+	SlowThreshold      int64
+	RedisHost          string
+	RedisPort          int64
+	RedisPassword      string
+	AccessTokenTTL     int64
+	RefreshTokenTTL    int64
+	SessionTTL         int64
+	RevokedTTL         int64
+	IdleTimeout        int64
+	RateLimitPeriod    int64
+	RateLimitMax       int64
 }
 
 func LoadDbUrl(cfg *Config) *Config {
@@ -59,6 +69,33 @@ func PreloadNotDBURL() *Config {
 	}
 	if val := os.Getenv("METRIC_PORT"); val != "" {
 		cfg.MetrictPort = getEnvAsInt64("METRIC_PORT")
+	}
+	if val := os.Getenv("UID_BITS"); val != "" {
+		cfg.UIDBits = int(getEnvAsInt64("UID_BITS"))
+	}
+	if val := os.Getenv("REQUEST_KEY"); val != "" {
+		cfg.RequestKey = os.Getenv("REQUEST_KEY")
+	}
+	if val := os.Getenv("LOG_PATH"); val != "" {
+		cfg.LogPath = os.Getenv("LOG_PATH")
+	}
+	if val := os.Getenv("CORS_ALLOW_ORIGINS"); val != "" {
+		cfg.CorsAllowOrigins = os.Getenv("CORS_ALLOW_ORIGINS")
+	}
+	if val := os.Getenv("CORS_ALLOW_METHODS"); val != "" {
+		cfg.CorsAllowMethods = os.Getenv("CORS_ALLOW_METHODS")
+	}
+	if val := os.Getenv("CORS_ALLOW_HEADERS"); val != "" {
+		cfg.CorsAllowHeaders = os.Getenv("CORS_ALLOW_HEADERS")
+	}
+	if val := os.Getenv("TIMEZONE"); val != "" {
+		cfg.Timezone = os.Getenv("TIMEZONE")
+	}
+	if val := os.Getenv("SUPPORTED_LANGUAGES"); val != "" {
+		cfg.SupportedLanguages = splitAndTrim(os.Getenv("SUPPORTED_LANGUAGES"), ",")
+	}
+	if val := os.Getenv("JWT_SECRET"); val != "" {
+		cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	}
 	if val := os.Getenv("DB_DRIVER"); val != "" {
 		cfg.DBDriver = os.Getenv("DB_DRIVER")
@@ -142,29 +179,52 @@ func getEnvAsInt64(key string) int64 {
 
 func DefaultConfig() *Config {
 	return &Config{
-		Port:            8080,
-		Host:            "localhost",
-		MetrictPort:     8088,
-		DBDriver:        "mysql",
-		DBUser:          "root",
-		DBHost:          "localhost",
-		DBPort:          3306,
-		DBName:          "your_database",
-		DBPassword:      "your_password",
-		MaxOpenConns:    100,
-		MaxIdleConns:    10,
-		ConnMaxLifetime: 60,
-		ConnMaxIdleTime: 600,
-		SlowThreshold:   5,
-		RedisHost:       "localhost",
-		RedisPort:       6379,
-		RedisPassword:   "",
-		AccessTokenTTL:  900,
-		RefreshTokenTTL: 604800,
-		SessionTTL:      604800,
-		IdleTimeout:     1800,
-		RevokedTTL:      300,
-		RateLimitPeriod: 60,
-		RateLimitMax:    100,
+		Port:               8080,
+		Host:               "localhost",
+		MetrictPort:        8088,
+		UIDBits:            26,
+		RequestKey:         "request_context",
+		LogPath:            "./logs",
+		CorsAllowOrigins:   "*",
+		CorsAllowMethods:   "GET,POST,PUT,DELETE,OPTIONS",
+		CorsAllowHeaders:   "Content-Type,Authorization",
+		Timezone:           "UTC",
+		SupportedLanguages: []string{"en-US", "vi-VN"},
+		JWTSecret:          "your_secret_key",
+		DBDriver:           "mysql",
+		DBUser:             "root",
+		DBHost:             "localhost",
+		DBPort:             3306,
+		DBName:             "your_database",
+		DBPassword:         "your_password",
+		MaxOpenConns:       100,
+		MaxIdleConns:       10,
+		ConnMaxLifetime:    60,
+		ConnMaxIdleTime:    600,
+		SlowThreshold:      5,
+		RedisHost:          "localhost",
+		RedisPort:          6379,
+		RedisPassword:      "",
+		AccessTokenTTL:     900,
+		RefreshTokenTTL:    604800,
+		SessionTTL:         604800,
+		IdleTimeout:        1800,
+		RevokedTTL:         300,
+		RateLimitPeriod:    60,
+		RateLimitMax:       100,
 	}
+}
+
+func splitAndTrim(s, sep string) []string {
+	if s == "" {
+		return []string{}
+	}
+	parts := strings.Split(s, sep)
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
