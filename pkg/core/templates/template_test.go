@@ -42,7 +42,7 @@ func TestTemplateFS_ReadTemplateFile(t *testing.T) {
 	testFiles := []string{
 		"template/main.go.tmpl",
 		"template/cmd/root.go.tmpl",
-		"template/internal/auth-service/handler/handler.go.tmpl",
+		"template/internal/auth/handler/handler.go.tmpl",
 	}
 
 	for _, file := range testFiles {
@@ -119,7 +119,7 @@ func TestCreateProjectStructure_Success(t *testing.T) {
 				"main.go",
 				"go.mod",
 				"cmd/root.go",
-				"internal/auth-service/handler/handler.go",
+				"internal/auth/handler/handler.go",
 				"internal/shared/utils/key_object.go",
 				"migrate/migrations/1_create_table.up.sql",
 				"migrate/migrations/1_drop_table.down.sql",

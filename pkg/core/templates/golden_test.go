@@ -42,9 +42,9 @@ func readOrUpdateGolden(t *testing.T, name string, actual []byte) []byte {
 }
 
 // ------------------------------------------------------------
-// Test AddGoService với golden
+// Test AddGoDomain với golden
 // ------------------------------------------------------------
-func TestAddGoService_Golden(t *testing.T) {
+func TestAddGoDomain_Golden(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// tạo go.mod
@@ -67,15 +67,15 @@ var (
 		t.Fatal(err)
 	}
 
-	// gọi hàm AddGoService với service "book"
-	AddGoService(tmpDir, "github.com/example/test", "book")
+	// gọi hàm AddGoDomain với Domain "book"
+	AddGoDomain(tmpDir, "github.com/example/test", "book")
 
 	// danh sách file cần so sánh với golden
 	expectedFiles := []string{
-		"internal/book-service/handler/handler.go",
-		"internal/book-service/entity/entity.go",
-		"internal/book-service/usecase/usecase.go",
-		"internal/shared/model/book.go",
+		"internal/book/handler/handler.go",
+		"internal/book/model/model.go",
+		"internal/book/usecase/usecase.go",
+		"internal/shared/domain/book.go",
 	}
 
 	for _, relPath := range expectedFiles {
@@ -113,7 +113,7 @@ func TestCreateProjectStructure_Golden(t *testing.T) {
 		"go.mod",
 		"cmd/root.go",
 		"internal/shared/utils/key_object.go",
-		"internal/auth-service/handler/handler.go",
+		"internal/auth/handler/handler.go",
 		"pkg/redis/client.go",
 		"migrate/migrations/1_create_table.up.sql",
 		"migrate/migrations/1_drop_table.down.sql",

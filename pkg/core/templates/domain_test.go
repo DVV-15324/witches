@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func TestServiceNameProcessing(t *testing.T) {
+func TestDomainNameProcessing(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
@@ -24,23 +24,23 @@ func TestServiceNameProcessing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test logic của AddGoService
-			serviceName := strings.TrimSpace(tt.input)
-			serviceName = strings.ToLower(serviceName)
-			serviceName = strings.ReplaceAll(serviceName, " ", "")
-			serviceNameCap := cases.Title(language.English).String(serviceName)
-			serviceNameCap = strings.ReplaceAll(serviceNameCap, " ", "")
+			// Test logic của AddGodomain
+			domainName := strings.TrimSpace(tt.input)
+			domainName = strings.ToLower(domainName)
+			domainName = strings.ReplaceAll(domainName, " ", "")
+			domainNameCap := cases.Title(language.English).String(domainName)
+			domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
 
-			assert.Equal(t, tt.expected, serviceNameCap)
+			assert.Equal(t, tt.expected, domainNameCap)
 		})
 	}
 }
 
-func TestServiceConfig(t *testing.T) {
-	config := ServiceConfig{
+func TestDomainConfig(t *testing.T) {
+	config := DomainConfig{
 		NameCap:    "User",
 		Name:       "user",
-		FolderName: "user-service",
+		FolderName: "user",
 		ModuleName: "github.com/example/project",
 	}
 
