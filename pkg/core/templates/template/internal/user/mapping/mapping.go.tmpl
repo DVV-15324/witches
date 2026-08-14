@@ -10,7 +10,7 @@ import (
 
 // 1. DTO ↔ Domain
 
-func FromDtoToDomainlUser(dto *dtoUser.User) *domainUser.User {
+func FromDtoToDomainUser(dto *dtoUser.User) *domainUser.User {
 	if dto == nil {
 		return nil
 	}
@@ -26,7 +26,7 @@ func FromDtoToDomainlUser(dto *dtoUser.User) *domainUser.User {
 
 // 1.1 List DTO → List Domain (dùng generic)
 func FromDtoToDomainUserList(dtos []*dtoUser.User) []*domainUser.User {
-	return utils.MapPtrSlice(dtos, FromDtoTodomainUser)
+	return utils.MapPtrSlice(dtos, FromDtoToDomainUser)
 }
 
 // 2. Domain ↔ Model
@@ -66,7 +66,7 @@ func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
 
 // List Model → List Domain (dùng generic)
 func FromModelToDomainUserList(entities []*modelUser.User) []*domainUser.User {
-	return utils.MapPtrSlice(entities, FrommodelTodomainUser)
+	return utils.MapPtrSlice(entities, FromModelToDomainUser)
 }
 
 // List Domain → List DTO
