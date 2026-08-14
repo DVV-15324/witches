@@ -19,51 +19,51 @@ import (
 	"golang.org/x/text/language"
 )
 
-//go:embed service/dto/request/*.tmpl
-//go:embed service/dto/response/*.tmpl
-//go:embed service/entity/*.tmpl
-//go:embed service/handler/*.tmpl
-//go:embed service/mapping/*.tmpl
-//go:embed service/repository/*.tmpl
-//go:embed service/usecase/*.tmpl
-//go:embed service/shared/model/model.go.tmpl
+//go:embed domain/dto/request/*.tmpl
+//go:embed domain/dto/response/*.tmpl
+//go:embed domain/model/*.tmpl
+//go:embed domain/handler/*.tmpl
+//go:embed domain/mapping/*.tmpl
+//go:embed domain/repository/*.tmpl
+//go:embed domain/usecase/*.tmpl
+//go:embed domain/shared/domain/domain.go.tmpl
 var templateSvFS embed.FS
 
-type ServiceConfig struct {
+type DomainConfig struct {
 	NameCap    string //
 	Name       string //
 	FolderName string //
 	ModuleName string //
 }
 
-func (p ServiceConfig) GetMuduleName() string {
+func (p DomainConfig) GetMuduleName() string {
 	return p.ModuleName
 }
-func AddGoService(project string, moduleName string, serviceName string) {
-	serviceName = strings.TrimSpace(serviceName)
-	serviceName = strings.ReplaceAll(serviceName, " ", "")
-	serviceName = strings.ToLower(serviceName)
-	serviceNameCap := cases.Title(language.English).String(serviceName)
-	serviceNameCap = strings.ReplaceAll(serviceNameCap, " ", "")
-	config := ServiceConfig{
-		NameCap:    serviceNameCap,
-		Name:       serviceName,
-		FolderName: serviceName + "-service",
+func AddGoDomain(project string, moduleName string, domainName string) {
+	domainName = strings.TrimSpace(domainName)
+	domainName = strings.ReplaceAll(domainName, " ", "")
+	domainName = strings.ToLower(domainName)
+	domainNameCap := cases.Title(language.English).String(domainName)
+	domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
+	config := DomainConfig{
+		NameCap:    domainNameCap,
+		Name:       domainName,
+		FolderName: domainName,
 		ModuleName: moduleName,
 	}
 
-	fmt.Printf("Generating service '%s' ...\n", config.FolderName)
+	fmt.Printf("Generating domain '%s' ...\n", config.FolderName)
 
-	if err := generateService(project, config); err != nil {
+	if err := generateDomain(project, config); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Service '%s' generated successfully!\n", config.FolderName)
+	fmt.Printf("domain '%s' generated successfully!\n", config.FolderName)
 }
 
-func generateService(project string, config ServiceConfig) error {
-	// Vị trí project/internal/folder_name(new service)
+func generateDomain(project string, config DomainConfig) error {
+	// Vị trí project/internal/folder_name(new domain)
 	baseDir := filepath.Join(project, "internal", config.FolderName)
 
 	// Các thư mục cần tạo
@@ -78,7 +78,7 @@ func generateService(project string, config ServiceConfig) error {
 	}
 
 	for _, dir := range dirs {
-		// Nối baseDir/folder_name(new service)/folder cần tạo ở dirs
+		// Nối baseDir/folder_name(new domain)/folder cần tạo ở dirs
 		path := filepath.Join(baseDir, dir)
 		// Tạo Folder
 		if err := os.MkdirAll(path, 0755); err != nil {
@@ -88,34 +88,34 @@ func generateService(project string, config ServiceConfig) error {
 
 	// Map template files -> destination files
 	files := map[string]string{
-		"service/dto/request/request.go.tmpl":   "dto/request/request.go",
-		"service/dto/response/response.go.tmpl": "dto/response/response.go",
-		"service/entity/entity.go.tmpl":         "entity/entity.go",
-		"service/handler/handler.go.tmpl":       "handler/handler.go",
-		"service/handler/create.go.tmpl":        "handler/create.go",
-		"service/handler/get.go.tmpl":           "handler/get.go",
-		"service/handler/update.go.tmpl":        "handler/update.go",
-		"service/handler/delete.go.tmpl":        "handler/delete.go",
-		"service/mapping/mapping.go.tmpl":       "mapping/mapping.go",
-		"service/repository/repository.go.tmpl": "repository/repository.go",
-		"service/repository/create.go.tmpl":     "repository/create.go",
-		"service/repository/get.go.tmpl":        "repository/get.go",
-		"service/repository/update.go.tmpl":     "repository/update.go",
-		"service/repository/delete.go.tmpl":     "repository/delete.go",
-		"service/usecase/usecase.go.tmpl":       "usecase/usecase.go",
-		"service/usecase/create.go.tmpl":        "usecase/create.go",
-		"service/usecase/get.go.tmpl":           "usecase/get.go",
-		"service/usecase/update.go.tmpl":        "usecase/update.go",
-		"service/usecase/delete.go.tmpl":        "usecase/delete.go",
+		"domain/dto/request/request.go.tmpl":   "dto/request/request.go",
+		"domain/dto/response/response.go.tmpl": "dto/response/response.go",
+		"domain/entity/entity.go.tmpl":         "entity/entity.go",
+		"domain/handler/handler.go.tmpl":       "handler/handler.go",
+		"domain/handler/create.go.tmpl":        "handler/create.go",
+		"domain/handler/get.go.tmpl":           "handler/get.go",
+		"domain/handler/update.go.tmpl":        "handler/update.go",
+		"domain/handler/delete.go.tmpl":        "handler/delete.go",
+		"domain/mapping/mapping.go.tmpl":       "mapping/mapping.go",
+		"domain/repository/repository.go.tmpl": "repository/repository.go",
+		"domain/repository/create.go.tmpl":     "repository/create.go",
+		"domain/repository/get.go.tmpl":        "repository/get.go",
+		"domain/repository/update.go.tmpl":     "repository/update.go",
+		"domain/repository/delete.go.tmpl":     "repository/delete.go",
+		"domain/usecase/usecase.go.tmpl":       "usecase/usecase.go",
+		"domain/usecase/create.go.tmpl":        "usecase/create.go",
+		"domain/usecase/get.go.tmpl":           "usecase/get.go",
+		"domain/usecase/update.go.tmpl":        "usecase/update.go",
+		"domain/usecase/delete.go.tmpl":        "usecase/delete.go",
 	}
 
 	for tmpl, dest := range files {
 		utils.RenderTemplate(templateSvFS, baseDir, dest, tmpl, config)
 	}
 
-	// gen shared model
-	if err := generateSharedModel(project, config); err != nil {
-		fmt.Printf("Warning: failed to generate shared model: %v\n", err)
+	// gen shared domain
+	if err := generateSharedDomain(project, config); err != nil {
+		fmt.Printf("Warning: failed to generate shared domain: %v\n", err)
 	}
 
 	// Cập nhật key_object.go
@@ -126,22 +126,22 @@ func generateService(project string, config ServiceConfig) error {
 	return nil
 }
 
-// Tạo file shared/model/Name.go
-func generateSharedModel(projectRoot string, config ServiceConfig) error {
-	sharedModelDir := filepath.Join(projectRoot, "internal", "shared", "model")
-	if err := os.MkdirAll(sharedModelDir, 0755); err != nil {
+// Tạo file shared/domain/Name.go
+func generateSharedDomain(projectRoot string, config DomainConfig) error {
+	sharedDomainDir := filepath.Join(projectRoot, "internal", "shared", "domain")
+	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
 		return err
 	}
 
-	destFile := filepath.Join(sharedModelDir, config.Name+".go")
-	tmplFile := "service/shared/model/model.go.tmpl"
+	destFile := filepath.Join(sharedDomainDir, config.Name+".go")
+	tmplFile := "domain/shared/domain/domain.go.tmpl"
 
 	tmplContent, err := templateSvFS.ReadFile(tmplFile)
 	if err != nil {
 		return fmt.Errorf("template %s not found", tmplFile)
 	}
 
-	tmpl, err := template.New("model.go.tmpl").Parse(string(tmplContent))
+	tmpl, err := template.New("domain.go.tmpl").Parse(string(tmplContent))
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func generateSharedModel(projectRoot string, config ServiceConfig) error {
 }
 
 // Cập nhật key_object
-func updateKeyObject(projectRoot string, config ServiceConfig) error {
+func updateKeyObject(projectRoot string, config DomainConfig) error {
 	keyFile := filepath.Join(projectRoot, "internal", "shared", "utils", "key_object.go")
 
 	src, err := os.ReadFile(keyFile)
