@@ -1,4 +1,4 @@
-package entity
+package domain
 
 import (
 	"time"
@@ -10,8 +10,5 @@ type Book struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (*Book) TableName() string {
-	return "book"
-}
 
 

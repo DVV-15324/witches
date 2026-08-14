@@ -1,0 +1,25 @@
+package usecase
+
+import (
+	"context"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	domainBook "github.com/example/test/internal/shared/domain"
+)
+
+
+type IBookRepository interface {
+	Create(ctx context.Context, e *domainBook.Book) ( error)
+	GetByID(ctx context.Context, id int) (*domainBook.Book, error)
+	GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*domainBook.Book, int64, error)
+	Update(ctx context.Context, e *domainBook.Book, id int) error
+	Delete(ctx context.Context, id int) error
+}
+
+
+type BookUsecase struct {
+	repo IBookRepository
+}
+
+func NewBookUsecase(repo IBookRepository) *BookUsecase {
+	return &BookUsecase{repo: repo}
+}

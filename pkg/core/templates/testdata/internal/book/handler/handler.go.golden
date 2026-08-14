@@ -1,0 +1,28 @@
+package handler
+
+import (
+	"context"
+	"github.com/DVV-15324/witches/pkg/core/response/logger"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	domainBook "github.com/example/test/internal/shared/domain"
+
+)
+type IBookUsecase interface {
+	Create(ctx context.Context, req *domainBook.Book) (*w_resp.AppError)
+	GetByID(ctx context.Context, id int) (*domainBook.Book, *w_resp.AppError)
+	GetAll(ctx context.Context) ([]*domainBook.Book, int64, *w_resp.AppError)
+	Update(ctx context.Context, id int, req *domainBook.Book) (*w_resp.AppError)
+	Delete(ctx context.Context, id int) *w_resp.AppError
+}
+type BookHandler struct {
+	Log         *logger.ModelLogger
+	usecase IBookUsecase
+}
+
+// NewBookHandler - Constructor
+func NewBookHandler(usecase IBookUsecase, log *logger.ModelLogger) *BookHandler {
+	return &BookHandler{
+	usecase: usecase,
+	Log:         log,
+	}
+}
