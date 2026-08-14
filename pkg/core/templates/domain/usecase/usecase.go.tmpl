@@ -3,15 +3,15 @@ package usecase
 import (
 	"context"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 )
 
 
 type I{{.NameCap}}Repository interface {
-	Create(ctx context.Context, e *model{{.NameCap}}.{{.NameCap}}) ( error)
-	GetByID(ctx context.Context, id int) (*model{{.NameCap}}.{{.NameCap}}, error)
-	GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*model{{.NameCap}}.{{.NameCap}}, int64, error)
-	Update(ctx context.Context, e *model{{.NameCap}}.{{.NameCap}}, id int) error
+	Create(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}) ( error)
+	GetByID(ctx context.Context, id int) (*domain{{.NameCap}}.{{.NameCap}}, error)
+	GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*domain{{.NameCap}}.{{.NameCap}}, int64, error)
+	Update(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}, id int) error
 	Delete(ctx context.Context, id int) error
 }
 
