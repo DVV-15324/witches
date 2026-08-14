@@ -10,13 +10,13 @@ import (
 )
 
 type GormZapLogger struct {
-	zapLogger     *EntityLogger
+	zapLogger     *ModelLogger
 	LogLevel      gormlogger.LogLevel
 	SlowThreshold time.Duration
 	KeyReq        string
 }
 
-func NewGormLogger(zapLogger *EntityLogger, slowThreshold time.Duration, keyReq string) *GormZapLogger {
+func NewGormLogger(zapLogger *ModelLogger, slowThreshold time.Duration, keyReq string) *GormZapLogger {
 	return &GormZapLogger{
 		zapLogger:     zapLogger,
 		LogLevel:      gormlogger.Info,

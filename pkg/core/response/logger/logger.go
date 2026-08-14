@@ -6,39 +6,39 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type EntityLogger struct {
+type ModelLogger struct {
 	Log *zap.Logger
 }
 
-func (l *EntityLogger) Sync() error {
+func (l *ModelLogger) Sync() error {
 	return l.Log.Sync()
 }
 
-func (l *EntityLogger) Info(msg string) {
+func (l *ModelLogger) Info(msg string) {
 	l.Log.Info(msg)
 }
 
-func (l *EntityLogger) Warn(msg string) {
+func (l *ModelLogger) Warn(msg string) {
 	l.Log.Warn(msg)
 }
 
-func (l *EntityLogger) Error(msg string) {
+func (l *ModelLogger) Error(msg string) {
 	l.Log.Error(msg)
 }
 
-func (l *EntityLogger) InfoWithFields(msg string, fields ...zap.Field) {
+func (l *ModelLogger) InfoWithFields(msg string, fields ...zap.Field) {
 	l.Log.Info(msg, fields...)
 }
 
-func (l *EntityLogger) WarnWithFields(msg string, fields ...zap.Field) {
+func (l *ModelLogger) WarnWithFields(msg string, fields ...zap.Field) {
 	l.Log.Warn(msg, fields...)
 }
 
-func (l *EntityLogger) ErrorWithFields(msg string, fields ...zap.Field) {
+func (l *ModelLogger) ErrorWithFields(msg string, fields ...zap.Field) {
 	l.Log.Error(msg, fields...)
 }
 
-func NewFileLogger(filePath string, maxSize int, maxBackUps int, maxAge int) (*EntityLogger, error) {
+func NewFileLogger(filePath string, maxSize int, maxBackUps int, maxAge int) (*ModelLogger, error) {
 	writeSyncer := zapcore.AddSync(&lumberjack.Logger{
 		Filename:   filePath,
 		MaxSize:    maxSize,
@@ -61,7 +61,7 @@ func NewFileLogger(filePath string, maxSize int, maxBackUps int, maxAge int) (*E
 		zap.AddCallerSkip(1),
 	)
 
-	return &EntityLogger{
+	return &ModelLogger{
 		Log: logger,
 	}, nil
 }

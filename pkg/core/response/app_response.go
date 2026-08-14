@@ -45,7 +45,7 @@ func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *ut
 	c.JSON(r.Status, r)
 }
 
-func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interface{}, keyReq string) {
+func WriteSuccessWithLog(c *gin.Context, log *logger.ModelLogger, data interface{}, keyReq string) {
 	r := AppResponse{
 		Status:    http.StatusOK,
 		Data:      data,
@@ -65,7 +65,7 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.EntityLogger, data interfac
 	c.JSON(r.Status, r)
 }
 
-func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.EntityLogger, data interface{}, pagination *utils.PaginationResponse, keyReq string) {
+func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, data interface{}, pagination *utils.PaginationResponse, keyReq string) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
 		Data:       data,
@@ -96,7 +96,7 @@ func WriteError(c *gin.Context, re *AppError) {
 	c.JSON(r.Status, r)
 }
 
-func WriteErrorWithLog(c *gin.Context, log *logger.EntityLogger, re *AppError, keyReq string) {
+func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, re *AppError, keyReq string) {
 	r := AppResponse{
 		Status:    re.Status,
 		Message:   re.Error.Error(),
