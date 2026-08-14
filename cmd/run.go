@@ -59,10 +59,10 @@ var addCmd = &cobra.Command{
 	Use: "add",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			fmt.Println("Error: missing service name")
+			fmt.Println("Error: missing domain name")
 			return
 		}
-		serviceName := args[0]
-		run.WitchesAdd(serviceName)
+		domainName := args[0]
+		run.WitchesAdd(domainName)
 	},
 }
