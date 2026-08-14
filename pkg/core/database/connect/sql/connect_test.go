@@ -44,7 +44,7 @@ func setupPostgresContainer(tb testing.TB) (string, func()) {
 }
 
 // 👇 KHÔNG dùng t.TempDir() - tự quản lý thư mục
-func setupTestLogger(tb testing.TB) (*logger.EntityLogger, func()) {
+func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 	// Tạo thư mục tạm thủ công
 	tmpDir, err := os.MkdirTemp("", "test-log-*")
 	require.NoError(tb, err)

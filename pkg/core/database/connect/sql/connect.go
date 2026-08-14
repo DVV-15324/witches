@@ -15,13 +15,13 @@ import (
 
 type DatabaseInstance struct {
 	DB  *gorm.DB
-	Log *logger.EntityLogger
+	Log *logger.ModelLogger
 }
 
 func NewDatabaseInstance(
 	Type string,
 	dsn string,
-	log *logger.EntityLogger,
+	log *logger.ModelLogger,
 	slowThreshold time.Duration,
 	keyReq string,
 	MaxOpenConns int64,
