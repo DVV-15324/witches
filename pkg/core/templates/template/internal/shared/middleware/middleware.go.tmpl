@@ -19,7 +19,7 @@ func AuthMiddleware(
 	usecaseAuth UsecaseAuth,
 	sessionSvc *w_utils.SessionService,
 	blacklistSvc *w_utils.BlacklistService,
-	log *logger.EntityLogger,
+	log *logger.ModelLogger,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lấy tid từ RequestContext

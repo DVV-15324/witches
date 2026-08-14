@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TimingMiddleware(log *logger.EntityLogger, slowThreshold int64) gin.HandlerFunc {
+func TimingMiddleware(log *logger.ModelLogger, slowThreshold int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
