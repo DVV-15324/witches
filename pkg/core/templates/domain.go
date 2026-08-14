@@ -70,7 +70,7 @@ func generateDomain(project string, config DomainConfig) error {
 	dirs := []string{
 		"dto/request",
 		"dto/response",
-		"entity",
+		"model",
 		"handler",
 		"mapping",
 		"repository",
@@ -90,7 +90,7 @@ func generateDomain(project string, config DomainConfig) error {
 	files := map[string]string{
 		"domain/dto/request/request.go.tmpl":   "dto/request/request.go",
 		"domain/dto/response/response.go.tmpl": "dto/response/response.go",
-		"domain/entity/entity.go.tmpl":         "entity/entity.go",
+		"domain/model/model.go.tmpl":           "model/model.go",
 		"domain/handler/handler.go.tmpl":       "handler/handler.go",
 		"domain/handler/create.go.tmpl":        "handler/create.go",
 		"domain/handler/get.go.tmpl":           "handler/get.go",
