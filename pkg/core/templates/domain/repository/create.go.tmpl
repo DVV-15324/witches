@@ -7,7 +7,7 @@ import (
 )
 
 func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}) (error) {
-	entity := mapping.FromDomainToEntity{{.NameCap}}(e)
-	err := r.db.WithContext(ctx).Create(entity).Error
+	model := mapping.FromDomainToModel{{.NameCap}}(e)
+	err := r.db.WithContext(ctx).Create(model).Error
 	return err
 }
