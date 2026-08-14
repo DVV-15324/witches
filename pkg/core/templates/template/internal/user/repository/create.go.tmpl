@@ -10,7 +10,7 @@ import (
 func (u *UserRepository) CreateUser(ctx context.Context, user *domainUser.User) (int, error) {
 
 	// map user *domainUser.User -> Model
-	modelU := mapping.FromDomainToEModelUser(user)
+	modelU := mapping.FromDomainToModelUser(user)
 	// Tạo mới với GORM
 	result := u.db.WithContext(ctx).Select("email", "name").Create(modelU)
 	if result.Error != nil {

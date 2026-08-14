@@ -39,7 +39,7 @@ func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.Pagination
 		return nil, 0, err
 	}
 	//mapping
-	domainsMapping := mapping.FromModelTodomainUserList(users)
+	domainsMapping := mapping.FromModelToDomainUserList(users)
 	return domainsMapping, total, nil
 }
 
@@ -53,6 +53,6 @@ func (u *UserRepository) GetUserById(ctx context.Context, id int) (*domainUser.U
 		}
 		return nil, err
 	}
-	domainU := mapping.FromModelTodomainUser(&data)
+	domainU := mapping.FromModelToDomainUser(&data)
 	return domainU, nil
 }
