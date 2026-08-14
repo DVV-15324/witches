@@ -16,7 +16,8 @@ var migrateDropCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		cmd_migrate.WitchesMigrateDrop(cfg.DBUrl, cfg.DBDriver)
+		migratePath := utils.GetMigrationsURL()
+		cmd_migrate.WitchesMigrateDrop(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
 }
 
@@ -25,7 +26,8 @@ var migrateUpCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		cmd_migrate.WitchesMigrateUp(cfg.DBUrl, cfg.DBDriver)
+		migratePath := utils.GetMigrationsURL()
+		cmd_migrate.WitchesMigrateUp(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
 }
 
@@ -34,7 +36,8 @@ var migrateDownCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		cmd_migrate.WitchesMigrateDown(cfg.DBUrl, cfg.DBDriver)
+		migratePath := utils.GetMigrationsURL()
+		cmd_migrate.WitchesMigrateDown(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
 }
 
@@ -43,7 +46,8 @@ var migrateVersionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, args[0])
+		migratePath := utils.GetMigrationsURL()
+		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, args[0], migratePath)
 	},
 }
 var migrateForceCmd = &cobra.Command{
@@ -51,6 +55,7 @@ var migrateForceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		cmd_migrate.WitchesMigrateVersion(cfg.DBUrl, cfg.DBDriver)
+		migratePath := utils.GetMigrationsURL()
+		cmd_migrate.WitchesMigrateVersion(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
 }
