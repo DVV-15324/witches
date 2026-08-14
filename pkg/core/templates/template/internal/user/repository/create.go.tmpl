@@ -2,17 +2,17 @@ package repository
 
 import (
 	"context"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 	mapping "{{.ModuleName}}/internal/user/mapping"
 )
 
 // Tạo User
-func (u *UserRepository) CreateUser(ctx context.Context, user *modelUser.User) (int, error) {
+func (u *UserRepository) CreateUser(ctx context.Context, user *domainUser.User) (int, error) {
 
-	// map user *modelUser.User -> Entity
-	entityU := mapping.FromModelToEntityUser(user)
+	// map user *domainUser.User -> Model
+	modelU := mapping.FromDomainToEModelUser(user)
 	// Tạo mới với GORM
-	result := u.db.WithContext(ctx).Select("email", "name").Create(entityU)
+	result := u.db.WithContext(ctx).Select("email", "name").Create(modelU)
 	if result.Error != nil {
 		return 0, result.Error
 	}

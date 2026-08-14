@@ -2,19 +2,19 @@
 package mapping
 
 import (
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 	"{{.ModuleName}}/internal/shared/utils"
 	dtoUser "{{.ModuleName}}/internal/user/dto/response"
 	entityUser "{{.ModuleName}}/internal/user/entity"
 )
 
-// 1. DTO ↔ Model
+// 1. DTO ↔ Domain
 
-func FromDtoToModelUser(dto *dtoUser.User) *modelUser.User {
+func FromDtoToDomainlUser(dto *dtoUser.User) *domainUser.User {
 	if dto == nil {
 		return nil
 	}
-	return &modelUser.User{
+	return &domainUser.User{
 		Id:        int(utils.DecodeFromBase58(dto.Id).LocalID),
 		Name:      dto.Name,
 		Email:     dto.Email,
@@ -24,37 +24,37 @@ func FromDtoToModelUser(dto *dtoUser.User) *modelUser.User {
 	}
 }
 
-// 1.1 List DTO → List Model (dùng generic)
-func FromDtoToModelUserList(dtos []*dtoUser.User) []*modelUser.User {
-	return utils.MapPtrSlice(dtos, FromDtoToModelUser)
+// 1.1 List DTO → List Domain (dùng generic)
+func FromDtoToDomainUserList(dtos []*dtoUser.User) []*domainUser.User {
+	return utils.MapPtrSlice(dtos, FromDtoTodomainUser)
 }
 
-// 2. Model ↔ Entity
+// 2. Domain ↔ Entity
 
-func FromModelToEntityUser(model *modelUser.User) *entityUser.User {
-	if model == nil {
+func FromDomainToEntityUser(domain *domainUser.User) *entityUser.User {
+	if domain == nil {
 		return nil
 	}
 	return &entityUser.User{
-		Id:        model.Id,
-		Name:      model.Name,
-		Email:     model.Email,
-		Role:      model.Role,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		Id:        domain.Id,
+		Name:      domain.Name,
+		Email:     domain.Email,
+		Role:      domain.Role,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }
 
-// List Model → List Entity (dùng generic)
-func FromModelToEntityUserList(models []*modelUser.User) []*entityUser.User {
-	return utils.MapPtrSlice(models, FromModelToEntityUser)
+// List Domain → List Entity (dùng generic)
+func FromDomainToEntityUserList(domains []*domainUser.User) []*entityUser.User {
+	return utils.MapPtrSlice(domains, FromdomainToEntityUser)
 }
 
-func FromEntityToModelUser(entity *entityUser.User) *modelUser.User {
+func FromEntityTodomainUser(entity *entityUser.User) *domainUser.User {
 	if entity == nil {
 		return nil
 	}
-	return &modelUser.User{
+	return &domainUser.User{
 		Id:        entity.Id,
 		Name:      entity.Name,
 		Email:     entity.Email,
@@ -64,27 +64,27 @@ func FromEntityToModelUser(entity *entityUser.User) *modelUser.User {
 	}
 }
 
-// List Entity → List Model (dùng generic)
-func FromEntityToModelUserList(entities []*entityUser.User) []*modelUser.User {
-	return utils.MapPtrSlice(entities, FromEntityToModelUser)
+// List Entity → List Domain (dùng generic)
+func FromEntityToDomainUserList(entities []*entityUser.User) []*domainUser.User {
+	return utils.MapPtrSlice(entities, FromEntityTodomainUser)
 }
 
-// List Model → List DTO
-func FromModelToDtoUser(model *modelUser.User) *dtoUser.User {
-	if model == nil {
+// List Domain → List DTO
+func FromDomainToDtoUser(domain *domainUser.User) *dtoUser.User {
+	if domain == nil {
 		return nil
 	}
 	return &dtoUser.User{
-		Id:        utils.NewUID(uint32(model.Id), utils.ObjectUser).ToBase58(),
-		Name:      model.Name,
-		Email:     model.Email,
-		Role:      model.Role,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		Id:        utils.NewUID(uint32(domain.Id), utils.ObjectUser).ToBase58(),
+		Name:      domain.Name,
+		Email:     domain.Email,
+		Role:      domain.Role,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }
 
-// List Model → List DTO (dùng generic)
-func FromModelToDtoUserList(models []*modelUser.User) []*dtoUser.User {
-	return utils.MapPtrSlice(models, FromModelToDtoUser)
+// List Domain → List DTO (dùng generic)
+func FromDomainToDtoUserList(domains []*domainUser.User) []*dtoUser.User {
+	return utils.MapPtrSlice(domains, FromdomainToDtoUser)
 }

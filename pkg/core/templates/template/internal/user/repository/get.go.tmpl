@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	modelUser "{{.ModuleName}}/internal/shared/model"
-	entityUser "{{.ModuleName}}/internal/user/entity"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
+	modelUser "{{.ModuleName}}/internal/user/model"
 	mapping "{{.ModuleName}}/internal/user/mapping"
 
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
@@ -12,11 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*modelUser.User, int64, error) {
-	var users []*entityUser.User
+func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*domainUser.User, int64, error) {
+	var users []*modelUser.User
 	var total int64
 
-	query := u.db.WithContext(ctx).Model(&entityUser.User{})
+	query := u.db.WithContext(ctx).Model(&modelUser.User{})
 
 	// Search filter
 	if req.Search != "" {
@@ -39,12 +39,12 @@ func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.Pagination
 		return nil, 0, err
 	}
 	//mapping
-	modelsMapping := mapping.FromEntityToModelUserList(users)
-	return modelsMapping, total, nil
+	domainsMapping := mapping.FromModelTodomainUserList(users)
+	return domainsMapping, total, nil
 }
 
-func (u *UserRepository) GetUserById(ctx context.Context, id int) (*modelUser.User, error) {
-	var data entityUser.User
+func (u *UserRepository) GetUserById(ctx context.Context, id int) (*domainUser.User, error) {
+	var data modelUser.User
 
 	err := u.db.WithContext(ctx).First(&data, id).Error
 	if err != nil {
@@ -53,6 +53,6 @@ func (u *UserRepository) GetUserById(ctx context.Context, id int) (*modelUser.Us
 		}
 		return nil, err
 	}
-	modelU := mapping.FromEntityToModelUser(&data)
-	return modelU, nil
+	domainU := mapping.FromModelTodomainUser(&data)
+	return domainU, nil
 }

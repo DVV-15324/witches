@@ -3,14 +3,14 @@ package usecase
 import (
 	"context"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 )
 
 // interface
 type IUserResponsitory interface {
-	CreateUser(cxt context.Context, user *modelUser.User) (int, error)
-	GetUserById(ctx context.Context, id int) (*modelUser.User, error)
-	GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*modelUser.User, int64, error)
+	CreateUser(cxt context.Context, user *domainUser.User) (int, error)
+	GetUserById(ctx context.Context, id int) (*domainUser.User, error)
+	GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*domainUser.User, int64, error)
 }
 
 type UserUseCase struct {

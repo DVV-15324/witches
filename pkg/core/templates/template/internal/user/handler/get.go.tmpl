@@ -25,8 +25,8 @@ func (h *UserHandle) HandleGetAllUser() func(c *gin.Context) {
 			w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
 			return
 		}
-		//Chuyển user từ entity -> dto
-		dto := mapping.FromModelToDtoUserList(user)
+		//Chuyển user từ model -> dto
+		dto := mapping.FromDomainToDtoUserList(user)
 		paginationResp := req.ToPaginationResponse(total)
 		w_resp.WriteSuccessWithPagination(c, dto, &paginationResp)
 	}
@@ -43,7 +43,7 @@ func (h *UserHandle) HandleGetUserById() func(c *gin.Context) {
 			return
 		}
 		dto := &dtoUser.User{}
-		dto = mapping.FromModelToDtoUser(user)
+		dto = mapping.FromDomainToDtoUser(user)
 		w_resp.WriteSuccess(c, dto)
 	}
 }
