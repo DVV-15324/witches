@@ -5,11 +5,11 @@ import (
 	"errors"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"time"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 )
 
 // Create - Tạo refresh token mới
-func (uc *RefreshUseCase) Create(ctx context.Context, token *modelRefresh.RefreshToken) *w_resp.AppError {
+func (uc *RefreshUseCase) Create(ctx context.Context, token *domainRefresh.RefreshToken) *w_resp.AppError {
 	if token == nil {
 		return w_resp.NewAppError(400, errors.New("token cannot be nil"), time.Now())
 	}

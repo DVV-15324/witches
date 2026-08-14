@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"time"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 )
 
 // GetByToken - Lấy refresh token theo token string
-func (uc *RefreshUseCase) GetByToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, *w_resp.AppError) {
+func (uc *RefreshUseCase) GetByToken(ctx context.Context, token string) (*domainRefresh.RefreshToken, *w_resp.AppError) {
 	if token == "" {
 		return nil, w_resp.NewAppError(400, errors.New("token cannot be empty"), time.Now())
 	}

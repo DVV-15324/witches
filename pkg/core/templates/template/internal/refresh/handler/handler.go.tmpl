@@ -12,11 +12,11 @@ type IRefreshUseCase interface {
 	Refresh(ctx context.Context, refreshTokenStr, deviceID string) (*w_utils.Token, *w_resp.AppError)
 }
 type RefreshHandle struct {
-	Log            *w_logger.EntityLogger
+	Log            *w_logger.ModelLogger
 	RefreshUsecase IRefreshUseCase
 }
 
-func NewRefreshHandle(refreshseCase IRefreshUseCase, log *w_logger.EntityLogger) *RefreshHandle {
+func NewRefreshHandle(refreshseCase IRefreshUseCase, log *w_logger.ModelLogger) *RefreshHandle {
 	return &RefreshHandle{
 		RefreshUsecase: refreshseCase,
 		Log:            log,

@@ -5,13 +5,13 @@ import (
 
 	"time"
 
-	entityRefresh "{{.ModuleName}}/internal/refresh/entity"
+	modelRefresh "{{.ModuleName}}/internal/refresh/model"
 )
 
 func (r *RefreshTokenRepository) Revoke(ctx context.Context, token string, reason string) error {
 	now := time.Now()
 	err := r.db.WithContext(ctx).
-		Model(&entityRefresh.RefreshToken{}).
+		Model(&modelRefresh.RefreshToken{}).
 		Where("token = ?", token).
 		Updates(map[string]interface{}{
 			"revoked":        true,
@@ -31,7 +31,7 @@ func (r *RefreshTokenRepository) Revoke(ctx context.Context, token string, reaso
 func (r *RefreshTokenRepository) RevokeAllByUser(ctx context.Context, userID uint32, reason string) error {
 	now := time.Now()
 	err := r.db.WithContext(ctx).
-		Model(&entityRefresh.RefreshToken{}).
+		Model(&modelRefresh.RefreshToken{}).
 		Where("user_id = ? AND revoked = ?", userID, false).
 		Updates(map[string]interface{}{
 			"revoked":        true,

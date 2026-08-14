@@ -2,17 +2,17 @@ package usecase
 
 import (
 	"context"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 type IRefreshTokenRepository interface {
-	Create(ctx context.Context, token *modelRefresh.RefreshToken) error
-	GetByToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, error)
+	Create(ctx context.Context, token *domainRefresh.RefreshToken) error
+	GetByToken(ctx context.Context, token string) (*domainRefresh.RefreshToken, error)
 	Revoke(ctx context.Context, token string, reason string) error
 }
 
@@ -24,13 +24,13 @@ type IJwt interface {
 }
 
 type IAuthUsecase interface {
-	GetAuthByUserId(ctx context.Context, userId int) (*modelAuth.Auth, *w_resp.AppError)
-	GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, *w_resp.AppError)
+	GetAuthByUserId(ctx context.Context, userId int) (*domainAuth.Auth, *w_resp.AppError)
+	GetAuthByEmail(ctx context.Context, email string) (*domainAuth.Auth, *w_resp.AppError)
 }
 
 type IUserUseCase interface {
-	CreateUser(ctx context.Context, user *modelUser.User) (int, *w_resp.AppError)
-	GetUserById(ctx context.Context, id int) (*modelUser.User, *w_resp.AppError)
+	CreateUser(ctx context.Context, user *domainUser.User) (int, *w_resp.AppError)
+	GetUserById(ctx context.Context, id int) (*domainUser.User, *w_resp.AppError)
 }
 
 type RefreshUseCase struct {

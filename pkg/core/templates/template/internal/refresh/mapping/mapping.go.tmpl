@@ -1,12 +1,31 @@
 package mapping
 
 import (
-	entityRefresh "{{.ModuleName}}/internal/refresh/entity"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
+	modelRefresh "{{.ModuleName}}/internal/refresh/model"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 )
 
-func FromModelToEntityRefresh(model *modelRefresh.RefreshToken) *entityRefresh.RefreshToken {
-	return &entityRefresh.RefreshToken{
+func FromDomainToModelRefresh(domain *domainRefresh.RefreshToken) *modelRefresh.RefreshToken {
+	return &modelRefresh.RefreshToken{
+		ID:            domain.ID,
+		UserID:        domain.UserID,
+		Token:         domain.Token,
+		DeviceID:      domain.DeviceID,
+		IPAddress:     domain.IPAddress,
+		UserAgent:     domain.UserAgent,
+		ExpiresAt:     domain.ExpiresAt,
+		Revoked:       domain.Revoked,
+		RevokedAt:     domain.RevokedAt,
+		RevokedReason: domain.RevokedReason,
+		Locale:        domain.Locale,
+		Timezone:      domain.Timezone,
+		CreatedAt:     domain.CreatedAt,
+		UpdatedAt:     domain.UpdatedAt,
+	}
+}
+
+func FromModelToDomainRefresh(model *modelRefresh.RefreshToken) *domainRefresh.RefreshToken {
+	return &domainRefresh.RefreshToken{
 		ID:            model.ID,
 		UserID:        model.UserID,
 		Token:         model.Token,
@@ -21,24 +40,5 @@ func FromModelToEntityRefresh(model *modelRefresh.RefreshToken) *entityRefresh.R
 		Timezone:      model.Timezone,
 		CreatedAt:     model.CreatedAt,
 		UpdatedAt:     model.UpdatedAt,
-	}
-}
-
-func FromEntityToModelRefresh(entity *entityRefresh.RefreshToken) *modelRefresh.RefreshToken {
-	return &modelRefresh.RefreshToken{
-		ID:            entity.ID,
-		UserID:        entity.UserID,
-		Token:         entity.Token,
-		DeviceID:      entity.DeviceID,
-		IPAddress:     entity.IPAddress,
-		UserAgent:     entity.UserAgent,
-		ExpiresAt:     entity.ExpiresAt,
-		Revoked:       entity.Revoked,
-		RevokedAt:     entity.RevokedAt,
-		RevokedReason: entity.RevokedReason,
-		Locale:        entity.Locale,
-		Timezone:      entity.Timezone,
-		CreatedAt:     entity.CreatedAt,
-		UpdatedAt:     entity.UpdatedAt,
 	}
 }

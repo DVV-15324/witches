@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	//entity "{{.ModuleName}}/internal/entity/refresh"
+	//model "{{.ModuleName}}/internal/model/refresh"
 	"time"
-	entityRefresh "{{.ModuleName}}/internal/refresh/entity"
+	modelRefresh "{{.ModuleName}}/internal/refresh/model"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *entityRefresh.RefreshToken) error {
+func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *modelRefresh.RefreshToken) error {
 	if token == nil {
 		return nil
 	}
@@ -34,7 +34,7 @@ func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *entityRe
 	return nil
 }
 
-func (r *RefreshTokenRepository) getCachedToken(ctx context.Context, token string) (*entityRefresh.RefreshToken, error) {
+func (r *RefreshTokenRepository) getCachedToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, error) {
 	key := r.cacheKeyToken(token)
 	data, err := r.redis.Get(ctx, key).Result()
 	if err != nil {
@@ -44,7 +44,7 @@ func (r *RefreshTokenRepository) getCachedToken(ctx context.Context, token strin
 		return nil, err
 	}
 
-	var rt entityRefresh.RefreshToken
+	var rt modelRefresh.RefreshToken
 	if err := json.Unmarshal([]byte(data), &rt); err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (r *RefreshTokenRepository) invalidateUserCache(ctx context.Context, token 
 	// Lấy user_id từ cache để invalidate
 	data, err := r.redis.Get(ctx, r.cacheKeyToken(token)).Result()
 	if err == nil {
-		var rt entityRefresh.RefreshToken
+		var rt modelRefresh.RefreshToken
 		if json.Unmarshal([]byte(data), &rt) == nil {
 			r.redis.Del(ctx, r.cacheKeyActiveTokens(rt.UserID))
 		}

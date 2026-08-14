@@ -6,23 +6,23 @@ import (
 	"errors"
 	"time"
 
-	entityRefresh "{{.ModuleName}}/internal/refresh/entity"
+	modelRefresh "{{.ModuleName}}/internal/refresh/model"
 	mapping "{{.ModuleName}}/internal/refresh/mapping"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 
 	"gorm.io/gorm"
 )
 
-func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, error) {
+func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (*domainRefresh.RefreshToken, error) {
 	// 1. Check cache
 	cached, err := r.getCachedToken(ctx, token)
 	if err == nil && cached != nil {
-		modelRefresh := mapping.FromEntityToModelRefresh(cached)
-		return modelRefresh, nil
+		domainRefresh := mapping.FromModelToDomainRefresh(cached)
+		return domainRefresh, nil
 	}
 
 	// 2. Query DB
-	var rt entityRefresh.RefreshToken
+	var rt modelRefresh.RefreshToken
 	err = r.db.WithContext(ctx).Where("token = ?", token).First(&rt).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -37,6 +37,6 @@ func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (
 	if !rt.Revoked && time.Now().Before(time.Unix(rt.ExpiresAt, 0)) {
 		r.cacheToken(ctx, &rt)
 	}
-	modelRefresh := mapping.FromEntityToModelRefresh(&rt)
-	return modelRefresh, nil
+	domainRefresh := mapping.FromModelToDomainRefresh(&rt)
+	return domainRefresh, nil
 }
