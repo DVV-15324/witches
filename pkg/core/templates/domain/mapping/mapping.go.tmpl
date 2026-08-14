@@ -1,77 +1,77 @@
 package mapping
 
 import (
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	"{{.ModuleName}}/internal/shared/utils"
 	dto{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}-service/dto/response"
 	entity{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}-service/entity"
 )
 
-// DTO ↔ Model
+// DTO ↔ Domain
 
-func FromDtoToModel{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
+func FromDtoToDomain{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *domain{{.NameCap}}.{{.NameCap}} {
 	if dto == nil {
 		return nil
 	}
-	return &model{{.NameCap}}.{{.NameCap}}{
+	return &domain{{.NameCap}}.{{.NameCap}}{
 		ID:        int(utils.DecodeFromBase58(dto.ID).LocalID),
 		CreatedAt: dto.CreatedAt,
 		UpdatedAt: dto.UpdatedAt,
 	}
 }
 
-// List DTO → List Model (dùng generic)
-func FromDtoToModel{{.NameCap}}List(dtos []*dto{{.NameCap}}.{{.NameCap}}) []*model{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(dtos, FromDtoToModel{{.NameCap}})
+// List DTO → List domain (dùng generic)
+func FromDtoToDomain{{.NameCap}}List(dtos []*dto{{.NameCap}}.{{.NameCap}}) []*domain{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(dtos, FromDtoTodomain{{.NameCap}})
 }
 
-//  Model ↔ Entity
+//  Domain ↔ Entity
 
-func FromModelToEntity{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *entity{{.NameCap}}.{{.NameCap}} {
-	if model == nil {
+func FromdomainToEntity{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *entity{{.NameCap}}.{{.NameCap}} {
+	if domain == nil {
 		return nil
 	}
 	return &entity{{.NameCap}}.{{.NameCap}}{
-		ID:        model.ID,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		ID:        domain.ID,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }
 
-// List Model → List Entity (dùng generic)
-func FromModelToEntity{{.NameCap}}List(models []*model{{.NameCap}}.{{.NameCap}}) []*entity{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(models, FromModelToEntity{{.NameCap}})
+// List Domain → List Entity (dùng generic)
+func FromDomainToEntity{{.NameCap}}List(domains []*domain{{.NameCap}}.{{.NameCap}}) []*entity{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(domains, FromDomainToEntity{{.NameCap}})
 }
 
-func FromEntityToModel{{.NameCap}}(entity *entity{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
+func FromEntityToDomain{{.NameCap}}(entity *entity{{.NameCap}}.{{.NameCap}}) *domain{{.NameCap}}.{{.NameCap}} {
 	if entity == nil {
 		return nil
 	}
-	return &model{{.NameCap}}.{{.NameCap}}{
+	return &domain{{.NameCap}}.{{.NameCap}}{
 		ID:        entity.ID,
 		CreatedAt: entity.CreatedAt,
 		UpdatedAt: entity.UpdatedAt,
 	}
 }
 
-// List Entity → List Model (dùng generic)
-func FromEntityToModel{{.NameCap}}List(entities []*entity{{.NameCap}}.{{.NameCap}}) []*model{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(entities, FromEntityToModel{{.NameCap}})
+// List Entity → List Domain (dùng generic)
+func FromEntityToDomain{{.NameCap}}List(entities []*entity{{.NameCap}}.{{.NameCap}}) []*domain{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(entities, FromEntityToDomain{{.NameCap}})
 }
 
-// List Model → List DTO
-func FromModelToDto{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *dto{{.NameCap}}.{{.NameCap}} {
-	if model == nil {
+// List Domain → List DTO
+func FromDomainToDto{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *dto{{.NameCap}}.{{.NameCap}} {
+	if domain == nil {
 		return nil
 	}
 	return &dto{{.NameCap}}.{{.NameCap}}{
-		ID:        utils.NewUID(uint32(model.ID), utils.Object{{.NameCap}}).ToBase58(),
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		ID:        utils.NewUID(uint32(domain.ID), utils.Object{{.NameCap}}).ToBase58(),
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }
 
-// List Model → List DTO (dùng generic)
-func FromModelToDto{{.NameCap}}List(models []*model{{.NameCap}}.{{.NameCap}}) []*dto{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(models, FromModelToDto{{.NameCap}})
+// List Domain → List DTO (dùng generic)
+func FromDomainToDto{{.NameCap}}List(domains []*domain{{.NameCap}}.{{.NameCap}}) []*dto{{.NameCap}}.{{.NameCap}} {
+	return utils.MapPtrSlice(domains, FromDomainToDto{{.NameCap}})
 }
