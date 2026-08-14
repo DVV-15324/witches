@@ -54,7 +54,7 @@ type HandleServices struct {
 	HandleRefresh  IRefreshHandle
 	HandleAuth     IAuthHandle
 	HandleUser     IUserHandle
-	Logger         *logger.EntityLogger
+	Logger         *logger.ModelLogger
 	Session        *w_utils.SessionService
 	Blacklist      *w_utils.BlacklistService
 	RateLimit      *limiter.Limiter
