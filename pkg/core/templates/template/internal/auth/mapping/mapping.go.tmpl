@@ -2,26 +2,41 @@ package mapping
 
 import (
 	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
-	entityAuth "{{.ModuleName}}/internal/auth/entity"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
+	modelAuth "{{.ModuleName}}/internal/auth/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
 )
 
-func FromRegisterToModelAuth(dtoAuth *dtoAuth.Register) *modelAuth.Auth {
-	return &modelAuth.Auth{
+func FromRegisterToDomainAuth(dtoAuth *dtoAuth.Register) *domainAuth.Auth {
+	return &domainAuth.Auth{
 		Email:    dtoAuth.Email,
 		Password: dtoAuth.Password,
 	}
 }
 
-func FromLoginToModelAuth(dtoAuth *dtoAuth.Login) *modelAuth.Auth {
-	return &modelAuth.Auth{
+func FromLoginToDomainAuth(dtoAuth *dtoAuth.Login) *domainAuth.Auth {
+	return &domainAuth.Auth{
 		Email:    dtoAuth.Email,
 		Password: dtoAuth.Password,
 	}
 }
 
-func FromModelToEntityAuth(model *modelAuth.Auth) *entityAuth.Auth {
-	return &entityAuth.Auth{
+func FromDomainToModelAuth(domain *domainAuth.Auth) *modelAuth.Auth {
+	return &modelAuth.Auth{
+		Id:        domain.Id,
+		Email:     domain.Email,
+		UserId:    domain.UserId,
+		Password:  domain.Password,
+		Salt:      domain.Salt,
+		Banned:    domain.Banned,
+		AuthType:  domain.AuthType,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
+	}
+}
+
+// Domain → Model
+func FromModelToDomainAuth(model *modelAuth.Auth) *domainAuth.Auth {
+	return &domainAuth.Auth{
 		Id:        model.Id,
 		Email:     model.Email,
 		UserId:    model.UserId,
@@ -31,20 +46,5 @@ func FromModelToEntityAuth(model *modelAuth.Auth) *entityAuth.Auth {
 		AuthType:  model.AuthType,
 		CreatedAt: model.CreatedAt,
 		UpdatedAt: model.UpdatedAt,
-	}
-}
-
-// Model → Entity
-func FromEntityToModelAuth(entity *entityAuth.Auth) *modelAuth.Auth {
-	return &modelAuth.Auth{
-		Id:        entity.Id,
-		Email:     entity.Email,
-		UserId:    entity.UserId,
-		Password:  entity.Password,
-		Salt:      entity.Salt,
-		Banned:    entity.Banned,
-		AuthType:  entity.AuthType,
-		CreatedAt: entity.CreatedAt,
-		UpdatedAt: entity.UpdatedAt,
 	}
 }

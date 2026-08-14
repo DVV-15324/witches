@@ -6,11 +6,11 @@ import (
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (a *AuthUseCase) Register(ctx context.Context, auth *modelAuth.Auth, name string) *w_resp.AppError {
+func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name string) *w_resp.AppError {
 	err := a.TxManager.WithinTransaction(ctx, func(ctx context.Context) error {
 		// check tài khoản tồn tại
 		authEmail, err := a.AuthReponsitory.GetAuthByEmail(ctx, auth.Email)
@@ -32,13 +32,13 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *modelAuth.Auth, name s
 		}
 
 		// Tạo User
-		userUid, _ := a.UserUseCase.CreateUser(ctx, &modelUser.User{
+		userUid, _ := a.UserUseCase.CreateUser(ctx, &domainUser.User{
 			Email: auth.Email,
 			Name:  name,
 		})
 
 		// Tạo Auth
-		err_auth := a.AuthReponsitory.CreateAuth(ctx, &modelAuth.Auth{
+		err_auth := a.AuthReponsitory.CreateAuth(ctx, &domainAuth.Auth{
 			Salt:     randomString,
 			Email:    auth.Email,
 			Password: hash,

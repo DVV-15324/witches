@@ -3,23 +3,23 @@ package repository
 import (
 	"context"
 	"errors"
-	entityAuth "{{.ModuleName}}/internal/auth/entity"
+	modelAuth "{{.ModuleName}}/internal/auth/model"
 	"{{.ModuleName}}/internal/auth/mapping"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
 
 	"gorm.io/gorm"
 )
 
-func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, error) {
+func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*domainAuth.Auth, error) {
 	// 1. Check cache
 	auth, err := r.getAuthFromCacheByEmail(ctx, email)
 	if err == nil && auth != nil {
-		modelA := mapping.FromEntityToModelAuth(auth)
-		return modelA, nil
+		domainA := mapping.FromModelToDomainAuth(auth)
+		return domainA, nil
 	}
 
 	// 2. Query DB
-	var data entityAuth.Auth
+	var data modelAuth.Auth
 	err = r.db.WithContext(ctx).Where("email = ?", email).First(&data).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -29,18 +29,18 @@ func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*mod
 
 	}
 	r.cacheAuth(ctx, &data)
-	modelA := mapping.FromEntityToModelAuth(&data)
-	return modelA, nil
+	domainA := mapping.FromModelTodomainAuth(&data)
+	return domainA, nil
 }
-func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*modelAuth.Auth, error) {
+func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*domainAuth.Auth, error) {
 	// 1. Check cache
 	auth, err := r.getAuthFromCacheByUserID(ctx, userID)
 	if err == nil && auth != nil {
-		modelA := mapping.FromEntityToModelAuth(auth)
-		return modelA, nil
+		domainA := mapping.FromModelToDomainAuth(auth)
+		return domainA, nil
 	} else {
 		// 2. Query DB
-		var data entityAuth.Auth
+		var data modelAuth.Auth
 		err = r.db.WithContext(ctx).Where("user_id = ?", userID).First(&data).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -50,8 +50,8 @@ func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*m
 			return nil, err
 		}
 		r.cacheAuth(ctx, &data)
-		modelA := mapping.FromEntityToModelAuth(&data)
-		return modelA, nil
+		domainA := mapping.FromModelToDomainAuth(&data)
+		return domainA, nil
 	}
 
 }

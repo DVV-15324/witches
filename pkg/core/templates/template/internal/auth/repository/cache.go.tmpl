@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 
-	entityAuth "{{.ModuleName}}/internal/auth/entity"
+	modelAuth "{{.ModuleName}}/internal/auth/model"
 
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func (r *AuthRepository) cacheAuth(ctx context.Context, auth *entityAuth.Auth) error {
+func (r *AuthRepository) cacheAuth(ctx context.Context, auth *modelAuth.Auth) error {
 	if auth == nil {
 		return nil
 	}
@@ -33,7 +33,7 @@ func (r *AuthRepository) cacheAuth(ctx context.Context, auth *entityAuth.Auth) e
 	return err
 }
 
-func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email string) (*entityAuth.Auth, error) {
+func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email string) (*modelAuth.Auth, error) {
 	key := r.cacheKeyAuthByEmail(email)
 	data, err := r.redis.Get(ctx, key).Result()
 	if err != nil {
@@ -43,14 +43,14 @@ func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email stri
 		return nil, err
 	}
 
-	var auth entityAuth.Auth
+	var auth modelAuth.Auth
 	if err := json.Unmarshal([]byte(data), &auth); err != nil {
 		return nil, err
 	}
 	return &auth, nil
 }
 
-func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID uint32) (*entityAuth.Auth, error) {
+func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID uint32) (*modelAuth.Auth, error) {
 	key := r.cacheKeyAuthByUserID(userID)
 	data, err := r.redis.Get(ctx, key).Result()
 	if err != nil {
@@ -60,7 +60,7 @@ func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID ui
 		return nil, err
 	}
 
-	var auth entityAuth.Auth
+	var auth modelAuth.Auth
 	if err := json.Unmarshal([]byte(data), &auth); err != nil {
 		return nil, err
 	}

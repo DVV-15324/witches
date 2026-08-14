@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"{{.ModuleName}}/internal/auth/mapping"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (r *AuthRepository) CreateAuth(ctx context.Context, modelAuth *modelAuth.Auth) error {
-	auth := mapping.FromModelToEntityAuth(modelAuth)
+func (r *AuthRepository) CreateAuth(ctx context.Context, domainAuth *domainAuth.Auth) error {
+	auth := mapping.FromDomainToModelAuth(domainAuth)
 	result := r.db.WithContext(ctx).
 		Select("email", "password", "user_id", "salt").
 		Create(auth)

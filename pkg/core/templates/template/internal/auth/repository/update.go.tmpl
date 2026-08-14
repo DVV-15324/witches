@@ -3,18 +3,18 @@ package repository
 import (
 	"context"
 
-	entityAuth "{{.ModuleName}}/internal/auth/entity"
+	modelAuth "{{.ModuleName}}/internal/auth/model"
 	"{{.ModuleName}}/internal/auth/mapping"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (r *AuthRepository) UpdateAuth(ctx context.Context, modleAuth *modelAuth.Auth) error {
-	auth := mapping.FromModelToEntityAuth(modleAuth)
+func (r *AuthRepository) UpdateAuth(ctx context.Context, modleAuth *domainAuth.Auth) error {
+	auth := mapping.FromDomainToModelAuth(modleAuth)
 	// Lấy old auth để invalidate cache
-	var oldAuth entityAuth.Auth
+	var oldAuth modelAuth.Auth
 	r.db.WithContext(ctx).Where("email = ?", auth.Email).First(&oldAuth)
 
-	result := r.db.WithContext(ctx).Model(&entityAuth.Auth{}).
+	result := r.db.WithContext(ctx).Domain(&modelAuth.Auth{}).
 		Where("email = ?", auth.UserId).
 		Updates(map[string]interface{}{
 			"password":  auth.Password,

@@ -32,11 +32,11 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 		}
 
 		// Fixed: Use the data variable, not an empty struct
-		entity := mapping.FromRegisterToModelAuth(&data)
+		domain := mapping.FromRegisterToDomainAuth(&data)
 		nameUser := data.Name
 
 		// Register
-		resq := h.UsecaseAuth.Register(c.Request.Context(), entity, nameUser)
+		resq := h.UsecaseAuth.Register(c.Request.Context(), domain, nameUser)
 		if resq != nil {
 			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
 			return

@@ -11,9 +11,9 @@ import (
 	"io"
 	"net/http"
 	"time"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
-	modelToken "{{.ModuleName}}/internal/shared/model"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	domainToken "{{.ModuleName}}/internal/shared/domain"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 	utils "{{.ModuleName}}/internal/shared/utils"
 )
 
@@ -55,7 +55,7 @@ func (a *AuthUseCase) LoginWithGoogle(
 	// 4. Nếu user chưa tồn tại → Tạo mới
 	if auth == nil {
 		//  4a. Tạo user mới
-		userID, err := a.UserUseCase.CreateUser(ctx, &modelUser.User{
+		userID, err := a.UserUseCase.CreateUser(ctx, &domainUser.User{
 			Email: email,
 			Name:  fullName,
 		})
@@ -64,7 +64,7 @@ func (a *AuthUseCase) LoginWithGoogle(
 		}
 
 		//  4b. Tạo auth record (Google user, không có password)
-		auth = &modelAuth.Auth{
+		auth = &domainAuth.Auth{
 			UserId:   userID,
 			Email:    email,
 			AuthType: "google",
@@ -137,7 +137,7 @@ func (a *AuthUseCase) getGoogleUserInfo(accessToken string) (map[string]interfac
 // generateTokenResponse - Tạo Access Token + Refresh Token
 func (a *AuthUseCase) generateTokenResponse(
 	ctx context.Context,
-	auth *modelAuth.Auth,
+	auth *domainAuth.Auth,
 	deviceID string,
 	ipAddress string,
 	userAgent string,
@@ -175,7 +175,7 @@ func (a *AuthUseCase) generateTokenResponse(
 	}
 
 	// 5. Lưu Refresh Token vào Database
-	refreshToken := &modelToken.RefreshToken{
+	refreshToken := &domainToken.RefreshToken{
 		UserID:    uint32(auth.UserId),
 		Token:     refreshTokenStr.Token,
 		DeviceID:  deviceID,

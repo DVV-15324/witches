@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	modelAuth "{{.ModuleName}}/internal/shared/model"
-	modelToken "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	domainToken "{{.ModuleName}}/internal/shared/domain"
 	//"fmt"
 	"time"
 
@@ -18,7 +18,7 @@ import (
 )
 
 // Login chỉ đọc không cần transaction - tiết kiệm tài nguyên
-func (a *AuthUseCase) Login(ctx context.Context, au *modelAuth.Auth, DeviceID string, IPAddress string, UserAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError) {
+func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID string, IPAddress string, UserAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError) {
 	// 1. Check user
 	auth, err := a.AuthReponsitory.GetAuthByEmail(ctx, au.Email)
 	///fmt.Println(auth)
@@ -67,7 +67,7 @@ func (a *AuthUseCase) Login(ctx context.Context, au *modelAuth.Auth, DeviceID st
 		resp := w_resp.NewAppError(500, err_refresh_token, time.Now())
 		return nil, resp
 	}
-	refreshToken := &modelToken.RefreshToken{
+	refreshToken := &domainToken.RefreshToken{
 		UserID:    uint32(auth.UserId),
 		Token:     refreshTokenStr.Token,
 		DeviceID:  DeviceID,

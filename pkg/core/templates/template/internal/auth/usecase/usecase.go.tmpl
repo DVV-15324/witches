@@ -2,22 +2,22 @@ package usecase
 
 import (
 	"context"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
-	modelRefresh "{{.ModuleName}}/internal/shared/model"
-	modelUser "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
+	domainUser "{{.ModuleName}}/internal/shared/domain"
 	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 type IAuthReponsitory interface {
-	CreateAuth(ctx context.Context, auth *modelAuth.Auth) error
-	GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, error)
-	GetAuthByUserId(ctx context.Context, userID uint32) (*modelAuth.Auth, error)
+	CreateAuth(ctx context.Context, auth *domainAuth.Auth) error
+	GetAuthByEmail(ctx context.Context, email string) (*domainAuth.Auth, error)
+	GetAuthByUserId(ctx context.Context, userID uint32) (*domainAuth.Auth, error)
 }
 type IRefreshTokenUsecase interface {
-	Create(ctx context.Context, token *modelRefresh.RefreshToken) *w_resp.AppError
-	GetByToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, *w_resp.AppError)
+	Create(ctx context.Context, token *domainRefresh.RefreshToken) *w_resp.AppError
+	GetByToken(ctx context.Context, token string) (*domainRefresh.RefreshToken, *w_resp.AppError)
 	Revoke(ctx context.Context, token string, reason string, deviceID string) *w_resp.AppError
 }
 
@@ -27,8 +27,8 @@ type IHash interface {
 }
 
 type IUserUseCase interface {
-	CreateUser(ctx context.Context, user *modelUser.User) (int, *w_resp.AppError)
-	GetUserById(ctx context.Context, id int) (*modelUser.User, *w_resp.AppError)
+	CreateUser(ctx context.Context, user *domainUser.User) (int, *w_resp.AppError)
+	GetUserById(ctx context.Context, id int) (*domainUser.User, *w_resp.AppError)
 }
 
 type IJwt interface {

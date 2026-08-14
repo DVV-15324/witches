@@ -30,12 +30,12 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 			return
 		}
 
-		entity := mapping.FromLoginToModelAuth(&data)
+		domain := mapping.FromLoginToDomainAuth(&data)
 
 		// Use utils to get device info
 		deviceID, ipAddress, userAgent, locale, timeZone := utils.GetDeviceInfo(c)
 
-		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), entity, deviceID, ipAddress, userAgent, locale, timeZone)
+		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), domain, deviceID, ipAddress, userAgent, locale, timeZone)
 		if resq != nil {
 			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
 			return

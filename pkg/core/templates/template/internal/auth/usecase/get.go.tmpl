@@ -5,10 +5,10 @@ import (
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"time"
-	modelAuth "{{.ModuleName}}/internal/shared/model"
+	domainAuth "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (a *AuthUseCase) GetAuthByEmail(ctx context.Context, email string) (*modelAuth.Auth, *w_resp.AppError) {
+func (a *AuthUseCase) GetAuthByEmail(ctx context.Context, email string) (*domainAuth.Auth, *w_resp.AppError) {
 
 	users, err := a.AuthReponsitory.GetAuthByEmail(ctx, email)
 	if err != nil {
@@ -18,7 +18,7 @@ func (a *AuthUseCase) GetAuthByEmail(ctx context.Context, email string) (*modelA
 	return users, nil
 }
 
-func (a *AuthUseCase) GetAuthByUserId(ctx context.Context, userId int) (*modelAuth.Auth, *w_resp.AppError) {
+func (a *AuthUseCase) GetAuthByUserId(ctx context.Context, userId int) (*domainAuth.Auth, *w_resp.AppError) {
 	users, err := a.AuthReponsitory.GetAuthByUserId(ctx, uint32(userId))
 	if err != nil {
 		resp := w_resp.NewAppError(500, err, time.Now())
