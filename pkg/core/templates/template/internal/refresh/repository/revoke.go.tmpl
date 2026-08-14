@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	entityRefresh "{{.ModuleName}}/internal/refresh-service/entity"
+	entityRefresh "{{.ModuleName}}/internal/refresh/entity"
 )
 
 func (r *RefreshTokenRepository) Revoke(ctx context.Context, token string, reason string) error {
