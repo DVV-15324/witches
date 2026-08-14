@@ -22,12 +22,12 @@ func FromDtoToDomain{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *domain{{.Na
 
 // List DTO → List domain (dùng generic)
 func FromDtoToDomain{{.NameCap}}List(dtos []*dto{{.NameCap}}.{{.NameCap}}) []*domain{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(dtos, FromDtoTodomain{{.NameCap}})
+	return utils.MapPtrSlice(dtos, FromDtoToDomain{{.NameCap}})
 }
 
 //  Domain ↔ Model
 
-func FromdomainToModel{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
+func FromDomainToModel{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *model{{.NameCap}}.{{.NameCap}} {
 	if domain == nil {
 		return nil
 	}
