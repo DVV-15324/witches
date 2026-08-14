@@ -15,12 +15,12 @@ type I{{.NameCap}}Usecase interface {
 	Delete(ctx context.Context, id int) *w_resp.AppError
 }
 type {{.NameCap}}Handler struct {
-	Log         *logger.EntityLogger
+	Log         *logger.ModelLogger
 	usecase I{{.NameCap}}Usecase
 }
 
 // New{{.NameCap}}Handler - Constructor
-func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.EntityLogger) *{{.NameCap}}Handler {
+func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.ModelLogger) *{{.NameCap}}Handler {
 	return &{{.NameCap}}Handler{
 	usecase: usecase,
 	Log:         log,

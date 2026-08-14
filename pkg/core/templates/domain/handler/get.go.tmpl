@@ -34,7 +34,7 @@ func (h *{{.NameCap}}Handler) GetAll(c *gin.Context) {
 		w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
 		return
 	}
-	dto := mapping.FromModelToDto{{.NameCap}}List(data)
+	dto := mapping.FromDomainToDto{{.NameCap}}List(data)
 	paginationResp := req.ToPaginationResponse(total)
 	w_resp.WriteSuccessWithPagination(c, dto, &paginationResp)
 }
