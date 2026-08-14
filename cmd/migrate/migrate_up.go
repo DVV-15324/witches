@@ -1,7 +1,6 @@
 package cmd_migrate
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -9,13 +8,12 @@ import (
 	utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
-func WitchesMigrateUp(DB_URL string, DB_DRIVER string) {
-	migratePath := utils.GetMigrationsURL()
+func WitchesMigrateUp(DB_URL string, DB_DRIVER string, migrationPath string) {
+
 	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
-	fmt.Println(migratePath, fullDBURL)
 	cmd := exec.Command(
 		"migrate",
-		"-path", migratePath,
+		"-path", migrationPath,
 		"-database", fullDBURL,
 		"up", "1",
 	)

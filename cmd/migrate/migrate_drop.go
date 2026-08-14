@@ -7,12 +7,11 @@ import (
 	"os/exec"
 )
 
-func WitchesMigrateDrop(DB_URL string, DB_DRIVER string) {
-	migratePath := utils.GetMigrationsURL()
+func WitchesMigrateDrop(DB_URL string, DB_DRIVER string, migrationPath string) {
 	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
 	cmd := exec.Command(
 		"migrate",
-		"-path", migratePath,
+		"-path", migrationPath,
 		"-database", fullDBURL,
 		"drop", "-f",
 	)

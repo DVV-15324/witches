@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func setupTestWithPostgres(t *testing.T) (dbURL string, cleanup func()) {
+func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cleanup func()) {
 	ctx := context.Background()
 
 	// 1. Tạo thư mục tạm
@@ -24,8 +24,8 @@ func setupTestWithPostgres(t *testing.T) (dbURL string, cleanup func()) {
 
 	// 2. Tạo thư mục migrations trong thư mục tạm
 	migrationsDir := filepath.Join(tmpDir, "migrate", "migrations")
+	migrationsDir = filepath.ToSlash(migrationsDir)
 	err := os.MkdirAll(migrationsDir, 0755)
-	os.Setenv("WITCHES_MIGRATIONS_PATH", migrationsDir)
 	require.NoError(t, err)
 
 	// 3. Tạo migration files...
@@ -49,7 +49,7 @@ DROP TABLE IF EXISTS users;
 	err = os.WriteFile(downFile, []byte(downContent), 0644)
 	require.NoError(t, err)
 
-	// 3. Chạy PostgreSQL container
+	// 4. Chạy PostgreSQL container
 	postgresContainer, err := postgres.RunContainer(ctx,
 		testcontainers.WithImage("postgres:16-alpine"),
 		postgres.WithDatabase("testdb"),
@@ -62,40 +62,35 @@ DROP TABLE IF EXISTS users;
 	)
 	require.NoError(t, err)
 
-	// 4. Lấy connection string
+	// 5. Lấy connection string
 	connStr, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
 	require.NoError(t, err)
 
-	// 5. Trả về URL và cleanup
+	// 6. Trả về URL và cleanup
 	cleanup = func() {
-		// Dừng container sau test
 		if err := postgresContainer.Terminate(ctx); err != nil {
 			t.Logf("Failed to terminate container: %v", err)
 		}
 		os.RemoveAll(tmpDir)
 	}
 
-	return connStr, cleanup
+	return connStr, migrationsDir, cleanup
 }
 
-// Test WitchesMigrateUp - Up migration với PostgreSQL
+// Test WitchesMigrateUp
 func TestWitchesMigrateUp(t *testing.T) {
-	// Kiểm tra binary migrate có sẵn
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, cleanup := setupTestWithPostgres(t)
+	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	// Gọi hàm migrate up
-	WitchesMigrateUp(dbURL, "postgres")
+	WitchesMigrateUp(dbURL, "postgres", migrationPath)
 
-	// Kiểm tra bảng đã được tạo
 	ctx := context.Background()
 	connStr := dbURL + "&sslmode=disable"
-	// Có thể dùng sql.Open hoặc GORM để kiểm tra
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
@@ -111,23 +106,23 @@ func TestWitchesMigrateUp(t *testing.T) {
 	assert.True(t, tableExists, "Table 'users' should exist")
 }
 
-// Test WitchesMigrateVersion - Kiểm tra version
+// Test WitchesMigrateVersion
 func TestWitchesMigrateVersion(t *testing.T) {
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, cleanup := setupTestWithPostgres(t)
+	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
 	// Up trước
-	WitchesMigrateUp(dbURL, "postgres")
+	WitchesMigrateUp(dbURL, "postgres", migrationPath)
 
-	// Gọi hàm version để có coverage (bỏ qua output)
-	WitchesMigrateVersion(dbURL, "postgres")
+	// Gọi hàm version
+	WitchesMigrateVersion(dbURL, "postgres", migrationPath)
 
-	// Kiểm tra version bằng SQL trực tiếp
+	// Kiểm tra version trong DB
 	ctx := context.Background()
 	connStr := dbURL + "&sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
@@ -136,29 +131,25 @@ func TestWitchesMigrateVersion(t *testing.T) {
 
 	var version int
 	err = db.QueryRowContext(ctx, `
-        SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1
-    `).Scan(&version)
+		SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1
+	`).Scan(&version)
 	require.NoError(t, err)
 	assert.Equal(t, 1, version, "Migration version should be 1")
 }
 
-// Test WitchesMigrateDown - Down migration
+// Test WitchesMigrateDown
 func TestWitchesMigrateDown(t *testing.T) {
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, cleanup := setupTestWithPostgres(t)
+	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	// Up trước
-	WitchesMigrateUp(dbURL, "postgres")
+	WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	WitchesMigrateDown(dbURL, "postgres", migrationPath)
 
-	// Down sau
-	WitchesMigrateDown(dbURL, "postgres")
-
-	// Kiểm tra bảng đã bị xóa
 	ctx := context.Background()
 	connStr := dbURL + "&sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
@@ -176,23 +167,19 @@ func TestWitchesMigrateDown(t *testing.T) {
 	assert.False(t, tableExists, "Table 'users' should not exist")
 }
 
-// Test WitchesMigrateDrop - Drop database
+// Test WitchesMigrateDrop
 func TestWitchesMigrateDrop(t *testing.T) {
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, cleanup := setupTestWithPostgres(t)
+	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	// Up trước
-	WitchesMigrateUp(dbURL, "postgres")
+	WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	WitchesMigrateDrop(dbURL, "postgres", migrationPath)
 
-	// Drop sau
-	WitchesMigrateDrop(dbURL, "postgres")
-
-	// Kiểm tra bảng đã bị xóa
 	ctx := context.Background()
 	connStr := dbURL + "&sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
@@ -210,20 +197,19 @@ func TestWitchesMigrateDrop(t *testing.T) {
 	assert.False(t, tableExists, "Table 'users' should not exist")
 }
 
-// Test WitchesMigrateForce - Force version
+// Test WitchesMigrateForce
 func TestWitchesMigrateForce(t *testing.T) {
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, cleanup := setupTestWithPostgres(t)
+	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	// Force version 1 mà không cần migration
-	WitchesMigrateForce(dbURL, "postgres", "1")
+	// Force version 1 mà không cần migration thực tế
+	WitchesMigrateForce(dbURL, "postgres", migrationPath, "1")
 
-	// Kiểm tra version đã được set
 	ctx := context.Background()
 	connStr := dbURL + "&sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
