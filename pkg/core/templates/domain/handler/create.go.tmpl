@@ -5,7 +5,7 @@ import (
 	"{{.ModuleName}}/internal/{{.FolderName}}/dto/request"
 	"github.com/gin-gonic/gin"
 	"time"
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	"{{.ModuleName}}/internal/shared/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 )
@@ -18,11 +18,11 @@ func (h *{{.NameCap}}Handler) Create(c *gin.Context) {
 		return
 	}
 
-	model := &model{{.NameCap}}.{{.NameCap}}{
+	domain := &domain{{.NameCap}}.{{.NameCap}}{
 		// field of request
 	}
 
-	resp := h.usecase.Create(c.Request.Context(), model)
+	resp := h.usecase.Create(c.Request.Context(), domain)
 	if resp != nil {
 		w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
 		return

@@ -6,7 +6,7 @@ import (
 	"{{.ModuleName}}/internal/shared/utils"
 	"{{.ModuleName}}/internal/{{.FolderName}}/dto/request"
 	"github.com/gin-gonic/gin"
-	model{{.NameCap}} "{{.ModuleName}}/internal/shared/model"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 )
 
@@ -26,8 +26,8 @@ func (h *{{.NameCap}}Handler) Update(c *gin.Context) {
 	}
 
 
-	model := model{{.NameCap}}.{{.NameCap}}{}
-	resp := h.usecase.Update(c.Request.Context(), id, &model)
+	domain := domain{{.NameCap}}.{{.NameCap}}{}
+	resp := h.usecase.Update(c.Request.Context(), id, &domain)
 
 	if resp != nil {
 		w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)

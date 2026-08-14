@@ -23,7 +23,7 @@ func (h *{{.NameCap}}Handler) GetByID(c *gin.Context) {
 		w_resp.WriteErrorWithLog(c, h.Log, err_get, utils.ReqKey)
 		return
 	}
-	dto := mapping.FromModelToDto{{.NameCap}}(data)
+	dto := mapping.FromDomainToDto{{.NameCap}}(data)
 	w_resp.WriteSuccess(c, dto)
 }
 
