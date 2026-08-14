@@ -29,7 +29,7 @@ func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*dom
 
 	}
 	r.cacheAuth(ctx, &data)
-	domainA := mapping.FromModelTodomainAuth(&data)
+	domainA := mapping.FromModelToDomainAuth(&data)
 	return domainA, nil
 }
 func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*domainAuth.Auth, error) {
