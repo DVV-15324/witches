@@ -4,7 +4,7 @@ import (
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_logger "github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	"context"
 )
 
@@ -14,11 +14,13 @@ type IRefreshUseCase interface {
 type RefreshHandle struct {
 	Log            *w_logger.ModelLogger
 	RefreshUsecase IRefreshUseCase
+	Cfg         *wcmd_utils.Config
 }
 
-func NewRefreshHandle(refreshseCase IRefreshUseCase, log *w_logger.ModelLogger) *RefreshHandle {
+func NewRefreshHandle(refreshseCase IRefreshUseCase, log *w_logger.ModelLogger, Cfg *wcmd_utils.Config) *RefreshHandle {
 	return &RefreshHandle{
 		RefreshUsecase: refreshseCase,
 		Log:            log,
+		Cfg:            Cfg,
 	}
 }
