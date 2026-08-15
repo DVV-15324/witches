@@ -4,139 +4,172 @@ import (
 	"context"
 	"testing"
 
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-// pkg/core/utils/context_test.go
-func TestGetSessionID(t *testing.T) {
-	ctx := context.Background()
-	keyReq := "request-context"
-
-	// Test with context
-	reqCtx := NewRequestContextFull(
-		"sub-123", "tid-456", "device-789",
-		"192.168.1.1", "Mozilla/5.0",
-		"shard-1", "session-123", "req-456",
-		"web", "vi-VN", "Asia/Ho_Chi_Minh",
-	)
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "session-123", GetSessionID(ctx, keyReq))
-
-	// Test without context
-	emptyCtx := context.Background()
-	assert.Empty(t, GetSessionID(emptyCtx, keyReq))
+func getTestConfigContext() *utils.Config {
+	return &utils.Config{
+		RequestKey: "request-context",
+	}
 }
 
-func TestGetIPAddress(t *testing.T) {
+func TestSaveAndGetRequestContext(t *testing.T) {
+	cfg := getTestConfigContext()
 	ctx := context.Background()
-	keyReq := "request-context"
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
 
-	reqCtx := NewRequestContext(keyReq, "sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "192.168.1.1", GetIPAddress(ctx, keyReq))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetIPAddress(emptyCtx, keyReq))
+	retrieved := GetRequestContext(ctx, cfg)
+	assert.Equal(t, reqCtx.Sub, retrieved.Sub)
+	assert.Equal(t, reqCtx.Tid, retrieved.Tid)
+	assert.Equal(t, reqCtx.DeviceID, retrieved.DeviceID)
+	assert.Equal(t, reqCtx.IPAddress, retrieved.IPAddress)
+	assert.Equal(t, reqCtx.UserAgent, retrieved.UserAgent)
 }
 
-func TestGetUserAgent(t *testing.T) {
-	ctx := context.Background()
-	keyReq := "request-context"
-
-	reqCtx := NewRequestContext(keyReq, "sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "Mozilla/5.0", GetUserAgent(ctx, keyReq))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetUserAgent(emptyCtx, keyReq))
-}
-
-func TestGetPlatform(t *testing.T) {
-	ctx := context.Background()
-	keyReq := "request-context"
-
-	reqCtx := NewRequestContextFull(
-		"sub-123", "tid-456", "device-789",
-		"192.168.1.1", "Mozilla/5.0",
-		"shard-1", "session-123", "req-456",
-		"web", "vi-VN", "Asia/Ho_Chi_Minh",
-	)
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "web", GetPlatform(ctx, keyReq))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetPlatform(emptyCtx, keyReq))
-}
-
-func TestGetLocale(t *testing.T) {
-	ctx := context.Background()
-	keyReq := "request-context"
-
-	reqCtx := NewRequestContextFull(
-		"sub-123", "tid-456", "device-789",
-		"192.168.1.1", "Mozilla/5.0",
-		"shard-1", "session-123", "req-456",
-		"web", "vi-VN", "Asia/Ho_Chi_Minh",
-	)
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "vi-VN", GetLocale(ctx, keyReq))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetLocale(emptyCtx, keyReq))
-}
-
-func TestGetTimezone(t *testing.T) {
-	ctx := context.Background()
-	keyReq := "request-context"
-
-	reqCtx := NewRequestContextFull(
-		"sub-123", "tid-456", "device-789",
-		"192.168.1.1", "Mozilla/5.0",
-		"shard-1", "session-123", "req-456",
-		"web", "vi-VN", "Asia/Ho_Chi_Minh",
-	)
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "Asia/Ho_Chi_Minh", GetTimezone(ctx, keyReq))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetTimezone(emptyCtx, keyReq))
-}
-
-// pkg/core/utils/context_test.go
 func TestGetSub(t *testing.T) {
+	cfg := getTestConfigContext()
 	ctx := context.Background()
-	keyReq := "request-context"
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
 
-	// Test with context
-	reqCtx := NewRequestContext(keyReq, "sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "sub-123", GetSub(ctx, keyReq))
+	assert.Equal(t, "sub-123", GetSub(ctx, cfg))
 
-	// Test without context
 	emptyCtx := context.Background()
-	assert.Empty(t, GetSub(emptyCtx, keyReq))
+	assert.Empty(t, GetSub(emptyCtx, cfg))
 }
 
 func TestGetTid(t *testing.T) {
+	cfg := getTestConfigContext()
 	ctx := context.Background()
-	keyReq := "request-context"
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
 
-	reqCtx := NewRequestContext(keyReq, "sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "tid-456", GetTid(ctx, keyReq))
+	assert.Equal(t, "tid-456", GetTid(ctx, cfg))
 
 	emptyCtx := context.Background()
-	assert.Empty(t, GetTid(emptyCtx, keyReq))
+	assert.Empty(t, GetTid(emptyCtx, cfg))
 }
 
 func TestGetDeviceID(t *testing.T) {
+	cfg := getTestConfigContext()
 	ctx := context.Background()
-	keyReq := "request-context"
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
 
-	reqCtx := NewRequestContext(keyReq, "sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
-	ctx = SaveRequestContext(ctx, reqCtx, keyReq)
-	assert.Equal(t, "device-789", GetDeviceID(ctx, keyReq))
+	assert.Equal(t, "device-789", GetDeviceID(ctx, cfg))
 
 	emptyCtx := context.Background()
-	assert.Empty(t, GetDeviceID(emptyCtx, keyReq))
+	assert.Empty(t, GetDeviceID(emptyCtx, cfg))
+}
+
+func TestGetIPAddress(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "192.168.1.1", GetIPAddress(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetIPAddress(emptyCtx, cfg))
+}
+
+func TestGetUserAgent(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContext("sub-123", "tid-456", "device-789", "192.168.1.1", "Mozilla/5.0")
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "Mozilla/5.0", GetUserAgent(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetUserAgent(emptyCtx, cfg))
+}
+
+func TestGetSessionID(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContextFull(
+		"sub-123", "tid-456", "device-789",
+		"192.168.1.1", "Mozilla/5.0",
+		"shard-1", "session-123", "req-456",
+		"web", "vi-VN", "Asia/Ho_Chi_Minh",
+	)
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "session-123", GetSessionID(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetSessionID(emptyCtx, cfg))
+}
+
+func TestGetPlatform(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContextFull(
+		"sub-123", "tid-456", "device-789",
+		"192.168.1.1", "Mozilla/5.0",
+		"shard-1", "session-123", "req-456",
+		"web", "vi-VN", "Asia/Ho_Chi_Minh",
+	)
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "web", GetPlatform(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetPlatform(emptyCtx, cfg))
+}
+
+func TestGetLocale(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContextFull(
+		"sub-123", "tid-456", "device-789",
+		"192.168.1.1", "Mozilla/5.0",
+		"shard-1", "session-123", "req-456",
+		"web", "vi-VN", "Asia/Ho_Chi_Minh",
+	)
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "vi-VN", GetLocale(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetLocale(emptyCtx, cfg))
+}
+
+func TestGetTimezone(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	reqCtx := NewRequestContextFull(
+		"sub-123", "tid-456", "device-789",
+		"192.168.1.1", "Mozilla/5.0",
+		"shard-1", "session-123", "req-456",
+		"web", "vi-VN", "Asia/Ho_Chi_Minh",
+	)
+	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+
+	assert.Equal(t, "Asia/Ho_Chi_Minh", GetTimezone(ctx, cfg))
+
+	emptyCtx := context.Background()
+	assert.Empty(t, GetTimezone(emptyCtx, cfg))
+}
+
+func TestGetRequestContext_WithInvalidType(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.WithValue(context.Background(), cfg.RequestKey, "invalid-value")
+
+	retrieved := GetRequestContext(ctx, cfg)
+	assert.NotNil(t, retrieved)
+	assert.Empty(t, retrieved.Sub)
+	assert.Empty(t, retrieved.Tid)
+}
+
+func TestGetRequestContext_WithNil(t *testing.T) {
+	cfg := getTestConfigContext()
+	ctx := context.Background()
+	retrieved := GetRequestContext(ctx, cfg)
+	assert.NotNil(t, retrieved)
+	assert.Empty(t, retrieved.Sub)
 }

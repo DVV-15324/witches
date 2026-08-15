@@ -36,7 +36,7 @@ func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
 }
 
 func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, ipAddress, userAgent, locale, timezone string) {
-	reqCtx := GetRequestContext(c.Request.Context(), h.config.RequestKey)
+	reqCtx := GetRequestContext(c.Request.Context(), h.config)
 	if reqCtx.DeviceID != "" {
 		deviceID = reqCtx.DeviceID
 		ipAddress = reqCtx.IPAddress

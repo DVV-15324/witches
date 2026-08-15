@@ -2,13 +2,23 @@ package utils
 
 import (
 	"context"
+	"testing"
+	"time"
+
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
+
+func getTestConfigBL() *utils.Config {
+	return &utils.Config{
+		JWTSecret:       "test-secret-key",
+		AccessTokenTTL:  3600,  // 1 giờ
+		RefreshTokenTTL: 86400, // 24 giờ
+	}
+}
 
 func setupTestRedis(t *testing.T) (*redis.Client, *miniredis.Miniredis) {
 	mr, err := miniredis.Run()
@@ -27,7 +37,7 @@ func TestNewBlacklistService(t *testing.T) {
 	client, mr := setupTestRedis(t)
 	defer mr.Close()
 
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	service := NewBlacklistService(client, cfg)
 	assert.NotNil(t, service)
 	assert.Equal(t, cfg.RevokedTTL, service.config.RevokedTTL)
@@ -37,7 +47,7 @@ func TestBlacklistService_BlacklistToken(t *testing.T) {
 	client, mr := setupTestRedis(t)
 	defer mr.Close()
 
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	service := NewBlacklistService(client, cfg)
 	ctx := context.Background()
 
@@ -86,7 +96,7 @@ func TestBlacklistService_IsTokenBlacklisted(t *testing.T) {
 	client, mr := setupTestRedis(t)
 	defer mr.Close()
 
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	service := NewBlacklistService(client, cfg)
 	ctx := context.Background()
 
@@ -115,7 +125,7 @@ func TestBlacklistService_BlacklistToken_WithTTL(t *testing.T) {
 	client, mr := setupTestRedis(t)
 	defer mr.Close()
 
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	cfg.RevokedTTL = 1 // 1 giây
 	service := NewBlacklistService(client, cfg)
 	ctx := context.Background()
@@ -147,7 +157,7 @@ func TestBlacklistService_CacheKeyBlacklist(t *testing.T) {
 	client, mr := setupTestRedis(t)
 	defer mr.Close()
 
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	service := NewBlacklistService(client, cfg)
 
 	token := "test-token"
@@ -163,7 +173,7 @@ func TestJWTAndBlacklist_Integration(t *testing.T) {
 	defer mr.Close()
 
 	// 2. Setup config
-	cfg := getTestConfig()
+	cfg := getTestConfigBL()
 	cfg.AccessTokenTTL = 3600
 	cfg.RevokedTTL = 300
 

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getTestConfig() *utils.Config {
+func getTestConfigJWT() *utils.Config {
 	return &utils.Config{
 		JWTSecret:       "test-secret-key",
 		AccessTokenTTL:  3600,  // 1 giờ
@@ -20,14 +20,14 @@ func getTestConfig() *utils.Config {
 }
 
 func TestNewJwtService(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	assert.NotNil(t, service)
 	assert.Equal(t, cfg, service.config)
 }
 
 func TestJwtService_IssueAccessToken(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -39,7 +39,7 @@ func TestJwtService_IssueAccessToken(t *testing.T) {
 }
 
 func TestJwtService_IssueRefreshToken(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -51,7 +51,7 @@ func TestJwtService_IssueRefreshToken(t *testing.T) {
 }
 
 func TestJwtService_IssueTokenPair(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -66,7 +66,7 @@ func TestJwtService_IssueTokenPair(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_Valid(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -85,7 +85,7 @@ func TestJwtService_ParseToken_Valid(t *testing.T) {
 
 func TestJwtService_ParseToken_Expired(t *testing.T) {
 	// Create config with negative TTL
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	cfg.AccessTokenTTL = -1 // token hết hạn ngay lập tức
 	service := NewJwtService(cfg)
 	ctx := context.Background()
@@ -101,7 +101,7 @@ func TestJwtService_ParseToken_Expired(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_Invalid(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -136,7 +136,7 @@ func TestJwtService_ParseToken_Invalid(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -154,7 +154,7 @@ func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -193,7 +193,7 @@ func TestJwtService_ParseToken_WithConfigNil(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_WithMissingClaims(t *testing.T) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -211,7 +211,7 @@ func TestJwtService_ParseToken_WithMissingClaims(t *testing.T) {
 }
 
 func BenchmarkJwtService_IssueAccessToken(b *testing.B) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
@@ -222,7 +222,7 @@ func BenchmarkJwtService_IssueAccessToken(b *testing.B) {
 }
 
 func BenchmarkJwtService_ParseToken(b *testing.B) {
-	cfg := getTestConfig()
+	cfg := getTestConfigJWT()
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
