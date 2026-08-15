@@ -49,8 +49,8 @@ func (l *GormZapLogger) Error(ctx context.Context, msg string, data ...interface
 }
 
 func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	tid := utils.GetTid(ctx, l.config.RequestKey)
-	sub := utils.GetSub(ctx, l.config.RequestKey)
+	tid := utils.GetTid(ctx, l.config)
+	sub := utils.GetSub(ctx, l.config)
 	if l.LogLevel <= gormlogger.Silent {
 		return
 	}
