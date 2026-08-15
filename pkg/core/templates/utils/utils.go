@@ -9,7 +9,7 @@ import (
 )
 
 type Config interface {
-	GetMuduleName() string
+	GetModuleName() string
 }
 
 func RenderTemplate(templateFS embed.FS, baseDir, destFile, tmplFile string, config Config) {
