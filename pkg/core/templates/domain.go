@@ -308,7 +308,58 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("return statement not found in InitModules")
 	}
 
-	// Tạo dòng khởi tạo: bookModule := book.NewBookModule(core)
+	// Tìm composite literal của Modules trong return statement
+	var compLit *ast.CompositeLit
+	ast.Inspect(returnStmt, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.CompositeLit:
+			switch t := x.Type.(type) {
+			case *ast.Ident:
+				if t.Name == "Modules" {
+					compLit = x
+					return false
+				}
+			case *ast.SelectorExpr:
+				if t.Sel.Name == "Modules" {
+					compLit = x
+					return false
+				}
+			}
+		case *ast.UnaryExpr:
+			if x.Op == token.AND {
+				if cl, ok := x.X.(*ast.CompositeLit); ok {
+					switch t := cl.Type.(type) {
+					case *ast.Ident:
+						if t.Name == "Modules" {
+							compLit = cl
+							return false
+						}
+					case *ast.SelectorExpr:
+						if t.Sel.Name == "Modules" {
+							compLit = cl
+							return false
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	if compLit == nil {
+		return fmt.Errorf("cannot find composite literal for Modules in return statement")
+	}
+
+	// Kiểm tra xem field đã tồn tại chưa
+	for _, elt := range compLit.Elts {
+		if kv, ok := elt.(*ast.KeyValueExpr); ok {
+			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCamel {
+				return fmt.Errorf("field %s already exists in return statement", domainCamel)
+			}
+		}
+	}
+
+	// Tạo câu lệnh khởi tạo: bookModule := book.NewBookModule(core)
 	assignStmt := &ast.AssignStmt{
 		Lhs: []ast.Expr{ast.NewIdent(domain + "Module")},
 		Tok: token.DEFINE,
@@ -322,7 +373,7 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	}
 
 	// Chèn assignStmt vào trước returnStmt
-	newBody := []ast.Stmt{}
+	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+1)
 	for _, stmt := range targetFunc.Body.List {
 		if stmt == returnStmt {
 			newBody = append(newBody, assignStmt)
@@ -331,29 +382,17 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	}
 	targetFunc.Body.List = newBody
 
-	// Cập nhật return statement để thêm Book: bookModule
-	var compLit *ast.CompositeLit
-	ast.Inspect(returnStmt, func(n ast.Node) bool {
-		if cl, ok := n.(*ast.CompositeLit); ok {
-			if sel, ok := cl.Type.(*ast.SelectorExpr); ok && sel.Sel.Name == "Modules" {
-				compLit = cl
-				return false
-			}
-		}
-		return true
-	})
-
-	if compLit != nil {
-		newField := &ast.KeyValueExpr{
-			Key:   ast.NewIdent(domainCamel),
-			Value: ast.NewIdent(domain + "Module"),
-		}
-		compLit.Elts = append(compLit.Elts, newField)
+	// Thêm field vào composite literal
+	newField := &ast.KeyValueExpr{
+		Key:   ast.NewIdent(domainCamel),
+		Value: ast.NewIdent(domain + "Module"),
 	}
+	compLit.Elts = append(compLit.Elts, newField)
 
+	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
-		return err
+		return fmt.Errorf("format code error: %w", err)
 	}
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
