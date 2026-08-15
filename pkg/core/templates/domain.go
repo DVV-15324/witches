@@ -27,6 +27,7 @@ import (
 //go:embed domain/repository/*.tmpl
 //go:embed domain/usecase/*.tmpl
 //go:embed domain/shared/domain/domain.go.tmpl
+//go:embed domain/module.go.tmpl
 var templateSvFS embed.FS
 
 type DomainConfig struct {
