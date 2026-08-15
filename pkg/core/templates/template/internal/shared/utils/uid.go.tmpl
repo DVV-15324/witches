@@ -7,6 +7,9 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 )
 
+// Bits (ví dụ 26, 32, 33,...)
+var Bits int64 = 26
+
 type UID struct {
 	LocalID  uint32
 	ObjectID uint
@@ -20,21 +23,18 @@ func NewUID(localID uint32, objectID uint) *UID {
 }
 
 func (u *UID) ToBase58() string {
-	// Dùng fmt.Appendf thay vì fmt.Sprintf + []byte
-	uid := uint64(u.LocalID)<<26 | uint64(u.ObjectID)
-
-	// Tạo buffer với capacity đủ lớn để tránh reallocate
-	buf := make([]byte, 0, 20) // uint64 max ~20 digits
+	uid := uint64(u.LocalID)<<Bits | uint64(u.ObjectID)
+	buf := make([]byte, 0, 20)
 	buf = fmt.Appendf(buf, "%d", uid)
-
 	return base58.Encode(buf)
 }
 
 func DecodeFromBase58(fakeUID string) *UID {
+	mask := uint64((1 << Bits) - 1)
 	uidByte := base58.Decode(fakeUID)
 	uid, _ := strconv.ParseUint(string(uidByte), 10, 64)
 	return &UID{
-		LocalID:  uint32(uid >> 26),
-		ObjectID: uint(uid & 0x2ffffff),
+		LocalID:  uint32(uid >> Bits),
+		ObjectID: uint(uid & mask),
 	}
 }
