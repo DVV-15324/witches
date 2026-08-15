@@ -195,7 +195,6 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/user/usecase/get.go.tmpl":     filepath.Join("internal", "user", "usecase", "get.go"),
 
 		// SHARED - MIDDLEWARE
-		"template/internal/shared/middleware/cors.go.tmpl":       filepath.Join("internal", "shared", "middleware", "cors.go"),
 		"template/internal/shared/middleware/limit.go.tmpl":      filepath.Join("internal", "shared", "middleware", "limit.go"),
 		"template/internal/shared/middleware/middleware.go.tmpl": filepath.Join("internal", "shared", "middleware", "middleware.go"),
 		"template/internal/shared/middleware/timing.go.tmpl":     filepath.Join("internal", "shared", "middleware", "timing.go"),
