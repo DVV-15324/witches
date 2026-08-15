@@ -1,0 +1,93 @@
+package auth
+
+import (
+	core "{{.ModuleName}}/cmd/server/core"
+	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
+	handler_auth "{{.ModuleName}}/internal/auth/handler"
+	"{{.ModuleName}}/internal/auth/repository"
+	usecase_auth "{{.ModuleName}}/internal/auth/usecase"
+	usecase_refresh "{{.ModuleName}}/internal/refresh/usecase"
+	usecase_user "{{.ModuleName}}/internal/user/usecase"
+	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+
+	"github.com/ulule/limiter/v3"
+)
+
+type AuthModule struct {
+	Handler *handler_auth.AuthHandle
+	Usecase *usecase_auth.AuthUseCase
+	Repo    *repository.AuthRepository
+}
+
+func NewAuthModule(
+	core *core.CoreServices,
+	userUsecase *usecase_user.UserUseCase,
+	refreshUsecase *usecase_refresh.RefreshUseCase,
+) *AuthModule {
+	repo := repository.NewAuthRepository(core.DB, core.TxManager, core.Redis.GetClient())
+	usecase := usecase_auth.NewAuthUseCase(core.JWT, userUsecase, core.Hash, repo, refreshUsecase, core.TxManager, core.Session, core.Blacklist, core.Config)
+	handler := handler_auth.NewAuthHandle(usecase, core.Logger, core.Config, core.DeviceHelper)
+	return &AuthModule{
+		Handler: handler,
+		Usecase: usecase,
+		Repo:    repo,
+	}
+}
+
+func (m *AuthModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate) {
+	// En: Login
+	// Vi: Đăng nhập
+	gen.POST("/v1/auth/login").
+		Summary("User login").
+		Description("Authenticate user and return JWT token").
+		Tags("auth").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		RateLimit(*rateLimit).
+		Body(dtoAuth.Login{}, "Login credentials").
+		Response(200, w_resp.AppResponse{}, "Login successful").
+		Response(401, w_resp.AppResponse{}, "Unauthorized").
+		Handler(m.Handler.HandleLogin()).
+		Build()
+
+	// En: Register
+	// Vi: Đăng kí
+	gen.POST("/v1/auth/register").
+		Summary("User registration").
+		Description("Register a new user account").
+		Tags("auth").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		RateLimit(*rateLimit).
+		Body(dtoAuth.Register{}, "User registration data").
+		Response(201, w_resp.AppResponse{}, "Registration successful").
+		Response(400, w_resp.AppResponse{}, "Bad request").
+		Handler(m.Handler.HandleRegister()).
+		Build()
+
+}
+
+func (m *AuthModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
+
+	// En: Logout
+	// Vi: Đăng xuất
+	gen.POST("/v1/auth/logout").
+		Summary("User logout").
+		Description("Logout user and invalidate JWT token").
+		Tags("auth").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		Response(200, w_resp.AppResponse{}, "Logout successful").
+		Response(401, w_resp.AppResponse{}, "Unauthorized").
+		Use(authMiddleware).
+		Handler(m.Handler.HandleLogout()).
+		Build()
+
+}
