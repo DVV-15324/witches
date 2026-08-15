@@ -6,6 +6,7 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	domainAuth "github.com/example/project/internal/shared/domain"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
 type IUsecaseAuth interface {
@@ -17,11 +18,15 @@ type IUsecaseAuth interface {
 type AuthHandle struct {
 	Log         *logger.ModelLogger
 	UsecaseAuth IUsecaseAuth
+	Cfg         *wcmd_utils.Config
+	DeviceHeper *w_utils.DeviceHelper
 }
 
-func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger) *AuthHandle {
+func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger, cfg *wcmd_utils.Config, deviceHeper *w_utils.DeviceHelper) *AuthHandle {
 	return &AuthHandle{
 		UsecaseAuth: authUseCase,
 		Log:         log,
+		Cfg:         cfg,
+		DeviceHeper: deviceHeper,
 	}
 }

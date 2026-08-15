@@ -5,6 +5,7 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	domainBook "github.com/example/test/internal/shared/domain"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 
 )
 type IBookUsecase interface {
@@ -17,12 +18,14 @@ type IBookUsecase interface {
 type BookHandler struct {
 	Log         *logger.ModelLogger
 	usecase IBookUsecase
+	Cfg     *wcmd_utils.Config
 }
 
 // NewBookHandler - Constructor
-func NewBookHandler(usecase IBookUsecase, log *logger.ModelLogger) *BookHandler {
+func NewBookHandler(usecase IBookUsecase, log *logger.ModelLogger, Cfg *wcmd_utils.Config) *BookHandler {
 	return &BookHandler{
 	usecase: usecase,
 	Log:         log,
+	Cfg         :Cfg,
 	}
 }
