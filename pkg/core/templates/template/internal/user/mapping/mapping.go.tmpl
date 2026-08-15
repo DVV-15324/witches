@@ -6,6 +6,7 @@ import (
 	"{{.ModuleName}}/internal/shared/utils"
 	dtoUser "{{.ModuleName}}/internal/user/dto/response"
 	modelUser "{{.ModuleName}}/internal/user/model"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 // 1. DTO ↔ Domain
@@ -26,7 +27,7 @@ func FromDtoToDomainUser(dto *dtoUser.User) *domainUser.User {
 
 // 1.1 List DTO → List Domain (dùng generic)
 func FromDtoToDomainUserList(dtos []*dtoUser.User) []*domainUser.User {
-	return utils.MapPtrSlice(dtos, FromDtoToDomainUser)
+	return w_utils.MapPtrSlice(dtos, FromDtoToDomainUser)
 }
 
 // 2. Domain ↔ Model
@@ -47,7 +48,7 @@ func FromDomainToModelUser(domain *domainUser.User) *modelUser.User {
 
 // List Domain → List Model (dùng generic)
 func FromDomainToModelUserList(domains []*domainUser.User) []*modelUser.User {
-	return utils.MapPtrSlice(domains, FromDomainToModelUser)
+	return w_utils.MapPtrSlice(domains, FromDomainToModelUser)
 }
 
 func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
@@ -66,7 +67,7 @@ func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
 
 // List Model → List Domain (dùng generic)
 func FromModelToDomainUserList(entities []*modelUser.User) []*domainUser.User {
-	return utils.MapPtrSlice(entities, FromModelToDomainUser)
+	return w_utils.MapPtrSlice(entities, FromModelToDomainUser)
 }
 
 // List Domain → List DTO
@@ -86,5 +87,5 @@ func FromDomainToDtoUser(domain *domainUser.User) *dtoUser.User {
 
 // List Domain → List DTO (dùng generic)
 func FromDomainToDtoUserList(domains []*domainUser.User) []*dtoUser.User {
-	return utils.MapPtrSlice(domains, FromDomainToDtoUser)
+	return w_utils.MapPtrSlice(domains, FromDomainToDtoUser)
 }
