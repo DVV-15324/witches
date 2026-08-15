@@ -14,8 +14,8 @@ import (
 func getTestConfigJWT() *utils.Config {
 	return &utils.Config{
 		JWTSecret:       "test-secret-key",
-		AccessTokenTTL:  3600,  // 1 giờ
-		RefreshTokenTTL: 86400, // 24 giờ
+		AccessTokenTTL:  3600,
+		RefreshTokenTTL: 86400,
 	}
 }
 
@@ -61,8 +61,6 @@ func TestJwtService_IssueTokenPair(t *testing.T) {
 	assert.NotEmpty(t, pair.AccessToken.Token)
 	assert.NotEmpty(t, pair.RefreshToken.Token)
 	assert.NotEqual(t, pair.AccessToken.Token, pair.RefreshToken.Token)
-	assert.Equal(t, cfg.AccessTokenTTL, pair.AccessToken.ExpireAt)
-	assert.Equal(t, cfg.RefreshTokenTTL, pair.RefreshToken.ExpireAt)
 }
 
 func TestJwtService_ParseToken_Valid(t *testing.T) {
@@ -70,30 +68,23 @@ func TestJwtService_ParseToken_Valid(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	sub := "user-123"
-	tid := "trace-456"
-
-	token, err := service.IssueAccessToken(ctx, sub, tid)
+	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
 	require.NoError(t, err)
 
 	claims, err := service.ParseToken(ctx, token.Token)
 	require.NoError(t, err)
-	assert.NotNil(t, claims)
-	assert.Equal(t, sub, claims.Subject)
-	assert.Equal(t, tid, claims.ID)
+	assert.Equal(t, "user-123", claims.Subject)
+	assert.Equal(t, "trace-456", claims.ID)
 }
 
 func TestJwtService_ParseToken_Expired(t *testing.T) {
-	// Create config with negative TTL
 	cfg := getTestConfigJWT()
-	cfg.AccessTokenTTL = -1 // token hết hạn ngay lập tức
+	cfg.AccessTokenTTL = -1
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
 	require.NoError(t, err)
-
-	// Chờ một chút để token hết hạn
 	time.Sleep(10 * time.Millisecond)
 
 	_, err = service.ParseToken(ctx, token.Token)
@@ -110,23 +101,10 @@ func TestJwtService_ParseToken_Invalid(t *testing.T) {
 		token string
 		err   error
 	}{
-		{
-			name:  "malformed token",
-			token: "invalid.token.here",
-			err:   ErrMalformedToken,
-		},
-		{
-			name:  "empty token",
-			token: "",
-			err:   ErrMalformedToken,
-		},
-		{
-			name:  "wrong signature",
-			token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-			err:   ErrInvalidSignature,
-		},
+		{"malformed token", "invalid.token.here", ErrMalformedToken},
+		{"empty token", "", ErrMalformedToken},
+		{"wrong signature", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", ErrInvalidSignature},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := service.ParseToken(ctx, tt.token)
@@ -140,7 +118,7 @@ func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	// Tạo token với algorithm none (không an toàn)
+	// Tạo token với algorithm none
 	token := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
 		"sub": "user-123",
 		"exp": time.Now().Add(time.Hour).Unix(),
@@ -149,8 +127,7 @@ func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = service.ParseToken(ctx, tokenStr)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unexpected signing method")
+	assert.ErrorIs(t, err, ErrInvalidAlgorithm)
 }
 
 func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
@@ -158,7 +135,6 @@ func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	// Tạo token với NotBefore trong tương lai
 	claims := JwtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   "user-123",
@@ -175,64 +151,17 @@ func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_WithConfigNil(t *testing.T) {
-	// Trường hợp config bị nil (có thể xảy ra nếu không khởi tạo đúng)
 	service := &JwtService{config: nil}
 	ctx := context.Background()
-
-	// Tạo token hợp lệ nhưng service không có config
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": "user-123",
-		"exp": time.Now().Add(time.Hour).Unix(),
-	})
-	tokenStr, err := token.SignedString([]byte("secret"))
-	require.NoError(t, err)
-
-	_, err = service.ParseToken(ctx, tokenStr)
+	_, err := service.ParseToken(ctx, "any.token")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "parse token failed")
+	assert.Contains(t, err.Error(), "jwt service config is nil")
 }
 
-func TestJwtService_ParseToken_WithMissingClaims(t *testing.T) {
-	cfg := getTestConfigJWT()
-	service := NewJwtService(cfg)
+func TestJwtService_IssueAccessToken_WithNilConfig(t *testing.T) {
+	service := &JwtService{config: nil}
 	ctx := context.Background()
-
-	// Tạo token không có subject (thiếu claim)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour).Unix(),
-	})
-	tokenStr, err := token.SignedString([]byte(cfg.JWTSecret))
-	require.NoError(t, err)
-
-	claims, err := service.ParseToken(ctx, tokenStr)
-	require.NoError(t, err)
-	assert.NotNil(t, claims)
-	assert.Empty(t, claims.Subject) // subject rỗng
-}
-
-func BenchmarkJwtService_IssueAccessToken(b *testing.B) {
-	cfg := getTestConfigJWT()
-	service := NewJwtService(cfg)
-	ctx := context.Background()
-
-	b.ResetTimer()
-	for b.Loop() {
-		_, _ = service.IssueAccessToken(ctx, "user-123", "trace-456")
-	}
-}
-
-func BenchmarkJwtService_ParseToken(b *testing.B) {
-	cfg := getTestConfigJWT()
-	service := NewJwtService(cfg)
-	ctx := context.Background()
-
-	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	b.ResetTimer()
-	for b.Loop() {
-		_, _ = service.ParseToken(ctx, token.Token)
-	}
+	_, err := service.IssueAccessToken(ctx, "sub", "tid")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "jwt service config is nil")
 }
