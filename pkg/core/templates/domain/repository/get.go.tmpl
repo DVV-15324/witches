@@ -8,7 +8,7 @@ import (
 	model{{.NameCap}} "{{.ModuleName}}/internal/{{.FolderName}}/model"
 )
 
-func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id uint) (*domain{{.NameCap}}.{{.NameCap}}, error) {
+func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id int) (*domain{{.NameCap}}.{{.NameCap}}, error) {
 	var e model{{.NameCap}}.{{.NameCap}}
 	err := r.db.WithContext(ctx).First(&e, id).Error
 	domain := mapping.FromModelToDomain{{.NameCap}}(&e)
