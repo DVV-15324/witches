@@ -2,7 +2,7 @@ package handler
 
 import (
 	domain "{{.ModuleName}}/internal/shared/domain"
-
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
@@ -17,11 +17,13 @@ type IUserUseCase interface {
 type UserHandle struct {
 	Log         *logger.ModelLogger
 	UserUseCase IUserUseCase
+	Cfg *wcmd_utils.Config
 }
 
-func NewUserHandle(userUseCase IUserUseCase, log *logger.ModelLogger) *UserHandle {
+func NewUserHandle(userUseCase IUserUseCase, log *logger.ModelLogger, Cfg *wcmd_utils.Config) *UserHandle {
 	return &UserHandle{
 		Log:         log,
 		UserUseCase: userUseCase,
+		Cfg         :Cfg,
 	}
 }
