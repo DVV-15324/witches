@@ -6,12 +6,13 @@ import (
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	limiter "github.com/ulule/limiter/v3"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 // En: This function groups the routes that need to be authenticated together.
 //
 // Vi: Hàm nhóm các routes cần xác thực với nhau.
-func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, limiterRate *limiter.Rate, cfg *wcmd_utils.Config) {
+func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleServices, limiterRate *limiter.Rate, cfg *wcmd_utils.Config, deviceHelper *w_utils.DeviceHelper) {
 	// En: Auth middleware
 	// Vi: Middleware
 	authMW := middleware.AuthMiddleware(
@@ -20,6 +21,7 @@ func setupProtectedRoutes(gen *w_handl.SwaggerGenerator, services *HandleService
 		services.Blacklist,
 		services.Logger,
 		cfg,
+		deviceHelper,
 	)
 
 	// En: Logout

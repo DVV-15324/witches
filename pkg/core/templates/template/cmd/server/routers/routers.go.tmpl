@@ -25,7 +25,7 @@ func Start(r *gin.Engine, host string, cfg *wcmd_utils.Config) {
 	}
 
 	// 1.1. Them cors, limit cho services
-	r.Use(middleware.Cors())
+	r.Use(w_utils.Cors(cfg))
 	limit := middleware.LimitMiddleWare{}
 	rateLimitPeriods := time.Duration(cfg.RateLimitPeriod) * time.Second
 
@@ -37,7 +37,7 @@ func Start(r *gin.Engine, host string, cfg *wcmd_utils.Config) {
 	gen := initSwagger(r, services.RedisClient, &limit, host)
 	// 3. Định nghĩa routes
 	setupPublicRoutes(gen, services, &rateLimit)
-	setupProtectedRoutes(gen, services, &rateLimit, cfg)
+	setupProtectedRoutes(gen, services, &rateLimit, cfg, services.DeviceHepper)
 
 	// 4. Save swagger.json
 	if err := gen.Save("swagger.json"); err != nil {

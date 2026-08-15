@@ -58,6 +58,7 @@ type HandleServices struct {
 	Blacklist      *w_utils.BlacklistService
 	RateLimit      *limiter.Limiter
 	RedisClient    *redis.Client
+	DeviceHepper   *w_utils.DeviceHelper
 }
 
 func Services() *HandleServices {
@@ -101,12 +102,13 @@ func Services() *HandleServices {
 	rRefresh := responsitoryRefresh.NewRefreshTokenRepository(db.DB, redis.GetClient())
 	jwt := w_utils.NewJwtService(config)
 	hash := new(w_utils.Hash)
+	deviceHepper := w_utils.NewDeviceHelper(config)
 	usecaseUser := usecaseUser.NewUserUsecase(rUser, tx)
 	usecaseRefresh := usecaseRefresh.NewRefreshUseCase(usecaseUser, rRefresh, jwt, sessionService, blacklistService, config)
 	usecaseAuth := usecaseAuth.NewAuthUseCase(jwt, usecaseUser, hash, rAuth, usecaseRefresh, tx, sessionService, blacklistService, config)
 	usecaseRefresh.SetAuthUseCase(usecaseAuth)
 	handleUser := handleUser.NewUserHandle(usecaseUser, logg, config)
-	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg, config)
+	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg, config, deviceHepper)
 	handleRefresh := handleRefresh.NewRefreshHandle(usecaseRefresh, logg, config)
 	return &HandleServices{
 		HandleRefresh:  handleRefresh,
@@ -118,5 +120,6 @@ func Services() *HandleServices {
 		Session:        sessionService,
 		RateLimit:      instanceLimit,
 		RedisClient:    redis.GetClient(),
+		DeviceHepper:   deviceHepper,
 	}
 }
