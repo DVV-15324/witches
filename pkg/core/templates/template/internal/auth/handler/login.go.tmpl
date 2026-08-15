@@ -4,7 +4,6 @@ import (
 	"errors"
 	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
 	mapping "{{.ModuleName}}/internal/auth/mapping"
-	utils "{{.ModuleName}}/internal/shared/utils"
 	"time"
 
 	w_easyjson "github.com/DVV-15324/witches/pkg/core/easyjson"
@@ -33,7 +32,7 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 		domain := mapping.FromLoginToDomainAuth(&data)
 
 		// Use utils to get device info
-		deviceID, ipAddress, userAgent, locale, timeZone := utils.GetDeviceInfo(c)
+		deviceID, ipAddress, userAgent, locale, timeZone := h.DeviceHeper.GetDeviceInfo(c)
 
 		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), domain, deviceID, ipAddress, userAgent, locale, timeZone)
 		if resq != nil {

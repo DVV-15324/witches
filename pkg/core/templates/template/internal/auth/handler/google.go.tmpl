@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
-	helper "{{.ModuleName}}/internal/shared/utils"
 
 	"time"
 
@@ -22,7 +21,7 @@ func (h *AuthHandle) HandleGoogleLogin() func(c *gin.Context) {
 		}
 
 		// Use helper to get device info
-		deviceID, ipAddress, userAgent, locale, timeZone := helper.GetDeviceInfo(c)
+		deviceID, ipAddress, userAgent, locale, timeZone := h.DeviceHeper.GetDeviceInfo(c)
 
 		token, err := h.UsecaseAuth.LoginWithGoogle(
 			c.Request.Context(),

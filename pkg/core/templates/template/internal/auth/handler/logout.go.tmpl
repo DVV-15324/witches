@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	utils "{{.ModuleName}}/internal/shared/utils"
 	"strings"
 	"time"
 
@@ -38,7 +37,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 
 		// Use utils to get device info
 
-		deviceID, _, _, _, _ := utils.GetDeviceInfo(c)
+		deviceID, _, _, _, _ := h.DeviceHeper.GetDeviceInfo(c)
 
 		if err := h.UsecaseAuth.Logout(c.Request.Context(), accessToken, req.RefreshToken, deviceID); err != nil {
 			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err)
