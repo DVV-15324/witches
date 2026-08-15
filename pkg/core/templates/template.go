@@ -118,7 +118,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/cmd/server/routers/routers.go.tmpl":  filepath.Join("cmd", "server", "routers", "routers.go"),
 		"template/cmd/server/routers/modules.go.tmpl":  filepath.Join("cmd", "server", "routers", "modules.go"),
 
-		"template/cmd/core/core.go.tmpl": filepath.Join("cmd", "core", "core.go"),
+		"template/cmd/server/core/core.go.tmpl": filepath.Join("cmd", "server", "core", "core.go"),
 
 		// AUTH SERVICE - DTO REQUEST
 		"template/internal/auth/dto/request/login.go.tmpl":    filepath.Join("internal", "auth", "dto", "request", "login.go"),
