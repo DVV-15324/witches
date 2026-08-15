@@ -63,7 +63,7 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 
 	// Cập nhật modules.go (thêm field + init)
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
-	if err := AddModuleField(modulesPath, config.Name, config.NameCap); err != nil {
+	if err := AddModuleField(modulesPath, config.Name, config.NameCap, config.Name); err != nil {
 		fmt.Printf("Warning: failed to add module field: %v\n", err)
 	} else {
 		fmt.Println("Updated modules.go: added field")
@@ -222,13 +222,58 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 }
 
 // AddModuleField thêm field vào struct Modules
-func AddModuleField(filePath, domain, domainCamel string) error {
+// AddModuleField thêm field vào struct Modules và import tương ứng
+func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
 
+	// 1. Thêm import
+	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
+	newImport := &ast.ImportSpec{
+		Path: &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: strconv.Quote(importPath),
+		},
+	}
+	// Kiểm tra xem import đã tồn tại chưa
+	importExists := false
+	ast.Inspect(node, func(n ast.Node) bool {
+		if imp, ok := n.(*ast.ImportSpec); ok {
+			if imp.Path.Value == strconv.Quote(importPath) {
+				importExists = true
+				return false
+			}
+		}
+		return true
+	})
+	if !importExists {
+		// Tìm import block hoặc tạo mới
+		var importDecl *ast.GenDecl
+		ast.Inspect(node, func(n ast.Node) bool {
+			if decl, ok := n.(*ast.GenDecl); ok && decl.Tok == token.IMPORT {
+				importDecl = decl
+				return false
+			}
+			return true
+		})
+		if importDecl != nil {
+			// Thêm vào block import hiện có
+			importDecl.Specs = append(importDecl.Specs, newImport)
+		} else {
+			// Tạo block import mới
+			newImportDecl := &ast.GenDecl{
+				Tok:   token.IMPORT,
+				Specs: []ast.Spec{newImport},
+			}
+			// Thêm vào đầu file
+			node.Decls = append([]ast.Decl{newImportDecl}, node.Decls...)
+		}
+	}
+
+	// 2. Thêm field vào struct Modules (phần code cũ)
 	var targetStruct *ast.StructType
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -242,17 +287,14 @@ func AddModuleField(filePath, domain, domainCamel string) error {
 		}
 		return true
 	})
-
 	if targetStruct == nil {
 		return fmt.Errorf("struct Modules not found in %s", filePath)
 	}
-
 	for _, field := range targetStruct.Fields.List {
 		if len(field.Names) > 0 && field.Names[0].Name == domainCamel {
 			return fmt.Errorf("field %s already exists", domainCamel)
 		}
 	}
-
 	newField := &ast.Field{
 		Names: []*ast.Ident{ast.NewIdent(domainCamel)},
 		Type: &ast.StarExpr{
@@ -264,6 +306,7 @@ func AddModuleField(filePath, domain, domainCamel string) error {
 	}
 	targetStruct.Fields.List = append(targetStruct.Fields.List, newField)
 
+	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
 		return err
