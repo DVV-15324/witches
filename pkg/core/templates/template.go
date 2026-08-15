@@ -203,11 +203,8 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/shared/domain/refresh.go.tmpl": filepath.Join("internal", "shared", "domain", "refresh.go"),
 		"template/internal/shared/domain/user.go.tmpl":    filepath.Join("internal", "shared", "domain", "user.go"),
 		// SHARED - UTILS
-		"template/internal/shared/utils/helper.go.tmpl":     filepath.Join("internal", "shared", "utils", "helper.go"),
 		"template/internal/shared/utils/dummy.go.tmpl":      filepath.Join("internal", "shared", "utils", "dummy.go"),
 		"template/internal/shared/utils/key_object.go.tmpl": filepath.Join("internal", "shared", "utils", "key_object.go"),
-		"template/internal/shared/utils/key_req.go.tmpl":    filepath.Join("internal", "shared", "utils", "key_req.go"),
-		"template/internal/shared/utils/mapping.go.tmpl":    filepath.Join("internal", "shared", "utils", "mapping.go"),
 		"template/internal/shared/utils/uid.go.tmpl":        filepath.Join("internal", "shared", "utils", "uid.go"),
 
 		// LOGS
