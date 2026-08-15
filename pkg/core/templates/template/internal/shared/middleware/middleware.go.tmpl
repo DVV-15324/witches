@@ -9,7 +9,9 @@ import (
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"time"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
+
 
 type UsecaseAuth interface {
 	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.AppError)
@@ -20,6 +22,7 @@ func AuthMiddleware(
 	sessionSvc *w_utils.SessionService,
 	blacklistSvc *w_utils.BlacklistService,
 	log *logger.ModelLogger,
+	cfg *wcmd_utils.Config,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lấy tid từ RequestContext
@@ -36,7 +39,7 @@ func AuthMiddleware(
 		token, err := utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
 		if err != nil {
 			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, log, cfg, resp)
 			c.Abort()
 			return
 		}
@@ -50,7 +53,7 @@ func AuthMiddleware(
 		isBlacklisted := blacklistSvc.IsTokenBlacklisted(c.Request.Context(), token)
 		if isBlacklisted {
 			resp := w_resp.NewAppError(401, errors.New("Error: token has been revoked"), time.Now())
-			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, log, cfg, resp)
 			c.Abort()
 			return
 		}
@@ -60,7 +63,7 @@ func AuthMiddleware(
 		// Vi: Xác thực access token
 		claims, errResp := usecaseAuth.IntrospectToken(c.Request.Context(), token)
 		if errResp != nil {
-			w_resp.WriteErrorWithLog(c, log, errResp, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, log, cfg, errResp)
 			c.Abort()
 			return
 		}
@@ -73,7 +76,7 @@ func AuthMiddleware(
 
 		if userID == 0 {
 			resp := w_resp.NewAppError(401, errors.New("Error: invalid user ID in token"), time.Now())
-			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, log, cfg, resp)
 			c.Abort()
 			return
 		}
@@ -88,7 +91,7 @@ func AuthMiddleware(
 			// Session không hợp lệ → blacklist token để tránh dùng lại
 			blacklistSvc.BlacklistToken(c.Request.Context(), token)
 			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteErrorWithLog(c, log, resp, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, log, cfg, resp)
 			c.Abort()
 			return
 		}
