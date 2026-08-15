@@ -54,7 +54,7 @@ func (m *RefreshModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rate
 		Build()
 }
 
-func (m *RefreshModule) RegisterProtectedRoutes(rg *gin.RouterGroup, gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
+func (m *RefreshModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
 	// Protected routes của auth
 	// ... (giữ nguyên từ protected.go)
 }
