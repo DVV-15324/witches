@@ -35,7 +35,7 @@ func (h *UserHandle) HandleGetAllUser() func(c *gin.Context) {
 func (h *UserHandle) HandleGetUserById() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		//uid := shared.DecodeFromBase58(id)
-		id := w_utils.GetRequestContext(c.Request.Context(), h.Cfg)).Sub
+		id := w_utils.GetRequestContext(c.Request.Context(), h.Cfg).Sub
 		uid := utils.DecodeFromBase58(id)
 		user, resp := h.UserUseCase.GetUserById(c, int(uid.LocalID))
 		if resp != nil {
