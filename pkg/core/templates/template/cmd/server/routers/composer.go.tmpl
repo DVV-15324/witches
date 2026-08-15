@@ -15,7 +15,7 @@ import (
 	pkg_redis "{{.ModuleName}}/pkg/redis"
 	"fmt"
 	"log"
-	"os"
+	utils "{{.ModuleName}}/internal/shared/utils"
 	"path/filepath"
 	"time"
 
@@ -63,9 +63,9 @@ type HandleServices struct {
 
 func Services() *HandleServices {
 	config := config.Load()
-	currentPath, _ := os.Getwd()
 	utils.Bits = int64(config.UIDBits) ///
 	path := filepath.Join(config.LogPath, "logs.log")
+	logg, err := logger.NewFileLogger(path, 1, 20, 30)
 	if err != nil {
 		log.Println(err)
 	}
