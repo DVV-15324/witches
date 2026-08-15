@@ -20,7 +20,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 		var req LogoutRequest
 
 		if err := w_easyjson.BindJSON(c, &req); err != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 
@@ -32,7 +32,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 		}
 
 		if accessToken == "" {
-			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(401, errors.New("access token is required"), time.Now()), utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, w_resp.NewAppError(401, errors.New("access token is required"), time.Now()))
 			return
 		}
 
@@ -41,7 +41,7 @@ func (h *AuthHandle) HandleLogout() func(c *gin.Context) {
 		deviceID, _, _, _, _ := utils.GetDeviceInfo(c)
 
 		if err := h.UsecaseAuth.Logout(c.Request.Context(), accessToken, req.RefreshToken, deviceID); err != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err)
 			return
 		}
 

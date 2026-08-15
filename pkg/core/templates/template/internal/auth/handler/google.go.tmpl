@@ -18,7 +18,7 @@ func (h *AuthHandle) HandleGoogleLogin() func(c *gin.Context) {
 		var req dtoAuth.GoogleLoginRequest
 
 		if err := w_easyjson.BindJSON(c, &req); err != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 

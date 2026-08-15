@@ -17,11 +17,13 @@ type IUsecaseAuth interface {
 type AuthHandle struct {
 	Log         *logger.ModelLogger
 	UsecaseAuth IUsecaseAuth
+	Cfg         *wcmd_utils.Config
 }
 
-func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger) *AuthHandle {
+func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger, cfg *wcmd_utils.Config) *AuthHandle {
 	return &AuthHandle{
 		UsecaseAuth: authUseCase,
 		Log:         log,
+		Cfg         *wcmd_utils.Config,
 	}
 }

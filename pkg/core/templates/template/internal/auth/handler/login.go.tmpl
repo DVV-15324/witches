@@ -18,7 +18,7 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 		var data dtoAuth.Login
 
 		if err := w_easyjson.BindJSON(c, &data); err != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()), utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 
@@ -26,7 +26,7 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 		err_valid := data.Validate()
 		if err_valid != nil {
 			resq := w_resp.NewAppError(401, err_valid, time.Now())
-			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resq)
 			return
 		}
 
@@ -37,7 +37,7 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 
 		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), domain, deviceID, ipAddress, userAgent, locale, timeZone)
 		if resq != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resq)
 			return
 		}
 		w_resp.WriteSuccess(c, claims)
