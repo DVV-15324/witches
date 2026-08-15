@@ -12,7 +12,7 @@ import (
 //go:embed template/cmd/*.tmpl
 //go:embed template/cmd/server/config/*.tmpl
 //go:embed template/cmd/server/routers/*.tmpl
-//go:embed template/cmd/core/core.go.tmpl
+//go:embed template/cmd/server/core/core.go.tmpl
 //go:embed template/internal/auth/dto/request/*.tmpl
 //go:embed template/internal/auth/dto/response/*.tmpl
 //go:embed template/internal/auth/model/*.tmpl
