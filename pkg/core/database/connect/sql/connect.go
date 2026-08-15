@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -14,26 +15,23 @@ import (
 )
 
 type DatabaseInstance struct {
-	DB  *gorm.DB
-	Log *logger.ModelLogger
+	DB     *gorm.DB
+	Log    *logger.ModelLogger
+	config *utils.Config
 }
 
 func NewDatabaseInstance(
-	Type string,
-	dsn string,
+	cfg *utils.Config,
 	log *logger.ModelLogger,
-	slowThreshold time.Duration,
-	keyReq string,
-	MaxOpenConns int64,
-	MaxIdleConns int64,
-	ConnMaxLifetime time.Duration,
-	ConnMaxIdleTime time.Duration,
 ) (*DatabaseInstance, error) {
 
-	gormLogger := logger.NewGormLogger(log, slowThreshold, keyReq)
+	gormLogger := logger.NewGormLogger(log, cfg)
 
+	dsn := cfg.DBUrl
+
+	// Chọn driver
 	var dialector gorm.Dialector
-	switch Type {
+	switch cfg.DBDriver {
 	case "mysql":
 		dialector = mysql.Open(dsn)
 	case "postgres", "postgresql":
@@ -44,59 +42,55 @@ func NewDatabaseInstance(
 		dialector = mysql.Open(dsn)
 	}
 
-	config := &gorm.Config{
+	gormCfg := &gorm.Config{
 		Logger:                 gormLogger.LogMode(gormlogger.Info),
 		SkipDefaultTransaction: true,
 		PrepareStmt:            true,
 	}
 
-	db, err := gorm.Open(dialector, config)
+	db, err := gorm.Open(dialector, gormCfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error: failed to connect database: %w", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error: failed to get sql.DB: %w", err)
 	}
 
-	if MaxOpenConns > 0 {
-		sqlDB.SetMaxOpenConns(int(MaxOpenConns))
+	if cfg.MaxOpenConns > 0 {
+		sqlDB.SetMaxOpenConns(int(cfg.MaxOpenConns))
 	}
-	if MaxIdleConns > 0 {
-		sqlDB.SetMaxIdleConns(int(MaxIdleConns))
+	if cfg.MaxIdleConns > 0 {
+		sqlDB.SetMaxIdleConns(int(cfg.MaxIdleConns))
 	}
-	if ConnMaxLifetime > 0 {
-		sqlDB.SetConnMaxLifetime(ConnMaxLifetime)
+	if cfg.ConnMaxLifetime > 0 {
+		sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 	}
-	if ConnMaxIdleTime > 0 {
-		sqlDB.SetConnMaxIdleTime(ConnMaxIdleTime)
-
+	if cfg.ConnMaxIdleTime > 0 {
+		sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
 	}
-	sqlDB.SetMaxOpenConns(int(MaxOpenConns))
-	sqlDB.SetMaxIdleConns(int(MaxIdleConns))
-	sqlDB.SetConnMaxLifetime(ConnMaxLifetime)
-	sqlDB.SetConnMaxIdleTime(ConnMaxIdleTime)
 
 	if log != nil {
 		log.InfoWithFields("Database connection pool configured",
-			zap.String("driver", Type),
-			zap.Int64("max_idle_conns", MaxOpenConns),
-			zap.Int64("max_idle_conns", MaxIdleConns),
-			zap.String("conn_max_lifetime", ConnMaxLifetime.String()),
-			zap.String("conn_max_idle_time", ConnMaxIdleTime.String()),
+			zap.String("driver", cfg.DBDriver),
+			zap.Int64("max_open_conns", cfg.MaxOpenConns),
+			zap.Int64("max_idle_conns", cfg.MaxIdleConns),
+			zap.Int64("conn_max_lifetime", cfg.ConnMaxLifetime),
+			zap.Int64("conn_max_idle_time", cfg.ConnMaxIdleTime),
 		)
 	}
 
 	return &DatabaseInstance{
-		DB:  db,
-		Log: log,
+		DB:     db,
+		Log:    log,
+		config: cfg,
 	}, nil
 }
 
 func (d *DatabaseInstance) Close() error {
 	if d == nil || d.DB == nil {
-		return fmt.Errorf("database instance is nil")
+		return fmt.Errorf("Error: database instance is nil")
 	}
 	sqlDB, err := d.DB.DB()
 	if err != nil {
