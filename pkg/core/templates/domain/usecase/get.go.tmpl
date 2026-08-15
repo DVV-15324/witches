@@ -1,27 +1,43 @@
-package usecase
+package handler
 
 import (
-	"context"
+	mapping "{{.ModuleName}}/internal/{{.Name}}/mapping"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"github.com/gin-gonic/gin"
+	"strconv"
 	"time"
 )
 
-func (u *{{.NameCap}}Usecase) GetByID(ctx context.Context, id int) (*domain{{.NameCap}}.{{.NameCap}}, *w_resp.AppError) {
-	e, err := u.repo.GetByID(ctx, id)
-	if err != nil {
-		resp := w_resp.NewAppError(500, err, time.Now())
-		return nil, resp
+func (h *{{.NameCap}}Handler) GetByID() func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			resp := w_resp.NewAppError(400, err, time.Now())
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			return
+		}
+
+		data, err_get := h.usecase.GetByID(ctx.Request.Context(), id)
+		if err_get != nil {
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err_get)
+			return
+		}
+		dto := mapping.FromDomainToDto{{.NameCap}}(data)
+		w_resp.WriteSuccess(ctx, dto)
 	}
-	return e, nil
 }
 
-func (u *{{.NameCap}}Usecase) GetAll(ctx context.Context, req *w_utils.PaginationRequest) ([]*domain{{.NameCap}}.{{.NameCap}}, int64, *w_resp.AppError) {
-	list, total, err := u.repo.GetAll(ctx, req)
-	if err != nil {
-		resp := w_resp.NewAppError(500, err, time.Now())
-		return nil, 0, resp
+func (h *{{.NameCap}}Handler) GetAll() func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		req := w_utils.PaginationRequest{}
+		data, total, err := h.usecase.GetAll(ctx.Request.Context(), &req)
+		if err != nil {
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err)
+			return
+		}
+		dto := mapping.FromDomainToDto{{.NameCap}}List(data)
+		paginationResp := req.ToPaginationResponse(total)
+		w_resp.WriteSuccessWithPagination(ctx, dto, &paginationResp)
 	}
-	return list, total, nil
 }

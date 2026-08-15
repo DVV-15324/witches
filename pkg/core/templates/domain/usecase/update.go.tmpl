@@ -7,7 +7,7 @@ import (
 	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (u *{{.NameCap}}Usecase) Update(ctx context.Context, id int, req domain{{.NameCap}}.{{.NameCap}}) (*w_resp.AppError) {
+func (u *{{.NameCap}}Usecase) Update(ctx context.Context, id int, req *domain{{.NameCap}}.{{.NameCap}}) (*w_resp.AppError) {
 	existing, err := u.repo.GetByID(ctx, id)
 	if err != nil {
 		resp := w_resp.NewAppError(500, err, time.Now())
