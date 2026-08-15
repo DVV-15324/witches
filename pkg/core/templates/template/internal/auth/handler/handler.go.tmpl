@@ -24,6 +24,6 @@ func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger, cfg *wcmd_
 	return &AuthHandle{
 		UsecaseAuth: authUseCase,
 		Log:         log,
-		Cfg         *wcmd_utils.Config,
+		Cfg:         cfg,
 	}
 }
