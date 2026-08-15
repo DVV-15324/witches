@@ -1,0 +1,130 @@
+package {{.Name}}
+
+import (
+	core "{{.ModuleName}}/cmd/server/core"
+
+	handler "{{.ModuleName}}/internal/{{.Name}}/handler"
+	"{{.ModuleName}}/internal/{{.Name}}/repository"
+	usecase_{{.Name}} "{{.ModuleName}}/internal/{{.Name}}/usecase"
+
+	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
+	"github.com/ulule/limiter/v3"
+)
+
+type {{.NameCap}}Module struct {
+	Handler *handler.{{.NameCap}}Handler
+	Usecase *usecase_{{.Name}}.{{.NameCap}}Usecase
+	Repo    *repository.{{.NameCap}}Repository
+}
+
+func New{{.NameCap}}Module(
+	core *core.CoreServices,
+) *{{.NameCap}}Module {
+	repo := repository.New{{.NameCap}}Repository(core.DB)
+	usecase := usecase_{{.Name}}.New{{.NameCap}}Usecase(repo)
+	handler := handler.New{{.NameCap}}Handler(usecase, core.Logger, core.Config)
+	return &{{.NameCap}}Module{
+		Handler: handler,
+		Usecase: usecase,
+		Repo:    repo,
+	}
+}
+
+func (m *{{.NameCap}}Module) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate) {
+	// Public routes (nếu có)
+	// Ví dụ: gen.POST("/v1/{{.Name}}/public", ...)
+}
+
+func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
+	// --- Create ---
+	gen.POST("/v1/{{.Name}}/create").
+		Summary("Create {{.NameCap}}").
+		Description("Create a new {{.NameCap}}").
+		Tags("{{.Name}}").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		RateLimit(*rateLimit).
+		Body(map[string]interface{}{}, "Request body").
+		Response(200, w_resp.AppResponse{}, "Created successfully").
+		Response(400, w_resp.AppResponse{}, "Bad request").
+		Use(authMiddleware).
+		Handler(m.Handler.Create()).
+		Build()
+
+	// --- Get by ID ---
+	gen.POST("/v1/{{.Name}}/get").
+		Summary("Get {{.NameCap}} by ID").
+		Description("Get {{.NameCap}} details by ID").
+		Tags("{{.Name}}").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		RateLimit(*rateLimit).
+		Body(map[string]int{"id": 0}, "{{.NameCap}} ID").
+		Response(200, w_resp.AppResponse{}, "{{.NameCap}} found").
+		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
+		Use(authMiddleware).
+		Handler(m.Handler.GetByID()).
+		Build()
+
+	// --- Get All ---
+	gen.POST("/v1/{{.Name}}/get_all").
+		Summary("Get all {{.NameCap}}s").
+		Description("Get list of all {{.NameCap}}s with pagination").
+		Tags("{{.Name}}").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		RateLimit(*rateLimit).
+		QueryParam("page", "Page number", false).
+		QueryParam("limit", "Items per page", false).
+		QueryParam("search", "Search keyword", false).
+		QueryParam("sort", "Sort field", false).
+		QueryParam("order", "Sort order (asc/desc)", false).
+		Response(200, w_resp.AppResponse{}, "List of {{.NameCap}}s").
+		Use(authMiddleware).
+		Handler(m.Handler.GetAll()).
+		Build()
+
+	// --- Update ---
+	gen.PUT("/v1/{{.Name}}/update/:id").
+		Summary("Update {{.NameCap}}").
+		Description("Update an existing {{.NameCap}}").
+		Tags("{{.Name}}").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		RateLimit(*rateLimit).
+		PathParam("id", "{{.NameCap}} ID").
+		Body(map[string]interface{}{}, "Update data").
+		Response(200, w_resp.AppResponse{}, "Updated successfully").
+		Response(400, w_resp.AppResponse{}, "Bad request").
+		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
+		Use(authMiddleware).
+		Handler(m.Handler.Update()).
+		Build()
+
+	// --- Delete ---
+	gen.DELETE("/v1/{{.Name}}/delete/:id").
+		Summary("Delete {{.NameCap}}").
+		Description("Delete a {{.NameCap}} by ID").
+		Tags("{{.Name}}").
+		HeaderParam("User-Agent", "User-Agent", false).
+		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
+		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("Authorization", "Bearer token for authentication", false).
+		RateLimit(*rateLimit).
+		PathParam("id", "{{.NameCap}} ID").
+		Response(200, w_resp.AppResponse{}, "Deleted successfully").
+		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
+		Use(authMiddleware).
+		Handler(m.Handler.Delete()).
+		Build()
+}
