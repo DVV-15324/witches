@@ -22,7 +22,7 @@ type {{.NameCap}}Module struct {
 func New{{.NameCap}}Module(
 	core *core.CoreServices,
 ) *{{.NameCap}}Module {
-	repo := repository.New{{.NameCap}}Repository(core.DB)
+	repo := repository.New{{.NameCap}}Repository(core.DB, core.TxManager, core.Redis.GetClient())
 	usecase := usecase_{{.Name}}.New{{.NameCap}}Usecase(repo)
 	handler := handler.New{{.NameCap}}Handler(usecase, core.Logger, core.Config)
 	return &{{.NameCap}}Module{
