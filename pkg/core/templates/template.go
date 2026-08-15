@@ -108,12 +108,13 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/go.mod.tmpl":    "go.mod",
 
 		// CMD
-		"template/cmd/root.go.tmpl":                     filepath.Join("cmd", "root.go"),
-		"template/cmd/server/config/config.go.tmpl":     filepath.Join("cmd", "server", "config", "config.go"),
-		"template/cmd/server/routers/composer.go.tmpl":  filepath.Join("cmd", "server", "routers", "composer.go"),
-		"template/cmd/server/routers/protected.go.tmpl": filepath.Join("cmd", "server", "routers", "protected.go"),
-		"template/cmd/server/routers/public.go.tmpl":    filepath.Join("cmd", "server", "routers", "public.go"),
-		"template/cmd/server/routers/routers.go.tmpl":   filepath.Join("cmd", "server", "routers", "routers.go"),
+		"template/cmd/root.go.tmpl":                    filepath.Join("cmd", "root.go"),
+		"template/cmd/server/config/config.go.tmpl":    filepath.Join("cmd", "server", "config", "config.go"),
+		"template/cmd/server/routers/composer.go.tmpl": filepath.Join("cmd", "server", "routers", "composer.go"),
+		"template/cmd/server/routers/routers.go.tmpl":  filepath.Join("cmd", "server", "routers", "routers.go"),
+		"template/cmd/server/routers/modules.go.tmpl":  filepath.Join("cmd", "server", "routers", "modules.go"),
+
+		"template/cmd/core/core.go.tmpl": filepath.Join("cmd", "core", "core.go"),
 
 		// AUTH SERVICE - DTO REQUEST
 		"template/internal/auth/dto/request/login.go.tmpl":    filepath.Join("internal", "auth", "dto", "request", "login.go"),
@@ -148,6 +149,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/auth/usecase/google.go.tmpl":   filepath.Join("internal", "auth", "usecase", "google.go"),
 		"template/internal/auth/usecase/logout.go.tmpl":   filepath.Join("internal", "auth", "usecase", "logout.go"),
 		"template/internal/auth/usecase/errors.go.tmpl":   filepath.Join("internal", "auth", "usecase", "errors.go"),
+		"template/internal/auth/module.go.tmpl":           filepath.Join("internal", "auth", "module.go"),
 
 		// REFRESH SERVICE - DTO
 		"template/internal/refresh/dto/request/request.go.tmpl":   filepath.Join("internal", "refresh", "dto", "request", "request.go"),
@@ -173,6 +175,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/refresh/usecase/refresh.go.tmpl": filepath.Join("internal", "refresh", "usecase", "refresh.go"),
 		"template/internal/refresh/usecase/revoke.go.tmpl":  filepath.Join("internal", "refresh", "usecase", "revoke.go"),
 		"template/internal/refresh/usecase/token.go.tmpl":   filepath.Join("internal", "refresh", "usecase", "token.go"),
+		"template/internal/refresh/module.go.tmpl":          filepath.Join("internal", "refresh", "module.go"),
 
 		// USER SERVICE - DTO
 		"template/internal/user/dto/request/errors.go.tmpl":    filepath.Join("internal", "user", "dto", "request", "errors.go"),
@@ -193,6 +196,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/user/usecase/usecase.go.tmpl": filepath.Join("internal", "user", "usecase", "usecase.go"),
 		"template/internal/user/usecase/create.go.tmpl":  filepath.Join("internal", "user", "usecase", "create.go"),
 		"template/internal/user/usecase/get.go.tmpl":     filepath.Join("internal", "user", "usecase", "get.go"),
+		"template/internal/user/module.go.tmpl":          filepath.Join("internal", "user", "module.go"),
 
 		// SHARED - MIDDLEWARE
 		"template/internal/shared/middleware/limit.go.tmpl":      filepath.Join("internal", "shared", "middleware", "limit.go"),
