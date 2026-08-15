@@ -47,7 +47,7 @@ var migrateVersionCmd = &cobra.Command{
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
 		migratePath := utils.GetMigrationsURL()
-		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, args[0], migratePath)
+		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, migratePath, args[0])
 	},
 }
 var migrateForceCmd = &cobra.Command{

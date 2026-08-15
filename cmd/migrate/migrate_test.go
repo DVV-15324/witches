@@ -3,17 +3,21 @@ package cmd_migrate
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/DVV-15324/witches/cmd/utils"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"testing"
-	"time"
 )
 
 func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cleanup func()) {
@@ -73,7 +77,7 @@ DROP TABLE IF EXISTS users;
 		}
 		os.RemoveAll(tmpDir)
 	}
-
+	connStr = strings.TrimPrefix(connStr, "postgres://")
 	return connStr, migrationsDir, cleanup
 }
 
@@ -86,11 +90,12 @@ func TestWitchesMigrateUp(t *testing.T) {
 
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
-
+	fmt.Println("hello1")
+	fmt.Println(dbURL)
 	WitchesMigrateUp(dbURL, "postgres", migrationPath)
-
+	fmt.Println("hello")
 	ctx := context.Background()
-	connStr := dbURL + "&sslmode=disable"
+	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
@@ -124,7 +129,7 @@ func TestWitchesMigrateVersion(t *testing.T) {
 
 	// Kiểm tra version trong DB
 	ctx := context.Background()
-	connStr := dbURL + "&sslmode=disable"
+	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
@@ -151,7 +156,7 @@ func TestWitchesMigrateDown(t *testing.T) {
 	WitchesMigrateDown(dbURL, "postgres", migrationPath)
 
 	ctx := context.Background()
-	connStr := dbURL + "&sslmode=disable"
+	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
@@ -181,7 +186,7 @@ func TestWitchesMigrateDrop(t *testing.T) {
 	WitchesMigrateDrop(dbURL, "postgres", migrationPath)
 
 	ctx := context.Background()
-	connStr := dbURL + "&sslmode=disable"
+	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
@@ -211,7 +216,7 @@ func TestWitchesMigrateForce(t *testing.T) {
 	WitchesMigrateForce(dbURL, "postgres", migrationPath, "1")
 
 	ctx := context.Background()
-	connStr := dbURL + "&sslmode=disable"
+	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 	defer db.Close()
