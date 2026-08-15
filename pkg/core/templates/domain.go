@@ -1,16 +1,16 @@
 package template
 
 import (
+	"bytes"
 	"embed"
+	"fmt"
 	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
-	"strconv"
-
-	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -30,15 +30,16 @@ import (
 var templateSvFS embed.FS
 
 type DomainConfig struct {
-	NameCap    string //
-	Name       string //
-	FolderName string //
-	ModuleName string //
+	NameCap    string
+	Name       string
+	FolderName string
+	ModuleName string
 }
 
-func (p DomainConfig) GetMuduleName() string {
+func (p DomainConfig) GetModuleName() string {
 	return p.ModuleName
 }
+
 func AddGoDomain(project string, moduleName string, domainName string) {
 	domainName = strings.TrimSpace(domainName)
 	domainName = strings.ReplaceAll(domainName, " ", "")
@@ -59,14 +60,26 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 		os.Exit(1)
 	}
 
+	// Cập nhật modules.go (thêm field + init)
+	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
+	if err := AddModuleField(modulesPath, config.Name, config.NameCap); err != nil {
+		fmt.Printf("Warning: failed to add module field: %v\n", err)
+	} else {
+		fmt.Println("Updated modules.go: added field")
+	}
+
+	if err := AddModuleInit(modulesPath, config.Name, config.NameCap); err != nil {
+		fmt.Printf("Warning: failed to add module init: %v\n", err)
+	} else {
+		fmt.Println("Updated modules.go: added initialization")
+	}
+
 	fmt.Printf("domain '%s' generated successfully!\n", config.FolderName)
 }
 
 func generateDomain(project string, config DomainConfig) error {
-	// Vị trí project/internal/folder_name(new domain)
 	baseDir := filepath.Join(project, "internal", config.FolderName)
 
-	// Các thư mục cần tạo
 	dirs := []string{
 		"dto/request",
 		"dto/response",
@@ -78,15 +91,11 @@ func generateDomain(project string, config DomainConfig) error {
 	}
 
 	for _, dir := range dirs {
-		// Nối baseDir/folder_name(new domain)/folder cần tạo ở dirs
 		path := filepath.Join(baseDir, dir)
-		// Tạo Folder
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %v", path, err)
 		}
 	}
-
-	// Map template files -> destination files
 	files := map[string]string{
 		"domain/dto/request/request.go.tmpl":   "dto/request/request.go",
 		"domain/dto/response/response.go.tmpl": "dto/response/response.go",
@@ -107,18 +116,17 @@ func generateDomain(project string, config DomainConfig) error {
 		"domain/usecase/get.go.tmpl":           "usecase/get.go",
 		"domain/usecase/update.go.tmpl":        "usecase/update.go",
 		"domain/usecase/delete.go.tmpl":        "usecase/delete.go",
+		"domain/module.go.tmpl":                "module.go",
 	}
 
 	for tmpl, dest := range files {
 		utils.RenderTemplate(templateSvFS, baseDir, dest, tmpl, config)
 	}
 
-	// gen shared domain
 	if err := generateSharedDomain(project, config); err != nil {
 		fmt.Printf("Warning: failed to generate shared domain: %v\n", err)
 	}
 
-	// Cập nhật key_object.go
 	if err := updateKeyObject(project, config); err != nil {
 		fmt.Printf("Warning: failed to update key_object.go: %v\n", err)
 	}
@@ -126,7 +134,6 @@ func generateDomain(project string, config DomainConfig) error {
 	return nil
 }
 
-// Tạo file shared/domain/Name.go
 func generateSharedDomain(projectRoot string, config DomainConfig) error {
 	sharedDomainDir := filepath.Join(projectRoot, "internal", "shared", "domain")
 	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
@@ -155,7 +162,6 @@ func generateSharedDomain(projectRoot string, config DomainConfig) error {
 	return tmpl.Execute(file, config)
 }
 
-// Cập nhật key_object
 func updateKeyObject(projectRoot string, config DomainConfig) error {
 	keyFile := filepath.Join(projectRoot, "internal", "shared", "utils", "key_object.go")
 
@@ -170,12 +176,10 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 		return fmt.Errorf("parse file error: %w", err)
 	}
 
-	// Tìm object có ID lớn nhất và block var chứa nó
 	var maxID int
 	var targetDecl *ast.GenDecl
 
 	ast.Inspect(node, func(n ast.Node) bool {
-		// ast.GenDecl (quản lý các thành phần ở cấp package )
 		decl, ok := n.(*ast.GenDecl)
 		if !ok || decl.Tok != token.VAR {
 			return true
@@ -201,7 +205,6 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 		return fmt.Errorf("no Object constant found")
 	}
 
-	// Tạo và thêm constant mới
 	newSpec := &ast.ValueSpec{
 		Names:  []*ast.Ident{ast.NewIdent("Object" + config.NameCap)},
 		Type:   &ast.Ident{Name: "uint"},
@@ -209,10 +212,147 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 	}
 	targetDecl.Specs = append(targetDecl.Specs, newSpec)
 
-	var buf strings.Builder
+	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
 		return fmt.Errorf("format code error: %w", err)
 	}
 
-	return os.WriteFile(keyFile, []byte(buf.String()), 0644)
+	return os.WriteFile(keyFile, buf.Bytes(), 0644)
+}
+
+// AddModuleField thêm field vào struct Modules
+func AddModuleField(filePath, domain, domainCamel string) error {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+	if err != nil {
+		return err
+	}
+
+	var targetStruct *ast.StructType
+	ast.Inspect(node, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.TypeSpec:
+			if x.Name.Name == "Modules" {
+				if st, ok := x.Type.(*ast.StructType); ok {
+					targetStruct = st
+					return false
+				}
+			}
+		}
+		return true
+	})
+
+	if targetStruct == nil {
+		return fmt.Errorf("struct Modules not found in %s", filePath)
+	}
+
+	for _, field := range targetStruct.Fields.List {
+		if len(field.Names) > 0 && field.Names[0].Name == domainCamel {
+			return fmt.Errorf("field %s already exists", domainCamel)
+		}
+	}
+
+	newField := &ast.Field{
+		Names: []*ast.Ident{ast.NewIdent(domainCamel)},
+		Type: &ast.StarExpr{
+			X: &ast.SelectorExpr{
+				X:   ast.NewIdent(domain),
+				Sel: ast.NewIdent(domainCamel + "Module"),
+			},
+		},
+	}
+	targetStruct.Fields.List = append(targetStruct.Fields.List, newField)
+
+	var buf bytes.Buffer
+	if err := format.Node(&buf, fset, node); err != nil {
+		return err
+	}
+	return os.WriteFile(filePath, buf.Bytes(), 0644)
+}
+
+// AddModuleInit thêm khởi tạo module vào InitModules
+func AddModuleInit(filePath, domain, domainCamel string) error {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+	if err != nil {
+		return err
+	}
+
+	var targetFunc *ast.FuncDecl
+	ast.Inspect(node, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.FuncDecl:
+			if x.Name.Name == "InitModules" {
+				targetFunc = x
+				return false
+			}
+		}
+		return true
+	})
+
+	if targetFunc == nil {
+		return fmt.Errorf("function InitModules not found in %s", filePath)
+	}
+
+	var returnStmt *ast.ReturnStmt
+	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
+		if rs, ok := n.(*ast.ReturnStmt); ok {
+			returnStmt = rs
+			return false
+		}
+		return true
+	})
+
+	if returnStmt == nil {
+		return fmt.Errorf("return statement not found in InitModules")
+	}
+
+	// Tạo dòng khởi tạo: bookModule := book.NewBookModule(core)
+	assignStmt := &ast.AssignStmt{
+		Lhs: []ast.Expr{ast.NewIdent(domain + "Module")},
+		Tok: token.DEFINE,
+		Rhs: []ast.Expr{&ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   ast.NewIdent(domain),
+				Sel: ast.NewIdent("New" + domainCamel + "Module"),
+			},
+			Args: []ast.Expr{ast.NewIdent("core")},
+		}},
+	}
+
+	// Chèn assignStmt vào trước returnStmt
+	newBody := []ast.Stmt{}
+	for _, stmt := range targetFunc.Body.List {
+		if stmt == returnStmt {
+			newBody = append(newBody, assignStmt)
+		}
+		newBody = append(newBody, stmt)
+	}
+	targetFunc.Body.List = newBody
+
+	// Cập nhật return statement để thêm Book: bookModule
+	var compLit *ast.CompositeLit
+	ast.Inspect(returnStmt, func(n ast.Node) bool {
+		if cl, ok := n.(*ast.CompositeLit); ok {
+			if sel, ok := cl.Type.(*ast.SelectorExpr); ok && sel.Sel.Name == "Modules" {
+				compLit = cl
+				return false
+			}
+		}
+		return true
+	})
+
+	if compLit != nil {
+		newField := &ast.KeyValueExpr{
+			Key:   ast.NewIdent(domainCamel),
+			Value: ast.NewIdent(domain + "Module"),
+		}
+		compLit.Elts = append(compLit.Elts, newField)
+	}
+
+	var buf bytes.Buffer
+	if err := format.Node(&buf, fset, node); err != nil {
+		return err
+	}
+	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }

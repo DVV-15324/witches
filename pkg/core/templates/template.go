@@ -47,7 +47,7 @@ type ProjectConfig struct {
 	ModuleName string
 }
 
-func (p ProjectConfig) GetMuduleName() string {
+func (p ProjectConfig) GetModuleName() string {
 	return p.ModuleName
 }
 
