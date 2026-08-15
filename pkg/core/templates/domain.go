@@ -75,17 +75,10 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 		fmt.Println("Updated modules.go: added initialization")
 	}
 	routersPath := filepath.Join(project, "cmd", "server", "routers", "routers.go")
-
-	if err := AddSwaggerTag(modulesPath, config.Name, config.NameCap); err != nil {
-		fmt.Printf("Warning: failed to add swagger tag: %v\n", err)
-	} else {
-		fmt.Println("Updated routers.go: added swagger tag")
-	}
-
 	if err := AddRouteRegistration(routersPath, config.Name, config.NameCap); err != nil {
 		fmt.Printf("Warning: failed to add route registration: %v\n", err)
 	} else {
-		fmt.Println("Updated routers.go: added route registration")
+		fmt.Println("Updated routers.go: added route registration for", config.Name)
 	}
 	fmt.Printf("domain '%s' generated successfully!\n", config.FolderName)
 }
@@ -444,7 +437,9 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	}
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
-func AddSwaggerTag(filePath, domain, domainCamel string) error {
+
+// AddRouteRegistration thêm domain vào initModule (cả public và protected routes)
+func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -467,28 +462,29 @@ func AddSwaggerTag(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("function initModule not found in %s", filePath)
 	}
 
-	// Tìm block gen.AddTag(...) và chèn sau nó
-	var lastTagStmt *ast.ExprStmt
+	// Kiểm tra domain đã tồn tại chưa
+	var exists bool
 	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
-		switch x := n.(type) {
-		case *ast.ExprStmt:
-			if call, ok := x.X.(*ast.CallExpr); ok {
-				if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-					if sel.Sel.Name == "AddTag" {
-						lastTagStmt = x
+		if call, ok := n.(*ast.CallExpr); ok {
+			if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+				if innerSel, ok := sel.X.(*ast.SelectorExpr); ok {
+					if ident, ok := innerSel.X.(*ast.Ident); ok && ident.Name == "modules" {
+						if innerSel.Sel.Name == domainCamel {
+							exists = true
+							return false
+						}
 					}
 				}
 			}
 		}
 		return true
 	})
-
-	if lastTagStmt == nil {
-		return fmt.Errorf("no AddTag call found in initModule")
+	if exists {
+		return fmt.Errorf("domain %s already registered in initModule", domainCamel)
 	}
 
-	// Tạo lệnh gen.AddTag(domainCamel, domainCamel+" endpoints")
-	newTagCall := &ast.ExprStmt{
+	// 1. Tạo lệnh: gen.AddTag(domain, domainCamel+" endpoints")
+	addTagStmt := &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
 				X:   ast.NewIdent("gen"),
@@ -501,73 +497,28 @@ func AddSwaggerTag(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	// Chèn sau lệnh AddTag cuối cùng
-	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+1)
-	for _, stmt := range targetFunc.Body.List {
-		newBody = append(newBody, stmt)
-		if stmt == lastTagStmt {
-			newBody = append(newBody, newTagCall)
-		}
-	}
-	targetFunc.Body.List = newBody
-
-	var buf bytes.Buffer
-	if err := format.Node(&buf, fset, node); err != nil {
-		return err
-	}
-	return os.WriteFile(filePath, buf.Bytes(), 0644)
-}
-
-// AddRouteRegistration thêm route registration vào routers.go
-func AddRouteRegistration(filePath, domain, domainCamel string) error {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
-	if err != nil {
-		return err
+	// 2. Tạo lệnh: modules.<DomainCamel>.RegisterPublicRoutes(gen, &rateLimit)
+	publicStmt := &ast.ExprStmt{
+		X: &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X: &ast.SelectorExpr{
+					X:   ast.NewIdent("modules"),
+					Sel: ast.NewIdent(domainCamel),
+				},
+				Sel: ast.NewIdent("RegisterPublicRoutes"),
+			},
+			Args: []ast.Expr{
+				ast.NewIdent("gen"),
+				&ast.UnaryExpr{
+					Op: token.AND,
+					X:  ast.NewIdent("rateLimit"),
+				},
+			},
+		},
 	}
 
-	// Tìm hàm RegisterRoutes
-	var targetFunc *ast.FuncDecl
-	ast.Inspect(node, func(n ast.Node) bool {
-		switch x := n.(type) {
-		case *ast.FuncDecl:
-			if x.Name.Name == "RegisterRoutes" {
-				targetFunc = x
-				return false
-			}
-		}
-		return true
-	})
-	if targetFunc == nil {
-		return fmt.Errorf("function RegisterRoutes not found in %s", filePath)
-	}
-
-	// Tìm dòng cuối cùng trong body của targetFunc là một lời gọi function
-	var lastCall *ast.CallExpr
-	var lastCallIndex int = -1
-	for i, stmt := range targetFunc.Body.List {
-		switch x := stmt.(type) {
-		case *ast.ExprStmt:
-			if call, ok := x.X.(*ast.CallExpr); ok {
-				// Kiểm tra xem call có phải là modules.X.Register... không
-				if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-					if innerSel, ok := sel.X.(*ast.SelectorExpr); ok {
-						if ident, ok := innerSel.X.(*ast.Ident); ok && ident.Name == "modules" {
-							lastCall = call
-							lastCallIndex = i
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if lastCall == nil {
-		return fmt.Errorf("no module registration call found in RegisterRoutes")
-	}
-
-	// Tạo lời gọi mới: modules.Book.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
-	newCall := &ast.ExprStmt{
+	// 3. Tạo lệnh: modules.<DomainCamel>.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	protectedStmt := &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
 				X: &ast.SelectorExpr{
@@ -587,12 +538,15 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	// Chèn newCall sau lastCall
-	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+1)
-	for i, stmt := range targetFunc.Body.List {
+	// Chèn 3 lệnh vào cuối body (trước dấu })
+	lastStmt := targetFunc.Body.List[len(targetFunc.Body.List)-1]
+	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+3)
+	for _, stmt := range targetFunc.Body.List {
 		newBody = append(newBody, stmt)
-		if i == lastCallIndex {
-			newBody = append(newBody, newCall)
+		if stmt == lastStmt {
+			newBody = append(newBody, addTagStmt)
+			newBody = append(newBody, publicStmt)
+			newBody = append(newBody, protectedStmt)
 		}
 	}
 	targetFunc.Body.List = newBody
@@ -600,7 +554,7 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
-		return fmt.Errorf("format code error: %w", err)
+		return err
 	}
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
