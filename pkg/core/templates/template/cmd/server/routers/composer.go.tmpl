@@ -9,7 +9,6 @@ import (
 	handleRefresh "{{.ModuleName}}/internal/refresh/handler"
 	responsitoryRefresh "{{.ModuleName}}/internal/refresh/repository"
 	usecaseRefresh "{{.ModuleName}}/internal/refresh/usecase"
-	"{{.ModuleName}}/internal/shared/utils"
 	handleUser "{{.ModuleName}}/internal/user/handler"
 	responsitoryUser "{{.ModuleName}}/internal/user/repository"
 	usecaseUser "{{.ModuleName}}/internal/user/usecase"
@@ -69,11 +68,7 @@ func Services() *HandleServices {
 	if err != nil {
 		log.Println(err)
 	}
-	db, err := w_db.NewDatabaseInstance(config.DBDriver, config.DBUrl,
-		logg, time.Duration(config.SlowThreshold),
-		utils.ReqKey, config.MaxOpenConns,
-		config.MaxIdleConns, time.Duration(config.ConnMaxLifetime),
-		time.Duration(config.ConnMaxIdleTime)*time.Second)
+	db, err := w_db.NewDatabaseInstance(config, logg)
 
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
@@ -99,20 +94,20 @@ func Services() *HandleServices {
 	store, _ := redis_driver.NewStore(redis.GetClient())
 	instanceLimit := limiter.New(store, rate)
 	sessionService := w_utils.NewSessionService(redis.GetClient(), config.SessionTTL, config.IdleTimeout)
-	blacklistService := w_utils.NewBlacklistService(redis.GetClient(), config.RevokedTTL)
+	blacklistService := w_utils.NewBlacklistService(redis.GetClient(), config)
 	tx := w_utils.NewTxManager(db.DB)
 	rAuth := responsitoryAuth.NewAuthRepository(db.DB, tx, redis.GetClient())
 	rUser := responsitoryUser.NewUserRepository(db.DB, tx)
 	rRefresh := responsitoryRefresh.NewRefreshTokenRepository(db.DB, redis.GetClient())
-	jwt := w_utils.NewJwtService("vu-dep-trai-nhat-the-gioi", 900, 604800)
+	jwt := w_utils.NewJwtService(config)
 	hash := new(w_utils.Hash)
 	usecaseUser := usecaseUser.NewUserUsecase(rUser, tx)
 	usecaseRefresh := usecaseRefresh.NewRefreshUseCase(usecaseUser, rRefresh, jwt, sessionService, blacklistService, config)
 	usecaseAuth := usecaseAuth.NewAuthUseCase(jwt, usecaseUser, hash, rAuth, usecaseRefresh, tx, sessionService, blacklistService, config)
 	usecaseRefresh.SetAuthUseCase(usecaseAuth)
-	handleUser := handleUser.NewUserHandle(usecaseUser, logg)
-	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg)
-	handleRefresh := handleRefresh.NewRefreshHandle(usecaseRefresh, logg)
+	handleUser := handleUser.NewUserHandle(usecaseUser, logg, config)
+	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg, config)
+	handleRefresh := handleRefresh.NewRefreshHandle(usecaseRefresh, logg, config)
 	return &HandleServices{
 		HandleRefresh:  handleRefresh,
 		HandleAuth:     handleAuth,
