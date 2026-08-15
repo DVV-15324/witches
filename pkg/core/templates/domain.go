@@ -61,12 +61,12 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 		os.Exit(1)
 	}
 
-	// Cập nhật modules.go (thêm field + init)
+	// Cập nhật modules.go (thêm import, field, init)
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
 	if err := AddModuleField(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
 		fmt.Printf("Warning: failed to add module field: %v\n", err)
 	} else {
-		fmt.Println("Updated modules.go: added field")
+		fmt.Println("Updated modules.go: added import and field")
 	}
 
 	if err := AddModuleInit(modulesPath, config.Name, config.NameCap); err != nil {
@@ -221,8 +221,7 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 	return os.WriteFile(keyFile, buf.Bytes(), 0644)
 }
 
-// AddModuleField thêm field vào struct Modules
-// AddModuleField thêm field vào struct Modules và import tương ứng
+// AddModuleField thêm import và field vào struct Modules
 func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -230,7 +229,7 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 		return err
 	}
 
-	// 1. Thêm import
+	// 1. Thêm import nếu chưa có
 	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
 	newImport := &ast.ImportSpec{
 		Path: &ast.BasicLit{
@@ -238,7 +237,6 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 			Value: strconv.Quote(importPath),
 		},
 	}
-	// Kiểm tra xem import đã tồn tại chưa
 	importExists := false
 	ast.Inspect(node, func(n ast.Node) bool {
 		if imp, ok := n.(*ast.ImportSpec); ok {
@@ -250,7 +248,6 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 		return true
 	})
 	if !importExists {
-		// Tìm import block hoặc tạo mới
 		var importDecl *ast.GenDecl
 		ast.Inspect(node, func(n ast.Node) bool {
 			if decl, ok := n.(*ast.GenDecl); ok && decl.Tok == token.IMPORT {
@@ -260,20 +257,17 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 			return true
 		})
 		if importDecl != nil {
-			// Thêm vào block import hiện có
 			importDecl.Specs = append(importDecl.Specs, newImport)
 		} else {
-			// Tạo block import mới
 			newImportDecl := &ast.GenDecl{
 				Tok:   token.IMPORT,
 				Specs: []ast.Spec{newImport},
 			}
-			// Thêm vào đầu file
 			node.Decls = append([]ast.Decl{newImportDecl}, node.Decls...)
 		}
 	}
 
-	// 2. Thêm field vào struct Modules (phần code cũ)
+	// 2. Tìm struct Modules và thêm field
 	var targetStruct *ast.StructType
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -314,7 +308,7 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// AddModuleInit thêm khởi tạo module vào InitModules
+// AddModuleInit thêm khởi tạo module vào InitModules và return statement
 func AddModuleInit(filePath, domain, domainCamel string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -322,6 +316,7 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return err
 	}
 
+	// Tìm hàm InitModules
 	var targetFunc *ast.FuncDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -333,11 +328,11 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		}
 		return true
 	})
-
 	if targetFunc == nil {
 		return fmt.Errorf("function InitModules not found in %s", filePath)
 	}
 
+	// Tìm return statement
 	var returnStmt *ast.ReturnStmt
 	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
 		if rs, ok := n.(*ast.ReturnStmt); ok {
@@ -346,12 +341,11 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		}
 		return true
 	})
-
 	if returnStmt == nil {
 		return fmt.Errorf("return statement not found in InitModules")
 	}
 
-	// Tìm composite literal của Modules trong return statement
+	// Tìm composite literal của Modules trong return statement (xử lý cả &Modules{...})
 	var compLit *ast.CompositeLit
 	ast.Inspect(returnStmt, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -388,12 +382,11 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		}
 		return true
 	})
-
 	if compLit == nil {
 		return fmt.Errorf("cannot find composite literal for Modules in return statement")
 	}
 
-	// Kiểm tra xem field đã tồn tại chưa
+	// Kiểm tra xem field đã tồn tại trong return chưa
 	for _, elt := range compLit.Elts {
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
 			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCamel {
