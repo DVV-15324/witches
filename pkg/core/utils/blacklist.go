@@ -1,4 +1,3 @@
-// utils/blacklist_service.go
 package utils
 
 import (
@@ -6,16 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/redis/go-redis/v9"
 )
 
 type BlacklistService struct {
-	redis      *redis.Client
-	revokedTTL int64
+	redis  *redis.Client
+	config *utils.Config
 }
 
-func NewBlacklistService(redis *redis.Client, revokedTTL int64) *BlacklistService {
-	return &BlacklistService{redis: redis, revokedTTL: revokedTTL}
+func NewBlacklistService(redis *redis.Client, config *utils.Config) *BlacklistService {
+	return &BlacklistService{redis: redis, config: config}
 }
 
 func (s *BlacklistService) cacheKeyBlacklist(accessToken string) string {
@@ -28,7 +28,7 @@ func (s *BlacklistService) BlacklistToken(ctx context.Context, accessToken strin
 	}
 
 	key := s.cacheKeyBlacklist(accessToken)
-	return s.redis.Set(ctx, key, "revoked", time.Duration(s.revokedTTL)*time.Second).Err()
+	return s.redis.Set(ctx, key, "revoked", time.Duration(s.config.RevokedTTL)*time.Second).Err()
 }
 
 // Việc Check nên để ở middleware

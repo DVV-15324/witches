@@ -6,6 +6,7 @@ import (
 
 	"time"
 
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 )
@@ -34,16 +35,12 @@ type JwtClaims struct {
 }
 
 type JwtService struct {
-	secretKey          string
-	accessTokenExpiry  int64
-	refreshTokenExpiry int64
+	config *utils.Config
 }
 
-func NewJwtService(secretKey string, accessExpiry, refreshExpiry int64) *JwtService {
+func NewJwtService(config *utils.Config) *JwtService {
 	return &JwtService{
-		secretKey:          secretKey,
-		accessTokenExpiry:  accessExpiry,
-		refreshTokenExpiry: refreshExpiry,
+		config: config,
 	}
 }
 
@@ -57,18 +54,18 @@ func (j *JwtService) IssueAccessToken(ctx context.Context, sub string, tid strin
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(
-				now.Add(time.Duration(j.accessTokenExpiry) * time.Second),
+				now.Add(time.Duration(j.config.AccessTokenTTL) * time.Second),
 			),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(j.secretKey))
+	signedToken, err := token.SignedString([]byte(j.config.JWTSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Token{Token: signedToken, ExpireAt: j.accessTokenExpiry}, nil
+	return &Token{Token: signedToken, ExpireAt: j.config.AccessTokenTTL}, nil
 }
 
 func (j *JwtService) IssueRefreshToken(ctx context.Context, sub string, tid string) (*Token, error) {
@@ -81,18 +78,18 @@ func (j *JwtService) IssueRefreshToken(ctx context.Context, sub string, tid stri
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(
-				now.Add(time.Duration(j.refreshTokenExpiry) * time.Second),
+				now.Add(time.Duration(j.config.RefreshTokenTTL) * time.Second),
 			),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(j.secretKey))
+	signedToken, err := token.SignedString([]byte(j.config.JWTSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Token{Token: signedToken, ExpireAt: j.refreshTokenExpiry}, nil
+	return &Token{Token: signedToken, ExpireAt: j.config.RefreshTokenTTL}, nil
 }
 func (j *JwtService) IssueTokenPair(ctx context.Context, sub string, tid string) (*TokenResponse, error) {
 	accessToken, err := j.IssueAccessToken(ctx, sub, tid)
@@ -118,7 +115,7 @@ func (j *JwtService) ParseToken(ctx context.Context, tokenStr string) (*JwtClaim
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
-		return []byte(j.secretKey), nil
+		return []byte(j.config.JWTSecret), nil
 	})
 
 	if err != nil {

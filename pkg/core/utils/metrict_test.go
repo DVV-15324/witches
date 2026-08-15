@@ -1,4 +1,3 @@
-// pkg/core/utils/metrict_test.go
 //go:build integration
 
 package utils

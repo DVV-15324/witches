@@ -5,42 +5,54 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+func getTestConfig() *utils.Config {
+	return &utils.Config{
+		JWTSecret:       "test-secret-key",
+		AccessTokenTTL:  3600,  // 1 giờ
+		RefreshTokenTTL: 86400, // 24 giờ
+	}
+}
+
 func TestNewJwtService(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	assert.NotNil(t, service)
-	assert.Equal(t, int64(3600), service.accessTokenExpiry)
-	assert.Equal(t, int64(86400), service.refreshTokenExpiry)
+	assert.Equal(t, cfg, service.config)
 }
 
 func TestJwtService_IssueAccessToken(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
 	require.NoError(t, err)
 	assert.NotNil(t, token)
 	assert.NotEmpty(t, token.Token)
-	assert.Equal(t, int64(3600), token.ExpireAt)
+	assert.Equal(t, cfg.AccessTokenTTL, token.ExpireAt)
 }
 
 func TestJwtService_IssueRefreshToken(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	token, err := service.IssueRefreshToken(ctx, "user-123", "trace-456")
 	require.NoError(t, err)
 	assert.NotNil(t, token)
 	assert.NotEmpty(t, token.Token)
-	assert.Equal(t, int64(86400), token.ExpireAt)
+	assert.Equal(t, cfg.RefreshTokenTTL, token.ExpireAt)
 }
 
 func TestJwtService_IssueTokenPair(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	pair, err := service.IssueTokenPair(ctx, "user-123", "trace-456")
@@ -49,10 +61,13 @@ func TestJwtService_IssueTokenPair(t *testing.T) {
 	assert.NotEmpty(t, pair.AccessToken.Token)
 	assert.NotEmpty(t, pair.RefreshToken.Token)
 	assert.NotEqual(t, pair.AccessToken.Token, pair.RefreshToken.Token)
+	assert.Equal(t, cfg.AccessTokenTTL, pair.AccessToken.ExpireAt)
+	assert.Equal(t, cfg.RefreshTokenTTL, pair.RefreshToken.ExpireAt)
 }
 
 func TestJwtService_ParseToken_Valid(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	sub := "user-123"
@@ -69,19 +84,25 @@ func TestJwtService_ParseToken_Valid(t *testing.T) {
 }
 
 func TestJwtService_ParseToken_Expired(t *testing.T) {
-	// Create service with negative expiry
-	service := NewJwtService("secret", -1, 86400)
+	// Create config with negative TTL
+	cfg := getTestConfig()
+	cfg.AccessTokenTTL = -1 // token hết hạn ngay lập tức
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
 	require.NoError(t, err)
+
+	// Chờ một chút để token hết hạn
+	time.Sleep(10 * time.Millisecond)
 
 	_, err = service.ParseToken(ctx, token.Token)
 	assert.ErrorIs(t, err, ErrTokenExpired)
 }
 
 func TestJwtService_ParseToken_Invalid(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
 	tests := []struct {
@@ -113,11 +134,13 @@ func TestJwtService_ParseToken_Invalid(t *testing.T) {
 		})
 	}
 }
+
 func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	// Tạo token với algorithm không hợp lệ
+	// Tạo token với algorithm none (không an toàn)
 	token := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
 		"sub": "user-123",
 		"exp": time.Now().Add(time.Hour).Unix(),
@@ -127,12 +150,15 @@ func TestJwtService_ParseToken_WithInvalidAlgorithm(t *testing.T) {
 
 	_, err = service.ParseToken(ctx, tokenStr)
 	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unexpected signing method")
 }
 
 func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
-	service := NewJwtService("secret", 3600, 86400)
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
 	ctx := context.Background()
 
+	// Tạo token với NotBefore trong tương lai
 	claims := JwtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   "user-123",
@@ -141,14 +167,72 @@ func TestJwtService_ParseToken_WithFutureNotBefore(t *testing.T) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenStr, err := token.SignedString([]byte("secret"))
+	tokenStr, err := token.SignedString([]byte(cfg.JWTSecret))
 	require.NoError(t, err)
 
 	_, err = service.ParseToken(ctx, tokenStr)
 	assert.ErrorIs(t, err, ErrTokenNotYetValid)
 }
 
-func TestJwtService_IssueTokenPair_WithError(t *testing.T) {
-	// Test khi IssueAccessToken bị lỗi (khó mock, có thể skip)
-	t.Skip("Skipping error test - requires complex mock")
+func TestJwtService_ParseToken_WithConfigNil(t *testing.T) {
+	// Trường hợp config bị nil (có thể xảy ra nếu không khởi tạo đúng)
+	service := &JwtService{config: nil}
+	ctx := context.Background()
+
+	// Tạo token hợp lệ nhưng service không có config
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": "user-123",
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
+	tokenStr, err := token.SignedString([]byte("secret"))
+	require.NoError(t, err)
+
+	_, err = service.ParseToken(ctx, tokenStr)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "parse token failed")
+}
+
+func TestJwtService_ParseToken_WithMissingClaims(t *testing.T) {
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
+	ctx := context.Background()
+
+	// Tạo token không có subject (thiếu claim)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
+	tokenStr, err := token.SignedString([]byte(cfg.JWTSecret))
+	require.NoError(t, err)
+
+	claims, err := service.ParseToken(ctx, tokenStr)
+	require.NoError(t, err)
+	assert.NotNil(t, claims)
+	assert.Empty(t, claims.Subject) // subject rỗng
+}
+
+func BenchmarkJwtService_IssueAccessToken(b *testing.B) {
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
+	ctx := context.Background()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = service.IssueAccessToken(ctx, "user-123", "trace-456")
+	}
+}
+
+func BenchmarkJwtService_ParseToken(b *testing.B) {
+	cfg := getTestConfig()
+	service := NewJwtService(cfg)
+	ctx := context.Background()
+
+	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = service.ParseToken(ctx, token.Token)
+	}
 }
