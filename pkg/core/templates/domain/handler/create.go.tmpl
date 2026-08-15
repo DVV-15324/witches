@@ -1,32 +1,29 @@
 package handler
 
 import (
-	"net/http"
-	"{{.ModuleName}}/internal/{{.FolderName}}/dto/request"
+	"{{.ModuleName}}/internal/{{.Name}}/dto/request"
+	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
 	"time"
-	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
-	"{{.ModuleName}}/internal/shared/utils"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 )
 
-func (h *{{.NameCap}}Handler) Create(c *gin.Context) {
-	var req request.Create{{.NameCap}}Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
-		return
+func (h *{{.NameCap}}Handler) Create() func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		var req request.Create{{.NameCap}}Request
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			resp := w_resp.NewAppError(400, err, time.Now())
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			return
+		}
+		domain := &domain{{.NameCap}}.{{.NameCap}}{
+			// field of request
+		}
+		resp := h.usecase.Create(ctx.Request.Context(), domain)
+		if resp != nil {
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			return
+		}
+		w_resp.WriteSuccess(ctx, "tao thang cong")
 	}
-
-	domain := &domain{{.NameCap}}.{{.NameCap}}{
-		// field of request
-	}
-
-	resp := h.usecase.Create(c.Request.Context(), domain)
-	if resp != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
-		return
-	}
-
-	c.JSON(http.StatusCreated, "tao thang cong")
 }

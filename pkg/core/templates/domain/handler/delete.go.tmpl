@@ -1,24 +1,26 @@
 package handler
 
 import (
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"
-	"github.com/gin-gonic/gin"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 )
 
-func (h *{{.NameCap}}Handler) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		resp := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
-		return
-	}
+func (h *{{.NameCap}}Handler) Delete() func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			resp := w_resp.NewAppError(400, err, time.Now())
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			return
+		}
 
-	err_d := h.usecase.Delete(c.Request.Context(), id)
-	if err_d != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err_d)
-		return
+		err_d := h.usecase.Delete(ctx.Request.Context(), id)
+		if err_d != nil {
+			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err_d)
+			return
+		}
+		w_resp.WriteSuccess(ctx, "xoa thanh cong")
 	}
-    w_resp.WriteSuccess(c, "xoa thanh cong")
 }

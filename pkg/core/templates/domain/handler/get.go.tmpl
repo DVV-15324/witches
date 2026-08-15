@@ -26,9 +26,10 @@ func (h *{{.NameCap}}Handler) GetByID(c *gin.Context) {
 	w_resp.WriteSuccess(c, dto)
 }
 
+
 func (h *{{.NameCap}}Handler) GetAll(c *gin.Context) {
 	req := w_utils.PaginationRequest{}
-	data,total, err := h.usecase.GetAll(c.Request.Context())
+	data, total, err := h.usecase.GetAll(c.Request.Context(), &req)
 	if err != nil {
 		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err)
 		return
