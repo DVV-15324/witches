@@ -46,7 +46,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// ---- Protected routes ----
 	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
-	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 
 	// Lưu Swagger
 	if err := gen.Save("swagger.json"); err != nil {
