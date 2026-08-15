@@ -1,52 +1,61 @@
 package routers
 
 import (
-	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
-	dtoRefresh "{{.ModuleName}}/internal/refresh/dto/request"
-	middleware "{{.ModuleName}}/internal/shared/middleware"
-	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	"fmt"
 	"log"
-	"time"
+
+	"{{.ModuleName}}/cmd/server/core"
+	"{{.ModuleName}}/internal/shared/middleware"
 
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 )
 
-func Start(r *gin.Engine, host string, cfg *wcmd_utils.Config) {
+func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
+	// Middleware CORS
+	r.Use(w_utils.Cors(core.Config))
 
-	// 1. Khởi tạo services
-	services := Services()
-	if services == nil {
-		log.Fatal("Failed to initialize services")
-	}
+	// Rate limit middleware
+	rateLimitMiddleware := &middleware.LimitMiddleWare{}
 
-	// 1.1. Them cors, limit cho services
-	r.Use(w_utils.Cors(cfg))
-	limit := middleware.LimitMiddleWare{}
-	rateLimitPeriods := time.Duration(cfg.RateLimitPeriod) * time.Second
+	// Auth middleware
+	authMiddleware := middleware.AuthMiddleware(
+		modules.Refresh.Usecase,
+		core.Session,
+		core.Blacklist,
+		core.Logger,
+		core.Config,
+		core.DeviceHelper,
+	)
 
+	// Rate limit config
 	rateLimit := limiter.Rate{
-		Period: rateLimitPeriods,
-		Limit:  cfg.RateLimitMax,
+		Period: core.Limiter.Rate.Period,
+		Limit:  core.Limiter.Rate.Limit,
 	}
-	// 2. Tạo Swagger Generator
-	gen := initSwagger(r, services.RedisClient, &limit, host)
-	// 3. Định nghĩa routes
-	setupPublicRoutes(gen, services, &rateLimit)
-	setupProtectedRoutes(gen, services, &rateLimit, cfg, services.DeviceHepper)
 
-	// 4. Save swagger.json
+	// Khởi tạo Swagger
+	gen := initSwagger(r, core, rateLimitMiddleware)
+
+	modules.User.RegisterPublicRoutes(gen, &rateLimit)
+	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
+	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
+
+	// ---- Protected routes ----
+	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+
+	// Lưu Swagger
 	if err := gen.Save("swagger.json"); err != nil {
 		log.Printf("Error saving swagger.json: %v", err)
 	} else {
 		log.Println("swagger.json generated successfully!")
 	}
 
-	// 5. Swagger UI
+	// Swagger UI
 	r.GET("/swagger/*any", w_handl.SwaggerUI())
 	r.GET("/swagger.json", func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
@@ -54,22 +63,16 @@ func Start(r *gin.Engine, host string, cfg *wcmd_utils.Config) {
 	})
 }
 
-func initSwagger(r *gin.Engine, redisClient *redis.Client, rateLimitMiddleware w_handl.IRateLimitMiddleware, host string) *w_handl.SwaggerGenerator {
-	gen := w_handl.NewSwaggerGenerator("API", "1.0", host, "/")
+func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_handl.IRateLimitMiddleware) *w_handl.SwaggerGenerator {
+	address := fmt.Sprintf("%s:%d", core.Config.Host, core.Config.Port)
+	gen := w_handl.NewSwaggerGenerator("Example API", "1.0", address, "/")
 	gen.SetEngine(r)
-	gen.SetRedisClient(redisClient)
+	gen.SetRedisClient(core.Redis.GetClient())
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
-	// Tags
+
 	gen.AddTag("v1", "API Version 1")
 	gen.AddTag("auth", "Authentication endpoints")
 	gen.AddTag("user", "User management endpoints")
-
-	// Register models
-	gen.RegisterModel(dtoAuth.Login{})
-	gen.RegisterModel(dtoAuth.Register{})
-	gen.RegisterModel(dtoRefresh.RefreshTokenRequest{})
-	gen.RegisterModel(w_utils.PaginationRequest{})
-	gen.RegisterModel(w_resp.AppResponse{})
 
 	return gen
 }

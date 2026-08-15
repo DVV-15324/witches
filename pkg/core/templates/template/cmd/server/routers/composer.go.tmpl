@@ -1,125 +1,13 @@
 package routers
 
 import (
-	"context"
-	config "{{.ModuleName}}/cmd/server/config"
-	handleAuth "{{.ModuleName}}/internal/auth/handler"
-	responsitoryAuth "{{.ModuleName}}/internal/auth/repository"
-	usecaseAuth "{{.ModuleName}}/internal/auth/usecase"
-	handleRefresh "{{.ModuleName}}/internal/refresh/handler"
-	responsitoryRefresh "{{.ModuleName}}/internal/refresh/repository"
-	usecaseRefresh "{{.ModuleName}}/internal/refresh/usecase"
-	handleUser "{{.ModuleName}}/internal/user/handler"
-	responsitoryUser "{{.ModuleName}}/internal/user/repository"
-	usecaseUser "{{.ModuleName}}/internal/user/usecase"
-	pkg_redis "{{.ModuleName}}/pkg/redis"
-	"fmt"
-	"log"
-	utils "{{.ModuleName}}/internal/shared/utils"
-	"path/filepath"
-	"time"
-
-	w_db "github.com/DVV-15324/witches/pkg/core/database/connect/sql"
-	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/DVV-15324/witches/pkg/core/response/logger"
-	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	"{{.ModuleName}}/cmd/server/core"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
-	"github.com/ulule/limiter/v3"
-	redis_driver "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
-type IRefreshUseCase interface {
-	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.AppError)
-}
-
-type IRefreshHandle interface {
-	HandleRefreshToken() func(c *gin.Context)
-}
-
-type IAuthHandle interface {
-	HandleLogin() func(c *gin.Context)
-	HandleRegister() func(c *gin.Context)
-	HandleLogout() func(c *gin.Context)
-	HandleGoogleLogin() func(c *gin.Context)
-}
-type IUserHandle interface {
-	HandleGetAllUser() func(c *gin.Context)
-	HandleGetUserById() func(c *gin.Context)
-}
-
-type HandleServices struct {
-	UsecaseRefresh IRefreshUseCase
-	HandleRefresh  IRefreshHandle
-	HandleAuth     IAuthHandle
-	HandleUser     IUserHandle
-	Logger         *logger.ModelLogger
-	Session        *w_utils.SessionService
-	Blacklist      *w_utils.BlacklistService
-	RateLimit      *limiter.Limiter
-	RedisClient    *redis.Client
-	DeviceHepper   *w_utils.DeviceHelper
-}
-
-func Services() *HandleServices {
-	config := config.Load()
-	utils.Bits = int64(config.UIDBits) ///
-	path := filepath.Join(config.LogPath, "logs.log")
-	logg, err := logger.NewFileLogger(path, 1, 20, 30)
-	if err != nil {
-		log.Println(err)
-	}
-	db, err := w_db.NewDatabaseInstance(config, logg)
-
-	if err != nil {
-		log.Fatalf("Failed to connect database: %v", err)
-	}
-	if db == nil {
-		log.Fatal(" Database connection is nil")
-	}
-	if db.DB == nil {
-		log.Fatal(" Database DB instance is nil")
-	}
-	address := fmt.Sprintf("%s:%d", config.RedisHost, config.RedisPort)
-	redis, err := pkg_redis.NewRedisClient(address, config.RedisPassword)
-	if err != nil {
-		log.Println("Error: Connect database fail")
-	}
-	durationRateLimitPeriod := time.Duration(config.RateLimitPeriod) * time.Second
-	// 100 requests / phút
-	rate := limiter.Rate{
-		Period: durationRateLimitPeriod,
-		Limit:  config.RateLimitMax,
-	}
-
-	store, _ := redis_driver.NewStore(redis.GetClient())
-	instanceLimit := limiter.New(store, rate)
-	sessionService := w_utils.NewSessionService(redis.GetClient(), config.SessionTTL, config.IdleTimeout)
-	blacklistService := w_utils.NewBlacklistService(redis.GetClient(), config)
-	tx := w_utils.NewTxManager(db.DB)
-	rAuth := responsitoryAuth.NewAuthRepository(db.DB, tx, redis.GetClient())
-	rUser := responsitoryUser.NewUserRepository(db.DB, tx)
-	rRefresh := responsitoryRefresh.NewRefreshTokenRepository(db.DB, redis.GetClient())
-	jwt := w_utils.NewJwtService(config)
-	hash := new(w_utils.Hash)
-	deviceHepper := w_utils.NewDeviceHelper(config)
-	usecaseUser := usecaseUser.NewUserUsecase(rUser, tx)
-	usecaseRefresh := usecaseRefresh.NewRefreshUseCase(usecaseUser, rRefresh, jwt, sessionService, blacklistService, config)
-	usecaseAuth := usecaseAuth.NewAuthUseCase(jwt, usecaseUser, hash, rAuth, usecaseRefresh, tx, sessionService, blacklistService, config)
-	usecaseRefresh.SetAuthUseCase(usecaseAuth)
-	handleUser := handleUser.NewUserHandle(usecaseUser, logg, config)
-	handleAuth := handleAuth.NewAuthHandle(usecaseAuth, logg, config, deviceHepper)
-	handleRefresh := handleRefresh.NewRefreshHandle(usecaseRefresh, logg, config)
-	return &HandleServices{
-		HandleRefresh:  handleRefresh,
-		HandleAuth:     handleAuth,
-		HandleUser:     handleUser,
-		Logger:         logg,
-		UsecaseRefresh: usecaseRefresh,
-		Blacklist:      blacklistService,
-		Session:        sessionService,
-		RateLimit:      instanceLimit,
-		RedisClient:    redis.GetClient(),
-		DeviceHepper:   deviceHepper,
-	}
+func Start(r *gin.Engine, cfg *wcmd_utils.Config) {
+	core := core.NewCoreServices(cfg)
+	modules := InitModules(core)
+	RegisterRoutes(r, core, modules)
 }
