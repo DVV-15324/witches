@@ -11,14 +11,14 @@ import (
 
 func (h *{{.NameCap}}Handler) GetByID() func(*gin.Context) {
 	return func(ctx *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		resp := w_resp.NewAppError(400, err, time.Now())
 		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
 		return
 	}
 
-	data, err_get := h.usecase.GetByID(c.Request.Context(), id)
+	data, err_get := h.usecase.GetByID(ctx.Request.Context(), id)
 	if err_get != nil {
 		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err_get)
 		return
