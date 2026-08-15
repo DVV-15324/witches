@@ -9,32 +9,36 @@ import (
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
-func (h *{{.NameCap}}Handler) GetByID(c *gin.Context) {
+func (h *{{.NameCap}}Handler) GetByID() func(*gin.Context) {
+	return func(ctx *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		resp := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
+		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
 		return
 	}
 
 	data, err_get := h.usecase.GetByID(c.Request.Context(), id)
 	if err_get != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err_get)
+		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err_get)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}(data)
-	w_resp.WriteSuccess(c, dto)
+	w_resp.WriteSuccess(ctx, dto)
+}
 }
 
 
-func (h *{{.NameCap}}Handler) GetAll(c *gin.Context) {
+func (h *{{.NameCap}}Handler) GetAll() func(*gin.Context) {
+	return func(ctx *gin.Context) {
 	req := w_utils.PaginationRequest{}
-	data, total, err := h.usecase.GetAll(c.Request.Context(), &req)
+	data, total, err := h.usecase.GetAll(ctx.Request.Context(), &req)
 	if err != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err)
+		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}List(data)
 	paginationResp := req.ToPaginationResponse(total)
-	w_resp.WriteSuccessWithPagination(c, dto, &paginationResp)
+	w_resp.WriteSuccessWithPagination(ctx, dto, &paginationResp)
+}
 }
