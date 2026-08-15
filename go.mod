@@ -87,7 +87,6 @@ require (
 
 require (
 	github.com/alicebob/miniredis/v2 v2.38.0
-	github.com/btcsuite/btcutil v1.0.2
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.1 // indirect
 	github.com/bytedance/sonic/loader v0.5.1 // indirect
