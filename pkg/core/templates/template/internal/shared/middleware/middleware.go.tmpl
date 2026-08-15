@@ -23,10 +23,11 @@ func AuthMiddleware(
 	blacklistSvc *w_utils.BlacklistService,
 	log *logger.ModelLogger,
 	cfg *wcmd_utils.Config,
+	deviceHeper *w_utils.DeviceHelper,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lấy tid từ RequestContext
-		tid := w_utils.GetTid(c.Request.Context(), utils.ReqKey)
+		tid := w_utils.GetTid(c.Request.Context(), cfg)
 		if tid == "" {
 			// Fallback: lấy từ Gin context
 			if val, exists := c.Get("tid"); exists {
@@ -36,7 +37,7 @@ func AuthMiddleware(
 		// 1.
 		// En: Extract token
 		// Vi: Trích xuất mã Token
-		token, err := utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
+		token, err := w_utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
 		if err != nil {
 			resp := w_resp.NewAppError(401, err, time.Now())
 			w_resp.WriteErrorWithLog(c, log, cfg, resp)
@@ -46,7 +47,7 @@ func AuthMiddleware(
 		// 1.1
 		// En: Get device Info
 		// Vi: Lấy device Info
-		deviceID, ipAddress, userAgent, locale, timeZone := utils.GetDeviceInfo(c)
+		deviceID, ipAddress, userAgent, locale, timeZone := deviceHeper.GetDeviceInfo(c)
 		// 2.
 		// En: Check blacklist
 		// Vi: Kiểm tra blacklist
@@ -84,7 +85,7 @@ func AuthMiddleware(
 		// 5.
 		// En: Get request context
 		// Vi: Lấy request context
-		reqCtx := w_utils.GetRequestContext(c.Request.Context(), utils.ReqKey)
+		reqCtx := w_utils.GetRequestContext(c.Request.Context(), cfg)
 
 		session, err := sessionSvc.ValidateSession(c.Request.Context(), userID, deviceID, token)
 		if err != nil {
@@ -104,7 +105,7 @@ func AuthMiddleware(
 		reqCtx.UserAgent = userAgent
 		reqCtx.Locale = locale
 		reqCtx.Timezone = timeZone
-		ctx := w_utils.SaveRequestContext(c.Request.Context(), reqCtx, utils.ReqKey)
+		ctx := w_utils.SaveRequestContext(c.Request.Context(), reqCtx, cfg)
 		c.Request = c.Request.WithContext(ctx)
 
 		//6.1: RBAC kiểm tra role của token

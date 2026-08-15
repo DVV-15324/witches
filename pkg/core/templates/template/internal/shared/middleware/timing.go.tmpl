@@ -2,26 +2,25 @@ package middleware
 
 import (
 	"time"
-
-	utils "{{.ModuleName}}/internal/shared/utils"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
-func TimingMiddleware(log *logger.ModelLogger, slowThreshold int64) gin.HandlerFunc {
+func TimingMiddleware(log *logger.ModelLogger, cfg *wcmd_utils.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
 
 		// Lấy tid từ RequestContext
-		tid := w_utils.GetTid(c.Request.Context(), utils.ReqKey)
-		sub := w_utils.GetSub(c.Request.Context(), utils.ReqKey)
+		tid := w_utils.GetTid(c.Request.Context(), cfg)
+		sub := w_utils.GetSub(c.Request.Context(), cfg)
 
 		ms := time.Since(start).Milliseconds()
 
-		if ms > slowThreshold {
+		if ms > cfg.SlowThreshold {
 			log.WarnWithFields("Slow request",
 				zap.String("trace_id(tid)", tid),
 				zap.String("subject(sub)", sub),
