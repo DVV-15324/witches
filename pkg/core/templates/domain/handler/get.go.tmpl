@@ -3,7 +3,6 @@ package handler
 import (
 	"time"
 	mapping "{{.ModuleName}}/internal/{{.FolderName}}/mapping"
-	"{{.ModuleName}}/internal/shared/utils"
 	"strconv"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
@@ -13,14 +12,14 @@ import (
 func (h *{{.NameCap}}Handler) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		resq := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		resp := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 
 	data, err_get := h.usecase.GetByID(c.Request.Context(), id)
 	if err_get != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, err_get, utils.ReqKey)
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err_get)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}(data)
@@ -31,7 +30,7 @@ func (h *{{.NameCap}}Handler) GetAll(c *gin.Context) {
 	req := w_utils.PaginationRequest{}
 	data,total, err := h.usecase.GetAll(c.Request.Context())
 	if err != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, err, utils.ReqKey)
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, err)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}List(data)

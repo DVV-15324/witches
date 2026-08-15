@@ -5,6 +5,7 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 
 )
 type I{{.NameCap}}Usecase interface {
@@ -17,12 +18,14 @@ type I{{.NameCap}}Usecase interface {
 type {{.NameCap}}Handler struct {
 	Log         *logger.ModelLogger
 	usecase I{{.NameCap}}Usecase
+	Cfg     *wcmd_utils.Config
 }
 
 // New{{.NameCap}}Handler - Constructor
-func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.ModelLogger) *{{.NameCap}}Handler {
+func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.ModelLogger, Cfg *wcmd_utils.Config) *{{.NameCap}}Handler {
 	return &{{.NameCap}}Handler{
 	usecase: usecase,
 	Log:         log,
+	Cfg         :Cfg,
 	}
 }

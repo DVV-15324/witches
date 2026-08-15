@@ -13,8 +13,8 @@ import (
 func (h *{{.NameCap}}Handler) Create(c *gin.Context) {
 	var req request.Create{{.NameCap}}Request
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resq := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		resp := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 
@@ -24,7 +24,7 @@ func (h *{{.NameCap}}Handler) Create(c *gin.Context) {
 
 	resp := h.usecase.Create(c.Request.Context(), domain)
 	if resp != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 

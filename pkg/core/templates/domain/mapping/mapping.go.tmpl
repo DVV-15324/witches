@@ -5,6 +5,7 @@ import (
 	"{{.ModuleName}}/internal/shared/utils"
 	dto{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}/dto/response"
 	model{{.NameCap}} "{{.ModuleName}}/internal/{{.Name}}/model"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
 // DTO ↔ Domain
@@ -22,7 +23,7 @@ func FromDtoToDomain{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *domain{{.Na
 
 // List DTO → List domain (dùng generic)
 func FromDtoToDomain{{.NameCap}}List(dtos []*dto{{.NameCap}}.{{.NameCap}}) []*domain{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(dtos, FromDtoToDomain{{.NameCap}})
+	return w_utils.MapPtrSlice(dtos, FromDtoToDomain{{.NameCap}})
 }
 
 //  Domain ↔ Model
@@ -40,7 +41,7 @@ func FromDomainToModel{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *mod
 
 // List Domain → List Model (dùng generic)
 func FromDomainToModel{{.NameCap}}List(domains []*domain{{.NameCap}}.{{.NameCap}}) []*model{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(domains, FromDomainToModel{{.NameCap}})
+	return w_utils.MapPtrSlice(domains, FromDomainToModel{{.NameCap}})
 }
 
 func FromModelToDomain{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *domain{{.NameCap}}.{{.NameCap}} {
@@ -56,7 +57,7 @@ func FromModelToDomain{{.NameCap}}(model *model{{.NameCap}}.{{.NameCap}}) *domai
 
 // List Model → List Domain (dùng generic)
 func FromModelToDomain{{.NameCap}}List(entities []*model{{.NameCap}}.{{.NameCap}}) []*domain{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(entities, FromModelToDomain{{.NameCap}})
+	return w_utils.MapPtrSlice(entities, FromModelToDomain{{.NameCap}})
 }
 
 // List Domain → List DTO
@@ -73,5 +74,5 @@ func FromDomainToDto{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *dto{{
 
 // List Domain → List DTO (dùng generic)
 func FromDomainToDto{{.NameCap}}List(domains []*domain{{.NameCap}}.{{.NameCap}}) []*dto{{.NameCap}}.{{.NameCap}} {
-	return utils.MapPtrSlice(domains, FromDomainToDto{{.NameCap}})
+	return w_utils.MapPtrSlice(domains, FromDomainToDto{{.NameCap}})
 }

@@ -3,7 +3,6 @@ package handler
 import (
 	"strconv"
 	"time"
-	"{{.ModuleName}}/internal/shared/utils"
 	"{{.ModuleName}}/internal/{{.FolderName}}/dto/request"
 	"github.com/gin-gonic/gin"
 	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
@@ -13,15 +12,15 @@ import (
 func (h *{{.NameCap}}Handler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		resq := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		resp := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 
 	var req request.Update{{.NameCap}}Request
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resq := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(c, h.Log, resq, utils.ReqKey)
+		resp := w_resp.NewAppError(400, err, time.Now())
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 
@@ -30,7 +29,7 @@ func (h *{{.NameCap}}Handler) Update(c *gin.Context) {
 	resp := h.usecase.Update(c.Request.Context(), id, &domain)
 
 	if resp != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, resp, utils.ReqKey)
+		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resp)
 		return
 	}
 	w_resp.WriteSuccess(c, "cap nhat thanh cong")
