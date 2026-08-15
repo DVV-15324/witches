@@ -63,15 +63,12 @@ func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_h
 
 func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limiter.Rate, authMiddleware gin.HandlerFunc) {
 	gen.AddTag("v1", "API Version 1")
-
 	gen.AddTag("auth", "Auth endpoints")
 	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
-
 	gen.AddTag("user", "User endpoints")
 	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	modules.User.RegisterPublicRoutes(gen, &rateLimit)
-
 	gen.AddTag("refresh", "Refresh endpoints")
 	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
 	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
