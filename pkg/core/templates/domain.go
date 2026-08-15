@@ -63,7 +63,7 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 
 	// Cập nhật modules.go (thêm field + init)
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
-	if err := AddModuleField(modulesPath, config.Name, config.NameCap, config.Name); err != nil {
+	if err := AddModuleField(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
 		fmt.Printf("Warning: failed to add module field: %v\n", err)
 	} else {
 		fmt.Println("Updated modules.go: added field")
