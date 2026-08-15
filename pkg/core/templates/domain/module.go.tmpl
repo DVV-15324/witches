@@ -102,7 +102,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		HeaderParam("Authorization", "Bearer token for authentication", false).
 		RateLimit(*rateLimit).
-		PathParam("id", "{{.NameCap}} ID").
+		PathParam("id", "{{.NameCap}} ID", false).
 		Body(map[string]interface{}{}, "Update data").
 		Response(200, w_resp.AppResponse{}, "Updated successfully").
 		Response(400, w_resp.AppResponse{}, "Bad request").
@@ -121,7 +121,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		HeaderParam("Authorization", "Bearer token for authentication", false).
 		RateLimit(*rateLimit).
-		PathParam("id", "{{.NameCap}} ID").
+		PathParam("id", "{{.NameCap}} ID", false).
 		Response(200, w_resp.AppResponse{}, "Deleted successfully").
 		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
 		Use(authMiddleware).
