@@ -216,7 +216,7 @@ func BenchmarkJwtService_IssueAccessToken(b *testing.B) {
 	ctx := context.Background()
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = service.IssueAccessToken(ctx, "user-123", "trace-456")
 	}
 }
@@ -232,7 +232,7 @@ func BenchmarkJwtService_ParseToken(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = service.ParseToken(ctx, token.Token)
 	}
 }
