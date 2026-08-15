@@ -4,24 +4,23 @@ import (
 	"context"
 	"time"
 
-	"github.com/DVV-15324/witches/pkg/core/utils"
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"go.uber.org/zap"
 	gormlogger "gorm.io/gorm/logger"
 )
 
 type GormZapLogger struct {
-	zapLogger     *ModelLogger
-	LogLevel      gormlogger.LogLevel
-	SlowThreshold time.Duration
-	KeyReq        string
+	zapLogger *ModelLogger
+	LogLevel  gormlogger.LogLevel
+	config    *wcmd_utils.Config
 }
 
-func NewGormLogger(zapLogger *ModelLogger, slowThreshold time.Duration, keyReq string) *GormZapLogger {
+func NewGormLogger(zapLogger *ModelLogger, config *wcmd_utils.Config) *GormZapLogger {
 	return &GormZapLogger{
-		zapLogger:     zapLogger,
-		LogLevel:      gormlogger.Info,
-		SlowThreshold: slowThreshold,
-		KeyReq:        keyReq,
+		zapLogger: zapLogger,
+		LogLevel:  gormlogger.Info,
+		config:    config,
 	}
 }
 
@@ -50,8 +49,8 @@ func (l *GormZapLogger) Error(ctx context.Context, msg string, data ...interface
 }
 
 func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	tid := utils.GetTid(ctx, l.KeyReq)
-	sub := utils.GetSub(ctx, l.KeyReq)
+	tid := utils.GetTid(ctx, l.config.RequestKey)
+	sub := utils.GetSub(ctx, l.config.RequestKey)
 	if l.LogLevel <= gormlogger.Silent {
 		return
 	}
@@ -59,17 +58,9 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 	elapsed := time.Since(begin)
 	sql, rows := fc()
 
-	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
-		l.zapLogger.WarnWithFields("SLOW QUERY",
-			zap.String("trace_id(tid)", tid),
-			zap.String("subject(sub)", sub),
-			zap.String("sql", sql),
-			zap.Duration("duration", elapsed),
-			zap.Int64("rows", rows),
-			zap.Duration("threshold", l.SlowThreshold),
-		)
-		return
-	}
+	// to time.Duration
+	slowDuration := time.Duration(l.config.SlowThreshold) * time.Second
+
 	if l.LogLevel >= gormlogger.Info {
 		l.zapLogger.InfoWithFields("SQL QUERY",
 			zap.String("trace_id(tid)", tid),
@@ -80,16 +71,17 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		)
 	}
 
-	if elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn {
+	if elapsed > slowDuration && l.LogLevel >= gormlogger.Warn {
 		l.zapLogger.WarnWithFields("SLOW QUERY",
 			zap.String("trace_id(tid)", tid),
 			zap.String("subject(sub)", sub),
 			zap.String("sql", sql),
 			zap.Duration("duration", elapsed),
 			zap.Int64("rows", rows),
-			zap.Duration("threshold", l.SlowThreshold),
+			zap.Duration("threshold", slowDuration),
 		)
 	}
+
 	if err != nil && l.LogLevel >= gormlogger.Error {
 		l.zapLogger.ErrorWithFields("SQL ERROR",
 			zap.String("trace_id(tid)", tid),
@@ -99,6 +91,5 @@ func (l *GormZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 			zap.Int64("rows", rows),
 			zap.Error(err),
 		)
-		return
 	}
 }

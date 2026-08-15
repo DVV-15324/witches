@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	gormlogger "gorm.io/gorm/logger"
 )
 
@@ -18,9 +19,9 @@ func TestNewGormLogger(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	slowThreshold := 100 * time.Millisecond
-	keyReq := "trace_id"
-	gormLogger := NewGormLogger(logger, slowThreshold, keyReq)
+	config := wcmd_utils.DefaultConfig()
+	config.SlowThreshold = 5 // 5 giây
+	gormLogger := NewGormLogger(logger, config)
 
 	if gormLogger == nil {
 		t.Error("GormLogger should not be nil")
@@ -28,11 +29,14 @@ func TestNewGormLogger(t *testing.T) {
 	if gormLogger.zapLogger == nil {
 		t.Error("zapLogger should not be nil")
 	}
-	if gormLogger.SlowThreshold != slowThreshold {
-		t.Errorf("SlowThreshold = %v, want %v", gormLogger.SlowThreshold, slowThreshold)
+	if gormLogger.config == nil {
+		t.Error("config should not be nil")
 	}
-	if gormLogger.KeyReq != keyReq {
-		t.Errorf("KeyReq = %v, want %v", gormLogger.KeyReq, keyReq)
+	if gormLogger.config.RequestKey != "request_context" {
+		t.Errorf("RequestKey = %v, want %v", gormLogger.config.RequestKey, "request_context")
+	}
+	if gormLogger.config.SlowThreshold != 5 {
+		t.Errorf("SlowThreshold = %v, want %v", gormLogger.config.SlowThreshold, 5)
 	}
 }
 
@@ -45,18 +49,16 @@ func TestGormLogger_LogMode(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
 
-	// Test LogMode
 	newLogger := gormLogger.LogMode(gormlogger.Warn)
 	if newLogger == nil {
 		t.Error("LogMode should return a valid logger")
 	}
-
-	// Check that LogLevel was updated
 	if newLogger.(*GormZapLogger).LogLevel != gormlogger.Warn {
 		t.Errorf("LogLevel = %v, want %v", newLogger.(*GormZapLogger).LogLevel, gormlogger.Warn)
 	}
@@ -71,14 +73,14 @@ func TestGormLogger_Info(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
 
 	ctx := context.Background()
 
-	// Test Info with different log levels
 	tests := []struct {
 		name     string
 		logLevel gormlogger.LogLevel
@@ -122,7 +124,8 @@ func TestGormLogger_Warn(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
@@ -172,7 +175,8 @@ func TestGormLogger_Error(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
@@ -216,7 +220,11 @@ func TestGormLogger_Trace(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	config.SlowThreshold = 100 // 100 giây (để test slow query cần sleep >100s là không thể, nên ta sẽ set threshold nhỏ để test)
+	// Để test slow query, ta set threshold = 0.02 giây (20ms)
+	config.SlowThreshold = 0 // tạm thời set 0 để luôn trigger slow nếu có sleep
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
@@ -231,7 +239,6 @@ func TestGormLogger_Trace(t *testing.T) {
 		hasError  bool
 		rows      int64
 		sql       string
-		threshold time.Duration
 	}{
 		{
 			name:      "Normal query - Info level",
@@ -240,7 +247,6 @@ func TestGormLogger_Trace(t *testing.T) {
 			hasError:  false,
 			rows:      10,
 			sql:       "SELECT * FROM users",
-			threshold: 100 * time.Millisecond,
 		},
 		{
 			name:      "Slow query - Warn level",
@@ -249,7 +255,6 @@ func TestGormLogger_Trace(t *testing.T) {
 			hasError:  false,
 			rows:      10,
 			sql:       "SELECT * FROM users WHERE id = 1",
-			threshold: 10 * time.Millisecond,
 		},
 		{
 			name:      "Query with error - Error level",
@@ -258,7 +263,6 @@ func TestGormLogger_Trace(t *testing.T) {
 			hasError:  true,
 			rows:      -1,
 			sql:       "SELECT * FROM users WHERE id = 999",
-			threshold: 100 * time.Millisecond,
 		},
 		{
 			name:      "Silent level - should not log",
@@ -267,21 +271,27 @@ func TestGormLogger_Trace(t *testing.T) {
 			hasError:  false,
 			rows:      10,
 			sql:       "SELECT * FROM users",
-			threshold: 100 * time.Millisecond,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gormLogger.LogLevel = tt.logLevel
-			gormLogger.SlowThreshold = tt.threshold
+			// Điều chỉnh threshold để test slow query
+			if tt.slowQuery {
+				config.SlowThreshold = 1 // 1 giây, nhưng sleep 20ms nên sẽ không chạm ngưỡng. Để chạm ngưỡng, ta set threshold=0
+				config.SlowThreshold = 0 // 0 giây => luôn slow
+			} else {
+				config.SlowThreshold = 100 // 100 giây, không bao giờ slow
+			}
+			// Cập nhật lại config trong logger (vì config là pointer)
+			// Nhưng gormLogger.config trỏ đến cùng config, nên thay đổi sẽ ảnh hưởng
 
 			var err error
 			if tt.hasError {
 				err = context.DeadlineExceeded
 			}
 
-			// Sleep to simulate slow query if needed
 			if tt.slowQuery {
 				time.Sleep(20 * time.Millisecond)
 			}
@@ -302,13 +312,14 @@ func TestGormLogger_TraceWithContext(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
 
 	// Test with context that has trace_id
-	ctx := context.WithValue(context.Background(), "trace_id", "test-trace-123")
+	ctx := context.WithValue(context.Background(), config.RequestKey, "test-trace-123")
 	begin := time.Now()
 
 	gormLogger.Trace(ctx, begin, func() (sql string, rowsAffected int64) {
@@ -325,14 +336,14 @@ func TestGormLogger_AllLevelsCombined(t *testing.T) {
 	defer logger.Sync()
 	defer os.Remove(path)
 
-	gormLogger := NewGormLogger(logger, 100*time.Millisecond, "trace_id")
+	config := wcmd_utils.DefaultConfig()
+	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
 	}
 
 	ctx := context.Background()
 
-	// Test all methods with different log levels
 	levels := []gormlogger.LogLevel{
 		gormlogger.Silent,
 		gormlogger.Error,

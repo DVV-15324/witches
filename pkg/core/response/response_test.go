@@ -3,16 +3,37 @@ package response
 import (
 	"encoding/json"
 	"errors"
-	logger "github.com/DVV-15324/witches/pkg/core/response/logger"
-	utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	logger "github.com/DVV-15324/witches/pkg/core/response/logger"
+	utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
+
+func getTestConfig() *wcmd_utils.Config {
+	return &wcmd_utils.Config{RequestKey: "request_context"}
+}
+
+func getTestLogger(t *testing.T) *logger.ModelLogger {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test_response.log")
+	log, err := logger.NewFileLogger(path, 1, 20, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		log.Sync()
+		os.Remove(path)
+	})
+	return log
+}
 
 func TestResponseSuccess(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -22,7 +43,6 @@ func TestResponseSuccess(t *testing.T) {
 		WriteSuccess(ctx, map[string]string{"name": "vu"})
 	})
 
-	// Test request
 	req, _ := http.NewRequest("GET", "/test", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -35,7 +55,6 @@ func TestResponseSuccess(t *testing.T) {
 	assert.Equal(t, 200, response.Status)
 	assert.Equal(t, "Success", response.Message)
 	assert.Equal(t, map[string]interface{}{"name": "vu"}, response.Data)
-	t.Logf("Response success test passed: %+v", response)
 }
 
 func TestResponseError(t *testing.T) {
@@ -58,7 +77,6 @@ func TestResponseError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 404, response.Status)
 	assert.Equal(t, "Not Found", response.Message)
-	t.Logf("Response error test passed: %+v", response)
 }
 
 func TestSuccessWithPagination(t *testing.T) {
@@ -92,23 +110,16 @@ func TestSuccessWithPagination(t *testing.T) {
 	assert.Equal(t, 1, response.Pagination.Page)
 	assert.Equal(t, 10, response.Pagination.Limit)
 	assert.Equal(t, int64(100), response.Pagination.Total)
-	t.Logf("Pagination test passed: %+v", response)
 }
 
 func TestResponseSuccessWithLog(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-
-	// Tạo logger cho test
-	path := "./response_test.log"
-	log, err := logger.NewFileLogger(path, 1, 20, 30)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer log.Sync()
+	cfg := getTestConfig()
+	log := getTestLogger(t)
 
 	r.GET("/test", func(ctx *gin.Context) {
-		WriteSuccessWithLog(ctx, log, map[string]string{"name": "vu"}, "")
+		WriteSuccessWithLog(ctx, log, cfg, map[string]string{"name": "vu"})
 	})
 
 	req, _ := http.NewRequest("GET", "/test", nil)
@@ -118,28 +129,21 @@ func TestResponseSuccessWithLog(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 
 	var response AppResponse
-	err = json.Unmarshal(w.Body.Bytes(), &response)
+	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, response.Status)
 	assert.Equal(t, "Success", response.Message)
-	t.Logf("Response success with log passed")
 }
 
 func TestResponseErrorWithLog(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-
-	// Tạo logger cho test
-	path := "./response_test.log"
-	log, err := logger.NewFileLogger(path, 1, 20, 30)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer log.Sync()
+	cfg := getTestConfig()
+	log := getTestLogger(t)
 
 	r.GET("/test", func(ctx *gin.Context) {
 		errResp := NewAppError(404, errors.New("Not Found"), time.Now())
-		WriteErrorWithLog(ctx, log, errResp, "")
+		WriteErrorWithLog(ctx, log, cfg, errResp)
 	})
 
 	req, _ := http.NewRequest("GET", "/test", nil)
@@ -149,24 +153,17 @@ func TestResponseErrorWithLog(t *testing.T) {
 	assert.Equal(t, 404, w.Code)
 
 	var response AppResponse
-	err = json.Unmarshal(w.Body.Bytes(), &response)
+	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Equal(t, 404, response.Status)
 	assert.Equal(t, "Not Found", response.Message)
-	t.Logf("Response error with log passed")
 }
 
 func TestWriteSuccessWithPaginationAndLog(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-
-	// Tạo logger cho test
-	path := "./response_test.log"
-	log, err := logger.NewFileLogger(path, 1, 20, 30)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer log.Sync()
+	cfg := getTestConfig()
+	log := getTestLogger(t)
 
 	r.GET("/test", func(ctx *gin.Context) {
 		pagination := &utils.PaginationResponse{
@@ -177,7 +174,7 @@ func TestWriteSuccessWithPaginationAndLog(t *testing.T) {
 			HasNext:    true,
 			HasPrev:    false,
 		}
-		WriteSuccessWithPaginationAndLog(ctx, log, map[string]string{"name": "vu"}, pagination, "")
+		WriteSuccessWithPaginationAndLog(ctx, log, cfg, map[string]string{"name": "vu"}, pagination)
 	})
 
 	req, _ := http.NewRequest("GET", "/test", nil)
@@ -187,7 +184,7 @@ func TestWriteSuccessWithPaginationAndLog(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 
 	var response PaginationResponseWrapper
-	err = json.Unmarshal(w.Body.Bytes(), &response)
+	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, response.Status)
 	assert.Equal(t, "Success", response.Message)
@@ -195,5 +192,4 @@ func TestWriteSuccessWithPaginationAndLog(t *testing.T) {
 	assert.Equal(t, 1, response.Pagination.Page)
 	assert.Equal(t, 10, response.Pagination.Limit)
 	assert.Equal(t, int64(100), response.Pagination.Total)
-	t.Logf("Pagination with log test passed")
 }

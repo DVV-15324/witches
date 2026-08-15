@@ -1,8 +1,9 @@
 package response
 
 import (
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
-	"github.com/DVV-15324/witches/pkg/core/utils"
+	utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
@@ -45,15 +46,15 @@ func WriteSuccessWithPagination(c *gin.Context, data interface{}, pagination *ut
 	c.JSON(r.Status, r)
 }
 
-func WriteSuccessWithLog(c *gin.Context, log *logger.ModelLogger, data interface{}, keyReq string) {
+func WriteSuccessWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_utils.Config, data interface{}) {
 	r := AppResponse{
 		Status:    http.StatusOK,
 		Data:      data,
 		Message:   "Success",
 		Timestamp: time.Now(),
 	}
-	tid := utils.GetTid(c, keyReq)
-	sub := utils.GetSub(c, keyReq)
+	tid := utils.GetTid(c, config.RequestKey)
+	sub := utils.GetSub(c, config.RequestKey)
 	log.InfoWithFields("API response success",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
@@ -65,7 +66,7 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.ModelLogger, data interface
 	c.JSON(r.Status, r)
 }
 
-func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, data interface{}, pagination *utils.PaginationResponse, keyReq string) {
+func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_utils.Config, data interface{}, pagination *utils.PaginationResponse) {
 	r := PaginationResponseWrapper{
 		Status:     http.StatusOK,
 		Data:       data,
@@ -73,8 +74,8 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, d
 		Message:    "Success",
 		Timestamp:  time.Now(),
 	}
-	tid := utils.GetTid(c, keyReq)
-	sub := utils.GetSub(c, keyReq)
+	tid := utils.GetTid(c, config.RequestKey)
+	sub := utils.GetSub(c, config.RequestKey)
 
 	log.InfoWithFields("API response success with pagination",
 		zap.String("trace_id(tid)", tid),
@@ -96,14 +97,14 @@ func WriteError(c *gin.Context, re *AppError) {
 	c.JSON(r.Status, r)
 }
 
-func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, re *AppError, keyReq string) {
+func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_utils.Config, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
 		Message:   re.Error.Error(),
 		Timestamp: re.TimeStamp,
 	}
-	tid := utils.GetTid(c, keyReq)
-	sub := utils.GetSub(c, keyReq)
+	tid := utils.GetTid(c, config.RequestKey)
+	sub := utils.GetSub(c, config.RequestKey)
 
 	log.ErrorWithFields("API error",
 		zap.String("trace_id(tid)", tid),
