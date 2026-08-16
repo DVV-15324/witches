@@ -47,4 +47,4 @@ jobs:
 
       - name: Run golangci-lint
         run: |
-          ./.bin/golangci-lint run --config .golangci.yml
+          ./.bin/golangci-lint run --config .golangci.yml --timeout=10m
