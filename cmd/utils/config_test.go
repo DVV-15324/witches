@@ -94,7 +94,7 @@ RATE_LIMIT_MAX=200`
 	assert.Equal(t, "127.0.0.1", cfg.Host)
 	assert.Equal(t, int64(9091), cfg.MetrictPort)
 	assert.Equal(t, 30, cfg.UIDBits)
-	assert.Equal(t, "custom_key", cfg.RequestKey)
+	assert.Equal(t, "custom_key", contextKey(cfg.RequestKey))
 	assert.Equal(t, "/var/log", cfg.LogPath)
 	assert.Equal(t, "http://example.com", cfg.CorsAllowOrigins)
 	assert.Equal(t, "GET,POST", cfg.CorsAllowMethods)
