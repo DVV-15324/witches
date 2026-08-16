@@ -41,10 +41,10 @@ func TestDomainConfig(t *testing.T) {
 		NameCap:    "User",
 		Name:       "user",
 		FolderName: "user",
-		ModuleName: "github.com/example/project",
+		ModuleName: "github.com/example/myproject",
 	}
 
-	assert.Equal(t, "github.com/example/project", config.GetMuduleName())
+	assert.Equal(t, "github.com/example/myproject", config.GetModuleName())
 	assert.Equal(t, "user", config.Name)
 	assert.Equal(t, "User", config.NameCap)
 }
