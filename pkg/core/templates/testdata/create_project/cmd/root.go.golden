@@ -9,15 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
+
 var root = &cobra.Command{
 	Use:   "root",
 	Short: "En: Start the software | Vi: Bắt đầu khởi động phần mềm",
 	Run: func(cmd *cobra.Command, args []string) {
 		r := gin.Default()
 		config := config.Load()
-		host := fmt.Sprintf("%s:%d", config.Host, config.Port)
 		r = w_utils.InitMetric(fmt.Sprintf("%d", config.MetrictPort), config.Host, r)
-		routes.Start(r, host, config)
+		routes.Start(r, config)
 		w_utils.ShutdownServer(context.Background(), r, config.Host, fmt.Sprintf("%d", config.Port))
 	},
 }
