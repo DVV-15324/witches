@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -77,8 +78,14 @@ RATE_LIMIT_MAX=200`
 	// Chuyển vào temp dir
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalDir)
-	os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalDir); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 
 	cfg := PreloadNotDBURL()
 

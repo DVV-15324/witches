@@ -41,7 +41,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 	defer mr.Close()
 	// Seed data
 	for i := 0; i < 50; i++ {
-		repo.Create(&User{
+		_ = repo.Create(&User{
 			ID:        uuid.New().String(),
 			Name:      fmt.Sprintf("Test User %d", i),
 			Email:     fmt.Sprintf("test%d@example.com", i),
@@ -200,7 +200,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		user := resp.Data.(map[string]interface{})
 		id := user["id"].(string)
 
@@ -279,7 +279,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		user := resp.Data.(map[string]interface{})
 		id := user["id"].(string)
 
@@ -318,7 +318,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		user := resp.Data.(map[string]interface{})
 		id := user["id"].(string)
 
@@ -347,7 +347,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.Empty(t, resp.Data)
 		t.Log("Search no results handled")
 	})
@@ -378,7 +378,7 @@ func TestHandleSwaggerRateLimit(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		if resp.Data == nil {
 			t.Skip("Cannot create user for test")
 			return

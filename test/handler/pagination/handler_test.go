@@ -28,7 +28,7 @@ func TestHandleSwaggerPagination(t *testing.T) {
 
 	// Seed data
 	for i := 0; i < 50; i++ {
-		repo.Create(&User{
+		_ = repo.Create(&User{
 			ID:        uuid.New().String(),
 			Name:      fmt.Sprintf("Test User %d", i),
 			Email:     fmt.Sprintf("test%d@example.com", i),
@@ -297,7 +297,7 @@ func TestHandleSwaggerPagination(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		users, ok := resp.Data.([]interface{})
 		if !ok || len(users) == 0 {
@@ -339,7 +339,7 @@ func TestHandleSwaggerPagination(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		user := resp.Data.(map[string]interface{})
 		id := user["id"].(string)
 

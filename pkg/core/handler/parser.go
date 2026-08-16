@@ -87,23 +87,23 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 
 		if min := field.Tag.Get("minimum"); min != "" {
 			var val int
-			fmt.Sscanf(min, "%d", &val)
+			_, _ = fmt.Sscanf(min, "%d", &val)
 			prop.Minimum = &val
 		}
 		if max := field.Tag.Get("maximum"); max != "" {
 			var val int
-			fmt.Sscanf(max, "%d", &val)
+			_, _ = fmt.Sscanf(max, "%d", &val)
 			prop.Maximum = &val
 		}
 
 		if minLen := field.Tag.Get("minLength"); minLen != "" {
 			var val int
-			fmt.Sscanf(minLen, "%d", &val)
+			_, _ = fmt.Sscanf(minLen, "%d", &val)
 			prop.MinLength = &val
 		}
 		if maxLen := field.Tag.Get("maxLength"); maxLen != "" {
 			var val int
-			fmt.Sscanf(maxLen, "%d", &val)
+			_, _ = fmt.Sscanf(maxLen, "%d", &val)
 			prop.MaxLength = &val
 		}
 

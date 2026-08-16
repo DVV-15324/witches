@@ -28,7 +28,7 @@ func TestHandleSwagger(t *testing.T) {
 
 	// Seed data
 	for i := 0; i < 50; i++ {
-		repo.Create(&User{
+		_ = repo.Create(&User{
 			ID:        uuid.New().String(),
 			Name:      fmt.Sprintf("Test User %d", i),
 			Email:     fmt.Sprintf("test%d@example.com", i),
@@ -293,7 +293,7 @@ func TestHandleSwagger(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		users, ok := resp.Data.([]interface{})
 		if !ok || len(users) == 0 {
@@ -339,7 +339,7 @@ func TestHandleSwagger(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		users, ok := resp.Data.([]interface{})
 		if !ok || len(users) == 0 {
@@ -369,7 +369,7 @@ func TestHandleSwagger(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp response.AppResponse
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		// Check if response has data
 		if resp.Data == nil {
@@ -422,7 +422,7 @@ func TestHandleSwagger(t *testing.T) {
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.Empty(t, resp.Data)
 	})
 
@@ -447,7 +447,7 @@ func TestHandleSwagger(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 		var resp response.PaginationResponseWrapper
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		if resp.Data == nil {
 			t.Skip("No users found")
 			return

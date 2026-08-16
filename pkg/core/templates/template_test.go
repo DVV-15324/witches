@@ -2,6 +2,7 @@ package template
 
 import (
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,9 +90,15 @@ func TestCreateProjectStructure_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 
-	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
 	config := ProjectConfig{
@@ -137,9 +144,14 @@ func TestCreateProjectStructure_InvalidDB(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	config := ProjectConfig{
@@ -214,9 +226,14 @@ func TestCreateProjectStructure_EmbedContents(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	config := ProjectConfig{
@@ -242,9 +259,14 @@ func BenchmarkCreateProjectStructure(b *testing.B) {
 	tmpDir := b.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(b, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		b.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(b, err)
 
 	config := ProjectConfig{
@@ -255,9 +277,9 @@ func BenchmarkCreateProjectStructure(b *testing.B) {
 	for b.Loop() {
 		_ = createProjectStructure(config, "mysql")
 		// Clean up after each iteration
-		os.RemoveAll(tmpDir)
-		os.MkdirAll(tmpDir, 0755)
-		os.Chdir(tmpDir)
+		_ = os.RemoveAll(tmpDir)
+		_ = os.MkdirAll(tmpDir, 0755)
+		_ = os.Chdir(tmpDir)
 	}
 }
 
@@ -265,7 +287,7 @@ func BenchmarkTemplateFS_WalkAll(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
 		var count int
-		fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+		_ = fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
 			if err == nil && !d.IsDir() {
 				count++
 			}
@@ -278,7 +300,7 @@ func BenchmarkTemplateFS_WalkAll(b *testing.B) {
 func BenchmarkTemplateFS_ReadAllFiles(b *testing.B) {
 	// Lấy danh sách file trước
 	var files []string
-	fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
+	_ = fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
 		if err == nil && !d.IsDir() {
 			files = append(files, path)
 		}
@@ -288,7 +310,7 @@ func BenchmarkTemplateFS_ReadAllFiles(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
 		for _, f := range files {
-			templateFS.ReadFile(f)
+			_, _ = templateFS.ReadFile(f)
 		}
 	}
 }

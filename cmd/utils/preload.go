@@ -10,12 +10,14 @@ import (
 	godotenv "github.com/joho/godotenv"
 )
 
+type contextKey string
+
 type Config struct {
 	Port               int64
 	Host               string
 	MetrictPort        int64
 	UIDBits            int
-	RequestKey         string
+	RequestKey         contextKey
 	LogPath            string
 	CorsAllowOrigins   string
 	CorsAllowMethods   string
@@ -74,7 +76,7 @@ func PreloadNotDBURL() *Config {
 		cfg.UIDBits = int(getEnvAsInt64("UID_BITS"))
 	}
 	if val := os.Getenv("REQUEST_KEY"); val != "" {
-		cfg.RequestKey = os.Getenv("REQUEST_KEY")
+		cfg.RequestKey = contextKey(os.Getenv("REQUEST_KEY"))
 	}
 	if val := os.Getenv("LOG_PATH"); val != "" {
 		cfg.LogPath = os.Getenv("LOG_PATH")

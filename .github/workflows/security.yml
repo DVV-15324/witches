@@ -35,3 +35,19 @@ jobs:
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-filesystem
+  golangci-lint:
+    name: Run golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.12"
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          args: --config .golangci.yml

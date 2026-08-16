@@ -148,7 +148,7 @@ func initDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to connect database: " + err.Error())
 	}
-	db.AutoMigrate(&User{})
+	_ = db.AutoMigrate(&User{})
 	return db
 }
 
@@ -158,7 +158,7 @@ func setupRepo() {
 		repo = NewUserRepository(db)
 		// Seed 50 users
 		for i := 0; i < 50; i++ {
-			repo.Create(&User{
+			_ = repo.Create(&User{
 				ID:        uuid.New().String(),
 				Name:      fmt.Sprintf("User %d", i),
 				Email:     fmt.Sprintf("user%d@example.com", i),

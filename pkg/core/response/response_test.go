@@ -29,7 +29,7 @@ func getTestLogger(t *testing.T) *logger.ModelLogger {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		log.Sync()
+		_ = log.Sync()
 		os.Remove(path)
 	})
 	return log

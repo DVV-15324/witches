@@ -1,13 +1,15 @@
 package cmd
 
 import (
-	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ==================== Test WitchesCreate ====================
@@ -16,7 +18,11 @@ func TestWitchesCreate_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
 
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
@@ -38,17 +44,19 @@ func TestWitchesCreate_Success(t *testing.T) {
 }
 
 func TestWitchesCreate_ProjectExists(t *testing.T) {
-	if os.Getenv("TEST_SUBPROCESS") == "1" {
+	if e := os.Getenv("TEST_SUBPROCESS"); e == "1" {
 		tmpDir := t.TempDir()
 		originalWd, err := os.Getwd()
 		if err != nil {
 			os.Exit(1)
 		}
-		defer os.Chdir(originalWd)
-
-		err = os.Chdir(tmpDir)
-		if err != nil {
-			os.Exit(1)
+		defer func() {
+			if err := os.Chdir(originalWd); err != nil {
+				log.Printf("failed to chdir: %v", err)
+			}
+		}()
+		if err := os.Chdir(tmpDir); err != nil {
+			t.Fatalf("failed to chdir: %v", err)
 		}
 
 		projectName := "existing-project"
@@ -81,11 +89,13 @@ func TestWitchesCreate_EnvFileExists(t *testing.T) {
 		if err != nil {
 			os.Exit(1)
 		}
-		defer os.Chdir(originalWd)
-
-		err = os.Chdir(tmpDir)
-		if err != nil {
-			os.Exit(1)
+		defer func() {
+			if err := os.Chdir(originalWd); err != nil {
+				log.Printf("failed to chdir: %v", err)
+			}
+		}()
+		if err := os.Chdir(tmpDir); err != nil {
+			t.Fatalf("failed to chdir: %v", err)
 		}
 
 		projectName := "test-project"
@@ -128,9 +138,14 @@ func TestWitchesInit_Success(t *testing.T) {
 
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	WitchesInit("postgres")
@@ -184,9 +199,14 @@ func TestWitchesInstall_Success(t *testing.T) {
 
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	// Gọi WitchesInstall với driver postgres
@@ -224,9 +244,15 @@ func TestFindProjectRoot_Success(t *testing.T) {
 
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 
-	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
 	root := findProjectRoot()
@@ -238,9 +264,14 @@ func TestFindProjectRoot_NoGoMod(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	root := findProjectRoot()
@@ -292,9 +323,14 @@ type UserRequest struct {
 
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
-
-	err = os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 	require.NoError(t, err)
 
 	// Gọi WitchesRun - sẽ chạy go run .
@@ -354,9 +390,14 @@ func TestWitchesRun_NoMainGo(t *testing.T) {
 		if err != nil {
 			os.Exit(1)
 		}
-		defer os.Chdir(originalWd)
-
-		err = os.Chdir(tmpDir)
+		defer func() {
+			if err := os.Chdir(originalWd); err != nil {
+				log.Printf("failed to chdir: %v", err)
+			}
+		}()
+		if err := os.Chdir(tmpDir); err != nil {
+			t.Fatalf("failed to chdir: %v", err)
+		}
 		if err != nil {
 			os.Exit(1)
 		}
@@ -419,8 +460,14 @@ var Object uint = 10
 	require.NoError(t, err)
 
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
-	os.Chdir(tmpDir)
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
 
 	WitchesAdd("book")
 

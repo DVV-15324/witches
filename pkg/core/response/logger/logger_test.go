@@ -13,8 +13,8 @@ func TestLogger_File(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	logger.Info("Hello, I'am Info")
 	logger.Warn("Hello, I'am Warn")
@@ -63,8 +63,8 @@ func TestNewFileLogger_WithDifferentConfigs(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Unexpected error: %v", err)
 			}
-			defer logger.Sync()
-			defer os.Remove(tt.path)
+			defer func() { _ = logger.Sync() }()
+			defer func() { _ = os.Remove(tt.path) }()
 
 			if logger == nil {
 				t.Error("Logger should not be nil")
@@ -83,8 +83,8 @@ func TestLoggerMethods(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	t.Run("Info", func(t *testing.T) {
 		logger.Info("info message")
@@ -127,8 +127,8 @@ func TestLoggerSync(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path) // ✅ Thêm dòng này
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	logger.Info("test message")
 
@@ -145,8 +145,8 @@ func TestLogger_MultipleMessages(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	for i := 0; i < 10; i++ {
 		logger.InfoWithFields("message", zap.Int("index", i))
@@ -162,8 +162,8 @@ func TestLogger_WithDifferentFieldTypes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	fields := []zap.Field{
 		zap.String("string", "value"),
@@ -185,8 +185,8 @@ func TestLogger_Concurrent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	done := make(chan bool)
 	for i := 0; i < 10; i++ {

@@ -16,6 +16,6 @@ var generateCmd = &cobra.Command{
 	Short: "Generate DB_URL from witches.env",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
-		cmd_database.WitchesDBURL(cfg.DBDriver, cfg)
+		_ = cmd_database.WitchesDBURL(cfg.DBDriver, cfg)
 	},
 }

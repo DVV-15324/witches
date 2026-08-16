@@ -34,8 +34,8 @@ func ShutdownServer(ctx context.Context, engine http.Handler, address string, po
 	<-quit
 
 	log.Println("Shutdown Server ...")
-
 	// Graceful shutdown with timeout
+	_ = ctx
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

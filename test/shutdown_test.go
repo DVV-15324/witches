@@ -18,7 +18,7 @@ func TestHttpShutDown(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello world"))
+		_, _ = w.Write([]byte("hello world"))
 	})
 
 	utils.ShutdownServer(

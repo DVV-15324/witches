@@ -1,5 +1,0 @@
-package utils
-
-var (
-	ObjectUser uint = 1
-)

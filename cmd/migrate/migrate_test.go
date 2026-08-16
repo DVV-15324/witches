@@ -53,7 +53,8 @@ DROP TABLE IF EXISTS users;
 	require.NoError(t, err)
 
 	// 4. Chạy PostgreSQL container
-	postgresContainer, err := postgres.RunContainer(ctx,
+	postgresContainer, err := postgres.Run(ctx,
+		"postgres:15",
 		testcontainers.WithImage("postgres:16-alpine"),
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),

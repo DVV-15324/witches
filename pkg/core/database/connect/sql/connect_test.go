@@ -21,8 +21,8 @@ import (
 func setupPostgresContainer(tb testing.TB) (string, func()) {
 	ctx := context.Background()
 
-	container, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("postgres:16-alpine"),
+	container, err := postgres.Run(ctx,
+		"postgres:15",
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),
 		postgres.WithPassword("testpass"),

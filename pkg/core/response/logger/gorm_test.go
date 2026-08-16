@@ -16,7 +16,9 @@ func TestNewGormLogger(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 	defer os.Remove(path)
 
 	config := wcmd_utils.DefaultConfig()
@@ -24,19 +26,19 @@ func TestNewGormLogger(t *testing.T) {
 	gormLogger := NewGormLogger(logger, config)
 
 	if gormLogger == nil {
-		t.Error("GormLogger should not be nil")
+		t.Fatal("GormLogger should not be nil")
 	}
 	if gormLogger.zapLogger == nil {
-		t.Error("zapLogger should not be nil")
+		t.Fatal("zapLogger should not be nil")
 	}
 	if gormLogger.config == nil {
-		t.Error("config should not be nil")
+		t.Fatal("config should not be nil")
 	}
 	if gormLogger.config.RequestKey != "request_context" {
-		t.Errorf("RequestKey = %v, want %v", gormLogger.config.RequestKey, "request_context")
+		t.Fatalf("RequestKey = %v, want %v", gormLogger.config.RequestKey, "request_context")
 	}
 	if gormLogger.config.SlowThreshold != 5 {
-		t.Errorf("SlowThreshold = %v, want %v", gormLogger.config.SlowThreshold, 5)
+		t.Fatalf("SlowThreshold = %v, want %v", gormLogger.config.SlowThreshold, 5)
 	}
 }
 
@@ -46,7 +48,9 @@ func TestGormLogger_LogMode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 	defer os.Remove(path)
 
 	config := wcmd_utils.DefaultConfig()
@@ -70,7 +74,9 @@ func TestGormLogger_Info(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 	defer os.Remove(path)
 
 	config := wcmd_utils.DefaultConfig()
@@ -121,8 +127,10 @@ func TestGormLogger_Warn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() {
+		_ = logger.Sync()
+	}()
+	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)
@@ -172,8 +180,8 @@ func TestGormLogger_Error(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)
@@ -217,8 +225,8 @@ func TestGormLogger_Trace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
 	config.SlowThreshold = 100 // 100 giây (để test slow query cần sleep >100s là không thể, nên ta sẽ set threshold nhỏ để test)
@@ -309,8 +317,8 @@ func TestGormLogger_TraceWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)
@@ -333,8 +341,8 @@ func TestGormLogger_AllLevelsCombined(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logger.Sync()
-	defer os.Remove(path)
+	defer func() { _ = logger.Sync() }()
+	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)
