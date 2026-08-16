@@ -41,15 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Go 1.25 manually
-        run: |
-          wget https://go.dev/dl/go1.25.12.linux-amd64.tar.gz
-          sudo rm -rf /usr/local/go
-          sudo tar -C /usr/local -xzf go1.25.12.linux-amd64.tar.gz
-          echo "/usr/local/go/bin" >> $GITHUB_PATH
-      - name: Build golangci-lint
-        run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Set execute permission for binary
+        run: chmod +x .bin/golangci-lint
+
       - name: Run golangci-lint
         run: |
-          golangci-lint run --config .golangci.yml
+          ./.bin/golangci-lint run --config .golangci.yml
