@@ -3,7 +3,6 @@ package cmd_migrate
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,10 +89,7 @@ func TestWitchesMigrateUp(t *testing.T) {
 
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
-	fmt.Println("hello1")
-	fmt.Println(dbURL)
 	WitchesMigrateUp(dbURL, "postgres", migrationPath)
-	fmt.Println("hello")
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
