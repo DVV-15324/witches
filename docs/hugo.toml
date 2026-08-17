@@ -1,4 +1,5 @@
 baseURL = "https://DVV-15324.github.io/witches/"
+
 title = "Witches Documentation"
 theme = "hugo-book"
 

@@ -8,40 +8,35 @@ https://github.com/alex-shpak/hugo-book
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="English | Vietnamese
-Welcome to the Witches documentation.
-Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+<meta name="description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
 4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.
 ">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/en/get_start/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/en/docs/">
 	<meta property="og:site_name" content="Witches Documentation">
 	<meta property="og:title" content="Witches Documentation">
-	<meta property="og:description" content="English | Vietnamese
-Welcome to the Witches documentation.
-Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+	<meta property="og:description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
 4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.">
 	<meta property="og:locale" content="en">
 	<meta property="og:type" content="article">
 
 
 	<meta itemprop="name" content="Witches Documentation">
-	<meta itemprop="description" content="English | Vietnamese
-Welcome to the Witches documentation.
-Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+	<meta itemprop="description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
 4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.">
-	<meta itemprop="wordCount" content="118">
+	<meta itemprop="wordCount" content="110">
 
-<title>Get Start • Witches Documentation</title>
+<title>Witches Documentation • Witches Documentation</title>
 <link rel="icon" href="/witches/favicon.png" >
 <link rel="manifest" href="/witches/manifest.json">
-<link rel="canonical" href="http://localhost:1313/witches/en/get_start/">
+<link rel="canonical" href="http://localhost:1313/witches/en/docs/">
+  <link rel="alternate" hreflang="vi" href="http://localhost:1313/witches/vi/docs/" title="Tài liệu Witches">
 <link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
 
 
 
-  <script defer type="module" src="/witches/en.search.min.565344956229081e031165b9451e46d20690bbddb50e2115eabc708950cbefb9.js" integrity="sha256-VlNElWIpCB4DEWW5RR5G0gaQu921DiEV6rxwiVDL77k=" crossorigin="anonymous"></script>
+  <script defer type="module" src="/witches/en.search.min.e173abbf1f341d7648ce134614234cbaf1c6ca05329a7d1765c55aaa769ef4df.js" integrity="sha256-4XOrvx80HXZIzhNGFCNMuvHGygUymn0XZcVaqnae9N8=" crossorigin="anonymous"></script>
 
   
 </head>
@@ -80,6 +75,8 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
   
 
 
+  
+
 
 <ul class="book-languages">
   <li>
@@ -94,7 +91,7 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
     <ul>
       
       <li>
-        <a href="/witches/vi/" class="flex flex-auto">
+        <a href="/witches/vi/docs/" class="flex flex-auto">
           Tiếng Việt
         </a>
       </li>
@@ -121,8 +118,12 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
   
 
   
-    <a href="/witches/en/get_start/" class="active">
-      Get Start</a>
+    <input type="checkbox" id="section-6b79dd37cd15c35c9f987bba45f5ad38" class="toggle" checked />
+    <label for="section-6b79dd37cd15c35c9f987bba45f5ad38" class="flex">
+      <a href="/witches/en/docs/" class="active">
+        Witches Documentation</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
   
 
         </li>
@@ -163,7 +164,7 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
     <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Get Start</h3>
+  <h3>Witches Documentation</h3>
 
   <label for="toc-control">
     
@@ -203,9 +204,7 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
 
       
       
-  <article class="markdown book-article"><p><a href="/witches/en/">English</a> | <a href="/witches/vi/">Vietnamese</a></p>
-<p>Welcome to the Witches documentation.</p>
-<h2 id="quick-start">Quick Start<a class="anchor" href="#quick-start">#</a></h2>
+  <article class="markdown book-article"><h2 id="quick-start">Quick Start<a class="anchor" href="#quick-start">#</a></h2>
 <h3 id="1-installation">1. Installation<a class="anchor" href="#1-installation">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-create-new-project">2. Create New Project<a class="anchor" href="#2-create-new-project">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
@@ -267,8 +266,7 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
   <br>
   Made with ❤️ by <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
-</div>
-</article>
+</div></article>
  
       
 
@@ -286,19 +284,7 @@ Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. C
 
 </div>
 
-<div class="flex flex-wrap justify-between">
-    <span>
-    
-      <a href="/witches/en/" class="flex align-center">
-        <img src="/witches/icons/backward.svg" class="book-icon" alt="Backward" />
-        <span>Witches Documentation</span>
-      </a>
-    
-    </span>
-    <span>
-    
-    </span>
-  </div>
+
 
  
         
