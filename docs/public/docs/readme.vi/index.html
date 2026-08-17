@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr" data-theme="light">
+<head><script src="/witches/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=witches/livereload" data-no-instant defer></script>
+  <!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tiếng Việt | English
+Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
+Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
+Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
+">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/docs/readme.vi/">
+	<meta property="og:site_name" content="Witches Documentation">
+	<meta property="og:title" content="Witches Documentation">
+	<meta property="og:description" content="Tiếng Việt | English
+Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
+Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
+Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env">
+	<meta property="og:locale" content="en_us">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="docs">
+
+
+	<meta itemprop="name" content="Witches Documentation">
+	<meta itemprop="description" content="Tiếng Việt | English
+Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
+Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
+Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env">
+	<meta itemprop="wordCount" content="275">
+
+<title>Readme.vi • Witches Documentation</title>
+<link rel="icon" href="/witches/favicon.png" >
+<link rel="manifest" href="/witches/manifest.json">
+<link rel="canonical" href="http://localhost:1313/witches/docs/readme.vi/">
+<link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
+
+
+
+  <script defer type="module" src="/witches/en.search.min.41767b624751b2de47591d3f8eb333782cbc62754f247053d7f80084a61c51fa.js" integrity="sha256-QXZ7YkdRst5HWR0/jrMzeCy8YnVPJHBT1/gAhKYcUfo=" crossorigin="anonymous"></script>
+
+  
+</head>
+<body dir="ltr" class="book-kind-page book-type-docs">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    
+<aside class="book-menu">
+  <div class="book-menu-content">
+    
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/witches/"><span>Witches Documentation</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input id="book-search-input" type="text" 
+    placeholder="Search"
+    aria-label="Search"
+    maxlength="64" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/witches/docs/readme/" class="">
+      Readme</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/witches/docs/readme.vi/" class="active">
+      Readme.vi</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+
+  </div>
+</aside>
+ 
+
+    <div class="book-page">
+      <header class="book-header hidden">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Readme.vi</h3>
+
+  <label for="toc-control">
+    
+    <img src="/witches/icons/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
+      </ul>
+    </li>
+    <li><a href="#-trạng-thái">⚠️ Trạng thái</a></li>
+    <li><a href="#tính-năng">Tính năng</a></li>
+    <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
+      <ul>
+        <li><a href="#1-cài-đặt">1. Cài đặt</a></li>
+        <li><a href="#2-tạo-dự-án-mới">2. Tạo dự án mới</a></li>
+        <li><a href="#3-cấu-hình">3. Cấu hình</a></li>
+        <li><a href="#4-thiết-lập-database">4. Thiết lập Database</a></li>
+        <li><a href="#5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies</a></li>
+        <li><a href="#6-chạy-server">6. Chạy Server</a></li>
+      </ul>
+    </li>
+    <li><a href="#câu-lệnh">Câu lệnh</a></li>
+    <li><a href="#giấy-phép">Giấy phép</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p><a href="./README.vi.md">Tiếng Việt</a> | <a href="./README.md">English</a></p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h3 id="go-backend-cli-tool">Go Backend CLI Tool<a class="anchor" href="#go-backend-cli-tool">#</a></h3>
+<!-- raw HTML omitted -->
+<p><a href="https://github.com/DVV-15324/witches/actions/workflows/security.yml"><img src="https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg" alt="Security Scan" /></a>
+<a href="https://codecov.io/gh/DVV-15324/witches"><img src="https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg" alt="codecov" /></a></p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<hr>
+<h2 id="-trạng-thái">⚠️ Trạng thái<a class="anchor" href="#-tr%e1%ba%a1ng-th%c3%a1i">#</a></h2>
+<blockquote class='book-hint '>
+<p><strong>Chưa sẵn sàng cho môi trường production.</strong><br>
+Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.</p>
+</blockquote><hr>
+<h2 id="tính-năng">Tính năng<a class="anchor" href="#t%c3%adnh-n%c4%83ng">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>Tính năng</th>
+					<th>Mô tả</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Xác thực JWT</strong></td>
+					<td>Xác thực dựa trên token với cơ chế Refresh Token</td>
+			</tr>
+			<tr>
+					<td><strong>Swagger</strong></td>
+					<td>Tự động tạo tài liệu API</td>
+			</tr>
+			<tr>
+					<td><strong>Migration</strong></td>
+					<td>Quản lý phiên bản cơ sở dữ liệu</td>
+			</tr>
+			<tr>
+					<td><strong>Hash Utilities</strong></td>
+					<td>Mã hóa mật khẩu an toàn</td>
+			</tr>
+			<tr>
+					<td><strong>Hỗ trợ Redis</strong></td>
+					<td>Tùy chọn caching và lưu trữ session</td>
+			</tr>
+			<tr>
+					<td><strong>Giới hạn tốc độ</strong></td>
+					<td>Bảo vệ API khỏi bị lạm dụng</td>
+			</tr>
+			<tr>
+					<td><strong>Hỗ trợ GORM</strong></td>
+					<td>ORM cho các thao tác cơ sở dữ liệu</td>
+			</tr>
+			<tr>
+					<td><strong>EasyJSON</strong></td>
+					<td>Tự động tạo mã JSON serialization</td>
+			</tr>
+			<tr>
+					<td><strong>Metrics</strong></td>
+					<td>Đo lường, timing và theo dõi</td>
+			</tr>
+			<tr>
+					<td><strong>Logging</strong></td>
+					<td>Logging có cấu trúc với Zap</td>
+			</tr>
+			<tr>
+					<td><strong>CLI</strong></td>
+					<td>Giao diện dòng lệnh dựa trên Cobra</td>
+			</tr>
+			<tr>
+					<td><strong>Slow Query</strong></td>
+					<td>Theo dõi truy vấn database và log truy vấn chậm</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="bắt-đầu-nhanh">Bắt đầu nhanh<a class="anchor" href="#b%e1%ba%aft-%c4%91%e1%ba%a7u-nhanh">#</a></h2>
+<h3 id="1-cài-đặt">1. Cài đặt<a class="anchor" href="#1-c%c3%a0i-%c4%91%e1%ba%b7t">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-tạo-dự-án-mới">2. Tạo dự án mới<a class="anchor" href="#2-t%e1%ba%a1o-d%e1%bb%b1-%c3%a1n-m%e1%bb%9bi">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
+</span></span><span style="display:flex;"><span>cd example</span></span></code></pre></div><h3 id="3-cấu-hình">3. Cấu hình<a class="anchor" href="#3-c%e1%ba%a5u-h%c3%acnh">#</a></h3>
+<p>Chỉnh sửa file <code>witches.env</code></p>
+<h3 id="4-thiết-lập-database">4. Thiết lập Database<a class="anchor" href="#4-thi%e1%ba%bft-l%e1%ba%adp-database">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches database generate</span></span></code></pre></div><h3 id="5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies<a class="anchor" href="#5-kh%e1%bb%9fi-t%e1%ba%a1o--c%c3%a0i-%c4%91%e1%ba%b7t-dependencies">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches init      <span style="color:#75715e"># Tạo file template</span>
+</span></span><span style="display:flex;"><span>witches install   <span style="color:#75715e"># Cài đặt dependencies</span></span></span></code></pre></div><h3 id="6-chạy-server">6. Chạy Server<a class="anchor" href="#6-ch%e1%ba%a1y-server">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches run</span></span></code></pre></div><hr>
+<h2 id="câu-lệnh">Câu lệnh<a class="anchor" href="#c%c3%a2u-l%e1%bb%87nh">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>Câu lệnh</th>
+					<th>Mô tả</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>witches create &lt;name&gt;</code></td>
+					<td>Tạo dự án mới</td>
+			</tr>
+			<tr>
+					<td><code>witches init</code></td>
+					<td>Tạo file template và cấu trúc</td>
+			</tr>
+			<tr>
+					<td><code>witches install</code></td>
+					<td>Cài đặt dependencies</td>
+			</tr>
+			<tr>
+					<td><code>witches run</code></td>
+					<td>Khởi động server</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate up</code></td>
+					<td>Chạy tất cả migrations</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate down</code></td>
+					<td>Rollback migration cuối cùng</td>
+			</tr>
+			<tr>
+					<td><code>witches database generate</code></td>
+					<td>Tạo URL kết nối database</td>
+			</tr>
+			<tr>
+					<td><code>witches add &lt;service&gt;</code></td>
+					<td>Thêm 1 service mới</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="giấy-phép">Giấy phép<a class="anchor" href="#gi%e1%ba%a5y-ph%c3%a9p">#</a></h2>
+<p>MIT License - xem file <a href="LICENSE">LICENSE</a> để biết thêm chi tiết.</p>
+<hr>
+<!-- raw HTML omitted -->
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+<div>
+
+</div>
+
+<div>
+
+</div>
+
+</div>
+
+<div class="flex flex-wrap justify-between">
+    <span>
+    
+      <a href="/witches/docs/readme/" class="flex align-center">
+        <img src="/witches/icons/backward.svg" class="book-icon" alt="Backward" />
+        <span>Readme</span>
+      </a>
+    
+    </span>
+    <span>
+    
+    </span>
+  </div>
+
+ 
+        
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+        
+        
+  
+ 
+        
+  
+    <script>(function(){document.querySelectorAll("pre:has(code)").forEach(e=>{e.addEventListener("click",e.focus),e.addEventListener("copy",function(t){if(t.preventDefault(),navigator.clipboard){const t=window.getSelection().toString()||e.textContent;navigator.clipboard.writeText(t)}})})})()</script>
+  
+
+      </footer>
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+  
+  <aside class="book-toc">
+    <div class="book-toc-content">
+      
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
+      </ul>
+    </li>
+    <li><a href="#-trạng-thái">⚠️ Trạng thái</a></li>
+    <li><a href="#tính-năng">Tính năng</a></li>
+    <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
+      <ul>
+        <li><a href="#1-cài-đặt">1. Cài đặt</a></li>
+        <li><a href="#2-tạo-dự-án-mới">2. Tạo dự án mới</a></li>
+        <li><a href="#3-cấu-hình">3. Cấu hình</a></li>
+        <li><a href="#4-thiết-lập-database">4. Thiết lập Database</a></li>
+        <li><a href="#5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies</a></li>
+        <li><a href="#6-chạy-server">6. Chạy Server</a></li>
+      </ul>
+    </li>
+    <li><a href="#câu-lệnh">Câu lệnh</a></li>
+    <li><a href="#giấy-phép">Giấy phép</a></li>
+  </ul>
+</nav>
+
+
+
+    </div>
+  </aside>
+  
+ 
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

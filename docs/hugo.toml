@@ -1,0 +1,7 @@
+baseURL = "https://DVV-15324.github.io/witches/"
+title = "Witches Documentation"
+languageCode = "en-us"
+theme = "hugo-book"  # hoặc để trống nếu chưa có theme
+
+[params]
+  description = "A complete Golang scaffold"
