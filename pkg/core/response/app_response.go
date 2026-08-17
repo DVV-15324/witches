@@ -91,7 +91,7 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, c
 func WriteError(c *gin.Context, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
-		Message:   re.Error.Error(),
+		Message:   re.AError.Error(),
 		Timestamp: re.TimeStamp,
 	}
 	c.JSON(r.Status, r)
@@ -100,7 +100,7 @@ func WriteError(c *gin.Context, re *AppError) {
 func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_utils.Config, re *AppError) {
 	r := AppResponse{
 		Status:    re.Status,
-		Message:   re.Error.Error(),
+		Message:   re.AError.Error(),
 		Timestamp: re.TimeStamp,
 	}
 	tid := utils.GetTid(c, config)
@@ -112,7 +112,7 @@ func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_uti
 		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
 		zap.Int("status", re.Status),
-		zap.Error(re.Error),
+		zap.Error(re.AError),
 		zap.Time("timestamp", re.TimeStamp),
 	)
 
