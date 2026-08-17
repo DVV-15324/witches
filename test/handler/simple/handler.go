@@ -179,7 +179,7 @@ func GetUsers(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusBadRequest,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -189,7 +189,7 @@ func GetUsers(c *gin.Context) {
 	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusInternalServerError,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -218,7 +218,7 @@ func GetUserByID(c *gin.Context) {
 	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusNotFound,
-			Error:     fmt.Errorf("user not found"),
+			AError:    fmt.Errorf("user not found"),
 			TimeStamp: time.Now(),
 		})
 		return
@@ -235,7 +235,7 @@ func CreateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusBadRequest,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -254,7 +254,7 @@ func CreateUser(c *gin.Context) {
 	if err := repo.Create(user); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusInternalServerError,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -272,7 +272,7 @@ func UpdateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusBadRequest,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -282,7 +282,7 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusNotFound,
-			Error:     fmt.Errorf("user not found"),
+			AError:    fmt.Errorf("user not found"),
 			TimeStamp: time.Now(),
 		})
 		return
@@ -302,7 +302,7 @@ func UpdateUser(c *gin.Context) {
 	if err := repo.Update(user); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusInternalServerError,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
@@ -321,7 +321,7 @@ func DeleteUser(c *gin.Context) {
 	if err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusNotFound,
-			Error:     fmt.Errorf("user not found"),
+			AError:    fmt.Errorf("user not found"),
 			TimeStamp: time.Now(),
 		})
 		return
@@ -331,7 +331,7 @@ func DeleteUser(c *gin.Context) {
 	if err := repo.Delete(id); err != nil {
 		response.WriteError(c, &response.AppError{
 			Status:    http.StatusInternalServerError,
-			Error:     err,
+			AError:    err,
 			TimeStamp: time.Now(),
 		})
 		return
