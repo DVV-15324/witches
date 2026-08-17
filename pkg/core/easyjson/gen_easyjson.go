@@ -98,11 +98,10 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		}
 	}
 
-	// if len(targetFiles) == 0 {
-	// 	return fmt.Errorf("no files with GenEasyJson() method found")
-	// }
+	if len(targetFiles) != 0 {
+		fmt.Printf("Generating easyjson for %d file(s)...\n", len(targetFiles))
+	}
 
-	fmt.Printf("Generating easyjson for %d file(s)...\n", len(targetFiles))
 	var generatedFiles []string
 
 	for _, path := range targetFiles {
