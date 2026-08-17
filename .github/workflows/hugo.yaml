@@ -17,8 +17,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      HUGO_VERSION: 0.145.0 # Hoặc version bạn muốn
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,15 +24,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: "0.145.0"
-          extended: true
+      - name: Make hugo binary executable
+        run: chmod +x .bin/hugo
 
       - name: Build
         working-directory: ./docs
-        run: hugo --minify
+        run: ../.bin/hugo --minify
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
