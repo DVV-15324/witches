@@ -6,4 +6,4 @@ weight: 2
 
 Chào mừng đến với tài liệu Witches.
 
-- [Bắt đầu nhanh](./get_start.vi/)
+- [Bắt đầu nhanh](./Bắt_Đầu/)
