@@ -152,11 +152,9 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		os.Remove(tmpFile)
 	}
 
-	// if len(generatedFiles) == 0 {
-	// 	return fmt.Errorf("no files were generated successfully")
-	// }
-
-	fmt.Printf("Successfully generated %d file(s)\n", len(generatedFiles))
+	if len(generatedFiles) != 0 {
+		fmt.Printf("Successfully generated %d file(s)\n", len(generatedFiles))
+	}
 	return nil
 }
 
