@@ -14,17 +14,7 @@
                 href="http://localhost:1313/witches/vi/"
                 />
   </url><url>
-    <loc>http://localhost:1313/witches/vi/get_start/</loc>
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="http://localhost:1313/witches/en/get_start/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="vi"
-                href="http://localhost:1313/witches/vi/get_start/"
-                />
+    <loc>http://localhost:1313/witches/vi/b%E1%BA%AFt_%C4%91%E1%BA%A7u/</loc>
   </url><url>
     <loc>http://localhost:1313/witches/vi/categories/</loc>
     <xhtml:link
