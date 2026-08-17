@@ -1,6 +1,6 @@
 module github.com/DVV-15324/witches
 
-go 1.26.0
+go 1.25.12
 
 require (
 	github.com/google/uuid v1.6.0
