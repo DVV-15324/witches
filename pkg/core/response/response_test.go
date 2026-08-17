@@ -22,7 +22,11 @@ func getTestConfig() *wcmd_utils.Config {
 }
 
 func getTestLogger(t *testing.T) *logger.ModelLogger {
-	dir := t.TempDir()
+	// Dùng thư mục tạm của hệ thống, không dùng t.TempDir() để tránh cleanup tự động
+	dir, err := os.MkdirTemp("", "test_logs_")
+	if err != nil {
+		t.Fatal(err)
+	}
 	path := filepath.Join(dir, "test_response.log")
 	log, err := logger.NewFileLogger(path, 1, 20, 30)
 	if err != nil {
@@ -30,11 +34,12 @@ func getTestLogger(t *testing.T) *logger.ModelLogger {
 	}
 	t.Cleanup(func() {
 		_ = log.Sync()
-		os.Remove(path)
+		// Cố gắng đóng file nếu có
+		// Nếu không có, vẫn xóa thư mục (lỗi sẽ được ignore)
+		_ = os.RemoveAll(dir)
 	})
 	return log
 }
-
 func TestResponseSuccess(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
