@@ -24,7 +24,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      # Thay thế bước chmod bằng Setup Hugo chính thức
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
@@ -38,7 +37,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Vì đang ở trong ./docs, thư mục public nằm ngay đây
           path: ./docs/public
 
   deploy:
