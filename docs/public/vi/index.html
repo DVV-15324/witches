@@ -8,11 +8,71 @@
 
 <body>
     <h1>Tài liệu Witches</h1>
-    <h1 id="tài-liệu-witches">Tài liệu Witches</h1>
+    <p><a href="/witches/en/">English</a> | <a href="/witches/vi/">Vietnamese</a></p>
 <p>Chào mừng đến với tài liệu Witches.</p>
-<ul>
-<li><a href="/witches/vi/b%E1%BA%AFt_%C4%91%E1%BA%A7u/">Bắt đầu nhanh</a></li>
-</ul>
+<h2 id="bắt-đầu-nhanh">Bắt đầu nhanh<a class="anchor" href="#b%e1%ba%aft-%c4%91%e1%ba%a7u-nhanh">#</a></h2>
+<h3 id="1-cài-đặt">1. Cài đặt<a class="anchor" href="#1-c%c3%a0i-%c4%91%e1%ba%b7t">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-tạo-dự-án-mới">2. Tạo dự án mới<a class="anchor" href="#2-t%e1%ba%a1o-d%e1%bb%b1-%c3%a1n-m%e1%bb%9bi">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
+</span></span><span style="display:flex;"><span>cd example</span></span></code></pre></div><h3 id="3-cấu-hình">3. Cấu hình<a class="anchor" href="#3-c%e1%ba%a5u-h%c3%acnh">#</a></h3>
+<p>Chỉnh sửa file <code>witches.env</code></p>
+<h3 id="4-thiết-lập-database">4. Thiết lập Database<a class="anchor" href="#4-thi%e1%ba%bft-l%e1%ba%adp-database">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches database generate</span></span></code></pre></div><h3 id="5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies<a class="anchor" href="#5-kh%e1%bb%9fi-t%e1%ba%a1o--c%c3%a0i-%c4%91%e1%ba%b7t-dependencies">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches init      <span style="color:#75715e"># Tạo file template</span>
+</span></span><span style="display:flex;"><span>witches install   <span style="color:#75715e"># Cài đặt dependencies</span></span></span></code></pre></div><h3 id="6-chạy-server">6. Chạy Server<a class="anchor" href="#6-ch%e1%ba%a1y-server">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches run</span></span></code></pre></div><hr>
+<h2 id="câu-lệnh">Câu lệnh<a class="anchor" href="#c%c3%a2u-l%e1%bb%87nh">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>Câu lệnh</th>
+					<th>Mô tả</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>witches create &lt;name&gt;</code></td>
+					<td>Tạo dự án mới</td>
+			</tr>
+			<tr>
+					<td><code>witches init</code></td>
+					<td>Tạo file template và cấu trúc</td>
+			</tr>
+			<tr>
+					<td><code>witches install</code></td>
+					<td>Cài đặt dependencies</td>
+			</tr>
+			<tr>
+					<td><code>witches run</code></td>
+					<td>Khởi động server</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate up</code></td>
+					<td>Chạy tất cả migrations</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate down</code></td>
+					<td>Rollback migration cuối cùng</td>
+			</tr>
+			<tr>
+					<td><code>witches database generate</code></td>
+					<td>Tạo URL kết nối database</td>
+			</tr>
+			<tr>
+					<td><code>witches add &lt;service&gt;</code></td>
+					<td>Thêm 1 service mới</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="giấy-phép">Giấy phép<a class="anchor" href="#gi%e1%ba%a5y-ph%c3%a9p">#</a></h2>
+<p>MIT License - xem file <a href="LICENSE">LICENSE</a> để biết thêm chi tiết.</p>
+<hr>
+<div align="center">
+  <br>
+  Được tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  <br><br>
+</div>
 
 </body>
 

@@ -14,8 +14,6 @@
                 href="http://localhost:1313/witches/vi/"
                 />
   </url><url>
-    <loc>http://localhost:1313/witches/en/get_start/</loc>
-  </url><url>
     <loc>http://localhost:1313/witches/en/categories/</loc>
     <xhtml:link
                 rel="alternate"

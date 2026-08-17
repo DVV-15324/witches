@@ -8,11 +8,71 @@
 
 <body>
     <h1>Witches Documentation</h1>
-    <h1 id="witches-documentation">Witches Documentation</h1>
+    <p><a href="/witches/en/">English</a> | <a href="/witches/vi/">Vietnamese</a></p>
 <p>Welcome to the Witches documentation.</p>
-<ul>
-<li><a href="/witches/en/get_start/">Getting Started</a></li>
-</ul>
+<h2 id="quick-start">Quick Start<a class="anchor" href="#quick-start">#</a></h2>
+<h3 id="1-installation">1. Installation<a class="anchor" href="#1-installation">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-create-new-project">2. Create New Project<a class="anchor" href="#2-create-new-project">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
+</span></span><span style="display:flex;"><span>cd example</span></span></code></pre></div><h3 id="3-configure">3. Configure<a class="anchor" href="#3-configure">#</a></h3>
+<p>Edit <code>witches.env</code></p>
+<h3 id="4-database-setup">4. Database Setup<a class="anchor" href="#4-database-setup">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches database generate</span></span></code></pre></div><h3 id="5-init--install-dependencies">5. Init &amp; Install Dependencies<a class="anchor" href="#5-init--install-dependencies">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches init      <span style="color:#75715e"># Generate template files</span>
+</span></span><span style="display:flex;"><span>witches install   <span style="color:#75715e"># Install dependencies</span></span></span></code></pre></div><h3 id="6-run-the-server">6. Run the Server<a class="anchor" href="#6-run-the-server">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches run</span></span></code></pre></div><hr>
+<h2 id="commands">Commands<a class="anchor" href="#commands">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>Command</th>
+					<th>Description</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>witches create &lt;name&gt;</code></td>
+					<td>Create a new project</td>
+			</tr>
+			<tr>
+					<td><code>witches init</code></td>
+					<td>Generate template files and structure</td>
+			</tr>
+			<tr>
+					<td><code>witches install</code></td>
+					<td>Install dependencies</td>
+			</tr>
+			<tr>
+					<td><code>witches run</code></td>
+					<td>Start the server</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate up</code></td>
+					<td>Apply all migrations</td>
+			</tr>
+			<tr>
+					<td><code>witches migrate down</code></td>
+					<td>Rollback last migration</td>
+			</tr>
+			<tr>
+					<td><code>witches database generate</code></td>
+					<td>Generate database URL</td>
+			</tr>
+			<tr>
+					<td><code>witches add &lt;your_service&gt;</code></td>
+					<td>Add a new service</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="license">License<a class="anchor" href="#license">#</a></h2>
+<p>MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+<hr>
+<div align="center">
+  <br>
+  Made with ❤️ by <a href="https://github.com/DVV-15324">DVV-15324</a>
+  <br><br>
+</div>
 
 </body>
 
