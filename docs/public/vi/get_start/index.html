@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-us" dir="ltr" data-theme="light">
+<html lang="vi" dir="ltr" data-theme="auto">
 <head><script src="/witches/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=witches/livereload" data-no-instant defer></script>
   <!--
 Made with Book Theme
@@ -8,45 +8,39 @@ https://github.com/alex-shpak/hugo-book
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Tiếng Việt | English
-Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
-Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
-Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
+<meta name="description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
+4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.
 ">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/docs/readme.vi/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/vi/get_start/">
 	<meta property="og:site_name" content="Witches Documentation">
 	<meta property="og:title" content="Witches Documentation">
-	<meta property="og:description" content="Tiếng Việt | English
-Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
-Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
-Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env">
-	<meta property="og:locale" content="en_us">
+	<meta property="og:description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
+4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.">
+	<meta property="og:locale" content="vi">
 	<meta property="og:type" content="article">
-		<meta property="article:section" content="docs">
 
 
 	<meta itemprop="name" content="Witches Documentation">
-	<meta itemprop="description" content="Tiếng Việt | English
-Go Backend CLI Tool# ⚠️ Trạng thái# Chưa sẵn sàng cho môi trường production.
-Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.
-Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token với cơ chế Refresh Token Swagger Tự động tạo tài liệu API Migration Quản lý phiên bản cơ sở dữ liệu Hash Utilities Mã hóa mật khẩu an toàn Hỗ trợ Redis Tùy chọn caching và lưu trữ session Giới hạn tốc độ Bảo vệ API khỏi bị lạm dụng Hỗ trợ GORM ORM cho các thao tác cơ sở dữ liệu EasyJSON Tự động tạo mã JSON serialization Metrics Đo lường, timing và theo dõi Logging Logging có cấu trúc với Zap CLI Giao diện dòng lệnh dựa trên Cobra Slow Query Theo dõi truy vấn database và log truy vấn chậm Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env">
-	<meta itemprop="wordCount" content="275">
+	<meta itemprop="description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
+4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.">
+	<meta itemprop="wordCount" content="132">
 
-<title>Readme.vi • Witches Documentation</title>
+<title>Get Start • Witches Documentation</title>
 <link rel="icon" href="/witches/favicon.png" >
 <link rel="manifest" href="/witches/manifest.json">
-<link rel="canonical" href="http://localhost:1313/witches/docs/readme.vi/">
+<link rel="canonical" href="http://localhost:1313/witches/vi/get_start/">
+  <link rel="alternate" hreflang="en" href="http://localhost:1313/witches/en/get_start/" title="Get Start">
 <link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
 
 
 
-  <script defer type="module" src="/witches/en.search.min.41767b624751b2de47591d3f8eb333782cbc62754f247053d7f80084a61c51fa.js" integrity="sha256-QXZ7YkdRst5HWR0/jrMzeCy8YnVPJHBT1/gAhKYcUfo=" crossorigin="anonymous"></script>
+  <script defer type="module" src="/witches/vi.search.min.de37fc66508e9dc68f019649a910ecbcb27c56ad0e2d747c96216d0baab6dee9.js" integrity="sha256-3jf8ZlCOncaPAZZJqRDsvLJ8Vq0OLXR8liFtC6q23uk=" crossorigin="anonymous"></script>
 
   
 </head>
-<body dir="ltr" class="book-kind-page book-type-docs">
+<body dir="ltr" class="book-kind-page book-type-page">
   <input type="checkbox" class="hidden toggle" id="menu-control" />
   <input type="checkbox" class="hidden toggle" id="toc-control" />
   <main class="container flex">
@@ -56,7 +50,7 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
     
   <nav>
 <h2 class="book-brand">
-  <a class="flex align-center" href="/witches/"><span>Witches Documentation</span>
+  <a class="flex align-center" href="/witches/vi/"><span>Witches Documentation</span>
   </a>
 </h2>
 
@@ -71,6 +65,40 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
 </div>
 <script>document.querySelector(".book-search").classList.remove("hidden")</script>
 
+
+
+  
+
+
+  
+    
+  
+
+
+  
+
+
+<ul class="book-languages">
+  <li>
+    <input type="checkbox" id="languages" class="toggle" />
+    <label for="languages" class="flex">
+      <a role="button">
+        <img src="/witches/icons/translate.svg" class="book-icon" alt="Languages" />
+        Tiếng Việt</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+
+    <ul>
+      
+      <li>
+        <a href="/witches/en/get_start/" class="flex flex-auto">
+          English
+        </a>
+      </li>
+      
+    </ul>
+  </li>
+</ul>
 
 
 
@@ -90,22 +118,8 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
   
 
   
-    <a href="/witches/docs/readme/" class="">
-      Readme</a>
-  
-
-        </li>
-      
-    
-      
-        <li>
-          
-  
-  
-
-  
-    <a href="/witches/docs/readme.vi/" class="active">
-      Readme.vi</a>
+    <a href="/witches/vi/get_start/" class="active">
+      Get Start</a>
   
 
         </li>
@@ -146,7 +160,7 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
     <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Readme.vi</h3>
+  <h3>Get Start</h3>
 
   <label for="toc-control">
     
@@ -162,13 +176,6 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
-      </ul>
-    </li>
-    <li><a href="#-trạng-thái">⚠️ Trạng thái</a></li>
-    <li><a href="#tính-năng">Tính năng</a></li>
     <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
       <ul>
         <li><a href="#1-cài-đặt">1. Cài đặt</a></li>
@@ -193,82 +200,7 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
 
       
       
-  <article class="markdown book-article"><p><a href="./README.vi.md">Tiếng Việt</a> | <a href="./README.md">English</a></p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<h3 id="go-backend-cli-tool">Go Backend CLI Tool<a class="anchor" href="#go-backend-cli-tool">#</a></h3>
-<!-- raw HTML omitted -->
-<p><a href="https://github.com/DVV-15324/witches/actions/workflows/security.yml"><img src="https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg" alt="Security Scan" /></a>
-<a href="https://codecov.io/gh/DVV-15324/witches"><img src="https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg" alt="codecov" /></a></p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<hr>
-<h2 id="-trạng-thái">⚠️ Trạng thái<a class="anchor" href="#-tr%e1%ba%a1ng-th%c3%a1i">#</a></h2>
-<blockquote class='book-hint '>
-<p><strong>Chưa sẵn sàng cho môi trường production.</strong><br>
-Đây là dự án cá nhân. Sử dụng với rủi ro của riêng bạn.</p>
-</blockquote><hr>
-<h2 id="tính-năng">Tính năng<a class="anchor" href="#t%c3%adnh-n%c4%83ng">#</a></h2>
-<table>
-	<thead>
-			<tr>
-					<th>Tính năng</th>
-					<th>Mô tả</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><strong>Xác thực JWT</strong></td>
-					<td>Xác thực dựa trên token với cơ chế Refresh Token</td>
-			</tr>
-			<tr>
-					<td><strong>Swagger</strong></td>
-					<td>Tự động tạo tài liệu API</td>
-			</tr>
-			<tr>
-					<td><strong>Migration</strong></td>
-					<td>Quản lý phiên bản cơ sở dữ liệu</td>
-			</tr>
-			<tr>
-					<td><strong>Hash Utilities</strong></td>
-					<td>Mã hóa mật khẩu an toàn</td>
-			</tr>
-			<tr>
-					<td><strong>Hỗ trợ Redis</strong></td>
-					<td>Tùy chọn caching và lưu trữ session</td>
-			</tr>
-			<tr>
-					<td><strong>Giới hạn tốc độ</strong></td>
-					<td>Bảo vệ API khỏi bị lạm dụng</td>
-			</tr>
-			<tr>
-					<td><strong>Hỗ trợ GORM</strong></td>
-					<td>ORM cho các thao tác cơ sở dữ liệu</td>
-			</tr>
-			<tr>
-					<td><strong>EasyJSON</strong></td>
-					<td>Tự động tạo mã JSON serialization</td>
-			</tr>
-			<tr>
-					<td><strong>Metrics</strong></td>
-					<td>Đo lường, timing và theo dõi</td>
-			</tr>
-			<tr>
-					<td><strong>Logging</strong></td>
-					<td>Logging có cấu trúc với Zap</td>
-			</tr>
-			<tr>
-					<td><strong>CLI</strong></td>
-					<td>Giao diện dòng lệnh dựa trên Cobra</td>
-			</tr>
-			<tr>
-					<td><strong>Slow Query</strong></td>
-					<td>Theo dõi truy vấn database và log truy vấn chậm</td>
-			</tr>
-	</tbody>
-</table>
-<hr>
-<h2 id="bắt-đầu-nhanh">Bắt đầu nhanh<a class="anchor" href="#b%e1%ba%aft-%c4%91%e1%ba%a7u-nhanh">#</a></h2>
+  <article class="markdown book-article"><h2 id="bắt-đầu-nhanh">Bắt đầu nhanh<a class="anchor" href="#b%e1%ba%aft-%c4%91%e1%ba%a7u-nhanh">#</a></h2>
 <h3 id="1-cài-đặt">1. Cài đặt<a class="anchor" href="#1-c%c3%a0i-%c4%91%e1%ba%b7t">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-tạo-dự-án-mới">2. Tạo dự án mới<a class="anchor" href="#2-t%e1%ba%a1o-d%e1%bb%b1-%c3%a1n-m%e1%bb%9bi">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
@@ -326,7 +258,11 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
 <h2 id="giấy-phép">Giấy phép<a class="anchor" href="#gi%e1%ba%a5y-ph%c3%a9p">#</a></h2>
 <p>MIT License - xem file <a href="LICENSE">LICENSE</a> để biết thêm chi tiết.</p>
 <hr>
-<!-- raw HTML omitted -->
+<div align="center">
+  <br>
+  Được tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  <br><br>
+</div>
 </article>
  
       
@@ -348,9 +284,9 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
 <div class="flex flex-wrap justify-between">
     <span>
     
-      <a href="/witches/docs/readme/" class="flex align-center">
+      <a href="/witches/vi/" class="flex align-center">
         <img src="/witches/icons/backward.svg" class="book-icon" alt="Backward" />
-        <span>Readme</span>
+        <span>Tài liệu Witches</span>
       </a>
     
     </span>
@@ -361,10 +297,6 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
 
  
         
-  
-  <div class="book-comments">
-
-</div>
   
  
         
@@ -389,13 +321,6 @@ Tính năng# Tính năng Mô tả Xác thực JWT Xác thực dựa trên token 
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
-      </ul>
-    </li>
-    <li><a href="#-trạng-thái">⚠️ Trạng thái</a></li>
-    <li><a href="#tính-năng">Tính năng</a></li>
     <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
       <ul>
         <li><a href="#1-cài-đặt">1. Cài đặt</a></li>

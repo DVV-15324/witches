@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-us" dir="ltr" data-theme="light">
+<html lang="en" dir="ltr" data-theme="auto">
 <head><script src="/witches/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=witches/livereload" data-no-instant defer></script>
   <!--
 Made with Book Theme
@@ -8,45 +8,39 @@ https://github.com/alex-shpak/hugo-book
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Vietnamese | English
-Go Backend CLI Tool# ⚠️ Status# Not ready for production use.
-This is a personal project. Use at your own risk.
-Features# Feature Description JWT Auth Token-based authentication with Refresh Token rotation Swagger Auto-generated API documentation Migration Version control for database schema Hash Utilities Secure password hashing Redis Support Optional caching and session storage Rate Limiting Protect your APIs from abuse GORM Support ORM for database operations EasyJSON Automate JSON serialization code generation Metrics metrics, timing, and tracing Logging Structured logging with Zap CLI Cobra-based command-line interface Slow Query Database query tracing and slow query logging Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+<meta name="description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.
 ">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/docs/readme/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/en/get_start/">
 	<meta property="og:site_name" content="Witches Documentation">
 	<meta property="og:title" content="Witches Documentation">
-	<meta property="og:description" content="Vietnamese | English
-Go Backend CLI Tool# ⚠️ Status# Not ready for production use.
-This is a personal project. Use at your own risk.
-Features# Feature Description JWT Auth Token-based authentication with Refresh Token rotation Swagger Auto-generated API documentation Migration Version control for database schema Hash Utilities Secure password hashing Redis Support Optional caching and session storage Rate Limiting Protect your APIs from abuse GORM Support ORM for database operations EasyJSON Automate JSON serialization code generation Metrics metrics, timing, and tracing Logging Structured logging with Zap CLI Cobra-based command-line interface Slow Query Database query tracing and slow query logging Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env">
-	<meta property="og:locale" content="en_us">
+	<meta property="og:description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.">
+	<meta property="og:locale" content="en">
 	<meta property="og:type" content="article">
-		<meta property="article:section" content="docs">
 
 
 	<meta itemprop="name" content="Witches Documentation">
-	<meta itemprop="description" content="Vietnamese | English
-Go Backend CLI Tool# ⚠️ Status# Not ready for production use.
-This is a personal project. Use at your own risk.
-Features# Feature Description JWT Auth Token-based authentication with Refresh Token rotation Swagger Auto-generated API documentation Migration Version control for database schema Hash Utilities Secure password hashing Redis Support Optional caching and session storage Rate Limiting Protect your APIs from abuse GORM Support ORM for database operations EasyJSON Automate JSON serialization code generation Metrics metrics, timing, and tracing Logging Structured logging with Zap CLI Cobra-based command-line interface Slow Query Database query tracing and slow query logging Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env">
-	<meta itemprop="wordCount" content="204">
+	<meta itemprop="description" content="Quick Start# 1. Installation# go install github.com/DVV-15324/witches@latest2. Create New Project# witches create example cd example3. Configure# Edit witches.env
+4. Database Setup# witches database generate5. Init &amp; Install Dependencies# witches init # Generate template files witches install # Install dependencies6. Run the Server# witches run Commands# Command Description witches create &lt;name&gt; Create a new project witches init Generate template files and structure witches install Install dependencies witches run Start the server witches migrate up Apply all migrations witches migrate down Rollback last migration witches database generate Generate database URL witches add &lt;your_service&gt; Add a new service License# MIT License - see the LICENSE file for details.">
+	<meta itemprop="wordCount" content="110">
 
-<title>Readme • Witches Documentation</title>
+<title>Get Start • Witches Documentation</title>
 <link rel="icon" href="/witches/favicon.png" >
 <link rel="manifest" href="/witches/manifest.json">
-<link rel="canonical" href="http://localhost:1313/witches/docs/readme/">
+<link rel="canonical" href="http://localhost:1313/witches/en/get_start/">
+  <link rel="alternate" hreflang="vi" href="http://localhost:1313/witches/vi/get_start/" title="Get Start">
 <link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
 
 
 
-  <script defer type="module" src="/witches/en.search.min.41767b624751b2de47591d3f8eb333782cbc62754f247053d7f80084a61c51fa.js" integrity="sha256-QXZ7YkdRst5HWR0/jrMzeCy8YnVPJHBT1/gAhKYcUfo=" crossorigin="anonymous"></script>
+  <script defer type="module" src="/witches/en.search.min.52b70b81ed69c5f91808f56fa1c858847d44852080f75306dc4ad6af967d3f33.js" integrity="sha256-UrcLge1pxfkYCPVvochYhH1EhSCA91MG3ErWr5Z9PzM=" crossorigin="anonymous"></script>
 
   
 </head>
-<body dir="ltr" class="book-kind-page book-type-docs">
+<body dir="ltr" class="book-kind-page book-type-page">
   <input type="checkbox" class="hidden toggle" id="menu-control" />
   <input type="checkbox" class="hidden toggle" id="toc-control" />
   <main class="container flex">
@@ -56,7 +50,7 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
     
   <nav>
 <h2 class="book-brand">
-  <a class="flex align-center" href="/witches/"><span>Witches Documentation</span>
+  <a class="flex align-center" href="/witches/en/"><span>Witches Documentation</span>
   </a>
 </h2>
 
@@ -71,6 +65,40 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
 </div>
 <script>document.querySelector(".book-search").classList.remove("hidden")</script>
 
+
+
+  
+
+
+  
+    
+  
+
+
+  
+
+
+<ul class="book-languages">
+  <li>
+    <input type="checkbox" id="languages" class="toggle" />
+    <label for="languages" class="flex">
+      <a role="button">
+        <img src="/witches/icons/translate.svg" class="book-icon" alt="Languages" />
+        English</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+
+    <ul>
+      
+      <li>
+        <a href="/witches/vi/get_start/" class="flex flex-auto">
+          Tiếng Việt
+        </a>
+      </li>
+      
+    </ul>
+  </li>
+</ul>
 
 
 
@@ -90,22 +118,8 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
   
 
   
-    <a href="/witches/docs/readme/" class="active">
-      Readme</a>
-  
-
-        </li>
-      
-    
-      
-        <li>
-          
-  
-  
-
-  
-    <a href="/witches/docs/readme.vi/" class="">
-      Readme.vi</a>
+    <a href="/witches/en/get_start/" class="active">
+      Get Start</a>
   
 
         </li>
@@ -146,7 +160,7 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
     <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Readme</h3>
+  <h3>Get Start</h3>
 
   <label for="toc-control">
     
@@ -162,13 +176,6 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
-      </ul>
-    </li>
-    <li><a href="#-status">⚠️ Status</a></li>
-    <li><a href="#features">Features</a></li>
     <li><a href="#quick-start">Quick Start</a>
       <ul>
         <li><a href="#1-installation">1. Installation</a></li>
@@ -193,83 +200,7 @@ Features# Feature Description JWT Auth Token-based authentication with Refresh T
 
       
       
-  <article class="markdown book-article"><p><a href="./README.vi.md">Vietnamese</a> | <a href="./README.md">English</a></p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<h3 id="go-backend-cli-tool">Go Backend CLI Tool<a class="anchor" href="#go-backend-cli-tool">#</a></h3>
-<!-- raw HTML omitted -->
-<p><a href="https://github.com/DVV-15324/witches/actions/workflows/security.yml"><img src="https://github.com/DVV-15324/witches/actions/workflows/security.yml/badge.svg" alt="Security Scan" /></a>
-<a href="https://app.codecov.io/github/DVV-15324/witches"><img src="https://codecov.io/gh/DVV-15324/witches/branch/main/graph/badge.svg" alt="codecov" /></a>
-<a href="https://DVV-15324.github.io/witches/"><img src="https://img.shields.io/badge/docs-latest-blue" alt="Docs" /></a></p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<hr>
-<h2 id="-status">⚠️ Status<a class="anchor" href="#-status">#</a></h2>
-<blockquote class='book-hint '>
-<p><strong>Not ready for production use.</strong><br>
-This is a personal project. Use at your own risk.</p>
-</blockquote><hr>
-<h2 id="features">Features<a class="anchor" href="#features">#</a></h2>
-<table>
-	<thead>
-			<tr>
-					<th>Feature</th>
-					<th>Description</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><strong>JWT Auth</strong></td>
-					<td>Token-based authentication with Refresh Token rotation</td>
-			</tr>
-			<tr>
-					<td><strong>Swagger</strong></td>
-					<td>Auto-generated API documentation</td>
-			</tr>
-			<tr>
-					<td><strong>Migration</strong></td>
-					<td>Version control for database schema</td>
-			</tr>
-			<tr>
-					<td><strong>Hash Utilities</strong></td>
-					<td>Secure password hashing</td>
-			</tr>
-			<tr>
-					<td><strong>Redis Support</strong></td>
-					<td>Optional caching and session storage</td>
-			</tr>
-			<tr>
-					<td><strong>Rate Limiting</strong></td>
-					<td>Protect your APIs from abuse</td>
-			</tr>
-			<tr>
-					<td><strong>GORM Support</strong></td>
-					<td>ORM for database operations</td>
-			</tr>
-			<tr>
-					<td><strong>EasyJSON</strong></td>
-					<td>Automate JSON serialization code generation</td>
-			</tr>
-			<tr>
-					<td><strong>Metrics</strong></td>
-					<td>metrics, timing, and tracing</td>
-			</tr>
-			<tr>
-					<td><strong>Logging</strong></td>
-					<td>Structured logging with Zap</td>
-			</tr>
-			<tr>
-					<td><strong>CLI</strong></td>
-					<td>Cobra-based command-line interface</td>
-			</tr>
-			<tr>
-					<td><strong>Slow Query</strong></td>
-					<td>Database query tracing and slow query logging</td>
-			</tr>
-	</tbody>
-</table>
-<hr>
-<h2 id="quick-start">Quick Start<a class="anchor" href="#quick-start">#</a></h2>
+  <article class="markdown book-article"><h2 id="quick-start">Quick Start<a class="anchor" href="#quick-start">#</a></h2>
 <h3 id="1-installation">1. Installation<a class="anchor" href="#1-installation">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-create-new-project">2. Create New Project<a class="anchor" href="#2-create-new-project">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
@@ -327,7 +258,11 @@ This is a personal project. Use at your own risk.</p>
 <h2 id="license">License<a class="anchor" href="#license">#</a></h2>
 <p>MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
 <hr>
-<!-- raw HTML omitted -->
+<div align="center">
+  <br>
+  Made with ❤️ by <a href="https://github.com/DVV-15324">DVV-15324</a>
+  <br><br>
+</div>
 </article>
  
       
@@ -349,23 +284,19 @@ This is a personal project. Use at your own risk.</p>
 <div class="flex flex-wrap justify-between">
     <span>
     
+      <a href="/witches/en/" class="flex align-center">
+        <img src="/witches/icons/backward.svg" class="book-icon" alt="Backward" />
+        <span>Witches Documentation</span>
+      </a>
+    
     </span>
     <span>
-    
-      <a href="/witches/docs/readme.vi/" class="flex align-center">
-        <span>Readme.vi</span>
-        <img src="/witches/icons/forward.svg" class="book-icon" alt="Forward" />
-      </a>
     
     </span>
   </div>
 
  
         
-  
-  <div class="book-comments">
-
-</div>
   
  
         
@@ -390,13 +321,6 @@ This is a personal project. Use at your own risk.</p>
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#go-backend-cli-tool">Go Backend CLI Tool</a></li>
-      </ul>
-    </li>
-    <li><a href="#-status">⚠️ Status</a></li>
-    <li><a href="#features">Features</a></li>
     <li><a href="#quick-start">Quick Start</a>
       <ul>
         <li><a href="#1-installation">1. Installation</a></li>
