@@ -26,9 +26,9 @@ func NewAuthModule(
 	userUsecase *usecase_user.UserUseCase,
 	refreshUsecase *usecase_refresh.RefreshUseCase,
 ) *AuthModule {
-	repo := repository.NewAuthRepository(core.DB, core.TxManager, core.Redis.GetClient())
-	usecase := usecase_auth.NewAuthUseCase(core.JWT, userUsecase, core.Hash, repo, refreshUsecase, core.TxManager, core.Session, core.Blacklist, core.Config)
-	handler := handler_auth.NewAuthHandle(usecase, core.Logger, core.Config, core.DeviceHelper)
+	repo := repository.NewAuthRepository(core)
+	usecase := usecase_auth.NewAuthUseCase(core, repo, userUsecase, refreshUsecase)
+	handler := handler_auth.NewAuthHandle(core, usecase)
 	return &AuthModule{
 		Handler: handler,
 		Usecase: usecase,

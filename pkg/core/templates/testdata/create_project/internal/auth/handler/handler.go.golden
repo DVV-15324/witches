@@ -2,31 +2,25 @@ package handler
 
 import (
 	"context"
+	"github.com/example/project/cmd/server/core"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	domainAuth "github.com/example/project/internal/shared/domain"
-	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
 type IUsecaseAuth interface {
 	Login(ctx context.Context, au *domainAuth.Auth, DeviceID string, IPAddress string, UserAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError)
 	Register(ctx context.Context, auth *domainAuth.Auth, name string) *w_resp.AppError
-	LoginWithGoogle(ctx context.Context, accessToken string, deviceID string, sipAddress string, userAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError)
 	Logout(ctx context.Context, accessToken, refreshTokenStr string, deviceID string) *w_resp.AppError
 }
 type AuthHandle struct {
-	Log         *logger.ModelLogger
+	Core        *core.CoreServices
 	UsecaseAuth IUsecaseAuth
-	Cfg         *wcmd_utils.Config
-	DeviceHeper *w_utils.DeviceHelper
 }
 
-func NewAuthHandle(authUseCase IUsecaseAuth, log *logger.ModelLogger, cfg *wcmd_utils.Config, deviceHeper *w_utils.DeviceHelper) *AuthHandle {
+func NewAuthHandle(core *core.CoreServices, authUseCase IUsecaseAuth) *AuthHandle {
 	return &AuthHandle{
 		UsecaseAuth: authUseCase,
-		Log:         log,
-		Cfg:         cfg,
-		DeviceHeper: deviceHeper,
+		Core:        core,
 	}
 }

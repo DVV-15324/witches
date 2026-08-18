@@ -24,9 +24,9 @@ func NewRefreshModule(
 	core *core.CoreServices,
 	userUsecase *usecase_user.UserUseCase,
 ) *RefreshModule {
-	repo := repository.NewRefreshTokenRepository(core.DB, core.Redis.GetClient())
-	usecase := usecase_refresh.NewRefreshUseCase(userUsecase, repo, core.JWT, core.Session, core.Blacklist, core.Config)
-	handler := handler.NewRefreshHandle(usecase, core.Logger, core.Config)
+	repo := repository.NewRefreshTokenRepository(core)
+	usecase := usecase_refresh.NewRefreshUseCase(core, userUsecase, repo)
+	handler := handler.NewRefreshHandle(core, usecase)
 	return &RefreshModule{
 		Handler: handler,
 		Usecase: usecase,
