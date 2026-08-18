@@ -1,0 +1,21 @@
+package repository
+
+import (
+	"fmt"
+)
+
+func (r *AuthRepository) cacheKeyAuthByEmail(email string) string {
+	return fmt.Sprintf("auth:email:%s", email)
+}
+
+func (r *AuthRepository) cacheKeyAuthByUserID(userID uint32) string {
+	return fmt.Sprintf("auth:user:%d", userID)
+}
+
+func (r *AuthRepository) cacheKeyNotFoundEmail(email string) string {
+	return fmt.Sprintf("auth:notfound:email:%s", email)
+}
+
+func (r *AuthRepository) cacheKeyNotFoundUser(userID uint32) string {
+	return fmt.Sprintf("auth:notfound:user:%d", userID)
+}

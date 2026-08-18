@@ -1,0 +1,91 @@
+// internal/user/mapping/user_mapping.go
+package mapping
+
+import (
+	domainUser "example/internal/shared/domain"
+	"example/internal/shared/utils"
+	dtoUser "example/internal/user/dto/response"
+	modelUser "example/internal/user/model"
+	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+)
+
+// 1. DTO ↔ Domain
+
+func FromDtoToDomainUser(dto *dtoUser.User) *domainUser.User {
+	if dto == nil {
+		return nil
+	}
+	return &domainUser.User{
+		Id:        int(utils.DecodeFromBase58(dto.Id).LocalID),
+		Name:      dto.Name,
+		Email:     dto.Email,
+		Role:      dto.Role,
+		CreatedAt: dto.CreatedAt,
+		UpdatedAt: dto.UpdatedAt,
+	}
+}
+
+// 1.1 List DTO → List Domain (dùng generic)
+func FromDtoToDomainUserList(dtos []*dtoUser.User) []*domainUser.User {
+	return w_utils.MapPtrSlice(dtos, FromDtoToDomainUser)
+}
+
+// 2. Domain ↔ Model
+
+func FromDomainToModelUser(domain *domainUser.User) *modelUser.User {
+	if domain == nil {
+		return nil
+	}
+	return &modelUser.User{
+		Id:        domain.Id,
+		Name:      domain.Name,
+		Email:     domain.Email,
+		Role:      domain.Role,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
+	}
+}
+
+// List Domain → List Model (dùng generic)
+func FromDomainToModelUserList(domains []*domainUser.User) []*modelUser.User {
+	return w_utils.MapPtrSlice(domains, FromDomainToModelUser)
+}
+
+func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
+	if model == nil {
+		return nil
+	}
+	return &domainUser.User{
+		Id:        model.Id,
+		Name:      model.Name,
+		Email:     model.Email,
+		Role:      model.Role,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}
+}
+
+// List Model → List Domain (dùng generic)
+func FromModelToDomainUserList(entities []*modelUser.User) []*domainUser.User {
+	return w_utils.MapPtrSlice(entities, FromModelToDomainUser)
+}
+
+// List Domain → List DTO
+func FromDomainToDtoUser(domain *domainUser.User) *dtoUser.User {
+	if domain == nil {
+		return nil
+	}
+	return &dtoUser.User{
+		Id:        utils.NewUID(uint32(domain.Id), utils.ObjectUser).ToBase58(),
+		Name:      domain.Name,
+		Email:     domain.Email,
+		Role:      domain.Role,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
+	}
+}
+
+// List Domain → List DTO (dùng generic)
+func FromDomainToDtoUserList(domains []*domainUser.User) []*dtoUser.User {
+	return w_utils.MapPtrSlice(domains, FromDomainToDtoUser)
+}

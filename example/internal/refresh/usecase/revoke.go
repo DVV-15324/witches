@@ -1,0 +1,42 @@
+package usecase
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	w_resp "github.com/DVV-15324/witches/pkg/core/response"
+)
+
+// Revoke - Thu hồi refresh token
+func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason string, deviceID string) *w_resp.AppError {
+	if token == "" {
+		return w_resp.NewAppError(400, errors.New("token cannot be empty"), time.Now())
+	}
+
+	// Get token trước để biết userID
+	storedToken, err := uc.RefreshTokenRepo.GetByToken(ctx, token)
+	if err != nil {
+		return w_resp.NewAppError(500, err, time.Now())
+	}
+	if storedToken == nil {
+		return w_resp.NewAppError(404, errors.New("token not found"), time.Now())
+	}
+
+	// Revoke trong repository (xóa cache)
+	if err := uc.RefreshTokenRepo.Revoke(ctx, token, reason); err != nil {
+		return w_resp.NewAppError(500, err, time.Now())
+	}
+
+	// Blacklist token
+	if err := uc.Core.Blacklist.BlacklistToken(ctx, token); err != nil {
+		// Log but don't fail
+	}
+
+	// Delete session của user đó
+	if storedToken.UserID > 0 {
+		uc.Core.Session.DeleteSession(ctx, storedToken.UserID, deviceID)
+	}
+
+	return nil
+}
