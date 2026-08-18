@@ -23,9 +23,9 @@ type UserModule struct {
 func NewUserModule(
 	core *core.CoreServices,
 ) *UserModule {
-	repo := repository.NewUserRepository(core.DB, core.TxManager)
-	usecase := usecase_user.NewUserUsecase(repo, core.TxManager)
-	handler := handler.NewUserHandle(usecase, core.Logger, core.Config)
+	repo := repository.NewUserRepository(core)
+	usecase := usecase_user.NewUserUsecase(core, repo)
+	handler := handler.NewUserHandle(core, usecase)
 	return &UserModule{
 		Handler: handler,
 		Usecase: usecase,
