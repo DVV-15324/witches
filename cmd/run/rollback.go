@@ -14,5 +14,5 @@ func WitchesRollback(domainName string) {
 		log.Fatalf("Error: %v", err)
 	}
 	moduleName := filepath.Base(projectPath)
-	templates.RollbackDomain(projectPath, moduleName, domainName)
+	_ = templates.RollbackDomain(projectPath, moduleName, domainName)
 }
