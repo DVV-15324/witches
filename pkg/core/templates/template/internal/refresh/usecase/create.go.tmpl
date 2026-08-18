@@ -22,7 +22,7 @@ func (uc *RefreshUseCase) Create(ctx context.Context, token *domainRefresh.Refre
 		return w_resp.NewAppError(400, errors.New("token is required"), time.Now())
 	}
 	if token.ExpiresAt == 0 {
-		token.ExpiresAt = time.Now().Unix() + uc.Config.RefreshTokenTTL
+		token.ExpiresAt = time.Now().Unix() + uc.Core.Config.RefreshTokenTTL
 	}
 
 	// Set default values

@@ -29,13 +29,13 @@ func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason strin
 	}
 
 	// Blacklist token
-	if err := uc.BlacklistService.BlacklistToken(ctx, token); err != nil {
+	if err := uc.Core.Blacklist.BlacklistToken(ctx, token); err != nil {
 		// Log but don't fail
 	}
 
 	// Delete session của user đó
 	if storedToken.UserID > 0 {
-		uc.SessionService.DeleteSession(ctx, storedToken.UserID, deviceID)
+		uc.Core.Session.DeleteSession(ctx, storedToken.UserID, deviceID)
 	}
 
 	return nil

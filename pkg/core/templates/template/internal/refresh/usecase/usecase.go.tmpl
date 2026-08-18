@@ -34,29 +34,20 @@ type IUserUseCase interface {
 }
 
 type RefreshUseCase struct {
-	Jwt              IJwt
+	Core             *core.CoreServices
 	AuthUsecase      IAuthUsecase
 	RefreshTokenRepo IRefreshTokenRepository
 	UserUseCase      IUserUseCase
-	SessionService   *w_utils.SessionService
-	BlacklistService *w_utils.BlacklistService
-	Config           *wcmd_utils.Config
 }
 
-func NewRefreshUseCase(userUseCase IUserUseCase, refreshTokenRepo IRefreshTokenRepository, jwt IJwt, sessionService *w_utils.SessionService,
-	blacklistService *w_utils.BlacklistService, config *wcmd_utils.Config) *RefreshUseCase {
+func NewRefreshUseCase(core *core.CoreServices, userUseCase IUserUseCase, refreshTokenRepo IRefreshTokenRepository) *RefreshUseCase {
 	return &RefreshUseCase{
 		UserUseCase:      userUseCase,
-		Jwt:              jwt,
 		RefreshTokenRepo: refreshTokenRepo,
-		SessionService:   sessionService,
-		BlacklistService: blacklistService,
-		Config:           config,
+		Core:             core,
 	}
 }
 
-func (r *RefreshUseCase) SetAuthUseCase(authUsecase IAuthUsecase) *RefreshUseCase {
-	return &RefreshUseCase{
-		AuthUsecase: authUsecase,
-	}
+func (r *RefreshUseCase) SetAuthUseCase(authUsecase IAuthUsecase) {
+	r.AuthUsecase = authUsecase
 }

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"{{.ModuleName}}/internal/shared/utils"
 	"fmt"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
@@ -10,80 +11,63 @@ import (
 	"time"
 )
 
-// Refresh - Refresh access token
-// Lưu ý: API này KHÔNG sử dụng AuthMiddleware vì:
-// - Client gọi khi access_token đã hết hạn
-// - Xác thực bằng refresh_token (lưu trong DB)
-// - Không cần access_token trong header
-
 func (uc *RefreshUseCase) Refresh(ctx context.Context, refreshTokenStr, deviceID string) (*w_utils.Token, *w_resp.AppError) {
-	// 1. Get stored token
+	// 1. Lấy stored token
 	storedToken, err := uc.RefreshTokenRepo.GetByToken(ctx, refreshTokenStr)
 	if err != nil {
-		resp := w_resp.NewAppError(500, err, time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(500, err, time.Now())
 	}
 	if storedToken == nil {
-		resp := w_resp.NewAppError(404, errors.New("refresh token không hợp lệ"), time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(404, errors.New("refresh token không hợp lệ"), time.Now())
 	}
 
-	// 3. Validate token (trường hợp có người khác biết token khi người dùng logout)
+	// 2. Kiểm tra revoked
 	if storedToken.Revoked {
-		resp := w_resp.NewAppError(401, errors.New("refresh token đã bị thu hồi"), time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(401, errors.New("refresh token đã bị thu hồi"), time.Now())
 	}
-	// Kiểm tra hạn refresh token
-	if time.Now().Unix() > storedToken.ExpiresAt {
-		//uc.BlacklistService.BlacklistToken(ctx, refreshTokenStr)
-		resp := w_resp.NewAppError(401, errors.New("refresh token đã hết hạn"), time.Now())
-		return nil, resp
+
+	// 3. Kiểm tra hết hạn (đã sửa đúng)
+	if time.Now().Unix() > (storedToken.CreatedAt.Unix() + storedToken.ExpiresAt) {
+		return nil, w_resp.NewAppError(401, errors.New("refresh token đã hết hạn"), time.Now())
 	}
-	// Nếu cố tình dùng refresh token ở thiết bị khác lúc đăng nhập
+
+	// 4. Kiểm tra device
 	if storedToken.DeviceID != deviceID && deviceID != "" {
 		uc.RefreshTokenRepo.Revoke(ctx, refreshTokenStr, "device mismatch")
-		resp := w_resp.NewAppError(401, errors.New("thiết bị không khớp"), time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(401, errors.New("thiết bị không khớp"), time.Now())
 	}
 
-	//Qua hết 3 bước  check xong ok thì refresh access_token mới cho user
-
-	// 4. Get thông tin auth
+	// 5. Lấy thông tin auth (đã inject đúng AuthUsecase)
 	auth, errResp := uc.AuthUsecase.GetAuthByUserId(ctx, int(storedToken.UserID))
 	if errResp != nil {
 		return nil, errResp
 	}
 	if auth == nil {
-		resp := w_resp.NewAppError(404, errors.New("user not found"), time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(404, errors.New("user not found"), time.Now())
 	}
-
 	if auth.Banned {
-		resp := w_resp.NewAppError(403, errors.New("user is banned"), time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(403, errors.New("user is banned"), time.Now())
 	}
 
-	// 5. Generate new token pair
-	userID := storedToken.UserID
-	sub := fmt.Sprintf("%d", userID)
+	// 6. Tạo sub và tid
+	s := utils.NewUID(uint32(auth.UserId), 1)
+	sub := s.ToBase58()
 	tid := uuid.New().String()
 
-	// Tạo token
-	access_token, err := uc.Jwt.IssueAccessToken(ctx, sub, tid)
+	// 7. Issue access token (SỬA: dùng uc.Jwt hoặc uc.Core.JWT)
+	accessToken, err := uc.Core.JWT.IssueAccessToken(ctx, sub, tid) // nếu uc có field Jwt
 	if err != nil {
-		resp := w_resp.NewAppError(500, err, time.Now())
-		return nil, resp
+		return nil, w_resp.NewAppError(500, err, time.Now())
 	}
 
-	// 6. Update session
-	// Cập nhật phiên
-	if err := uc.SessionService.UpdateSession(ctx, userID, deviceID, access_token.Token); err != nil {
-		// Log error but don't fail
+	// 8. Update session
+	if err := uc.Core.Session.UpdateSession(ctx, uint32(auth.UserId), deviceID, accessToken.Token); err != nil {
 		fmt.Printf("Failed to update session: %v\n", err)
 	}
 
-	// 7. Return response access_token
+	// 9. Return
 	return &w_utils.Token{
-		Token: access_token.Token,
+		Token: accessToken.Token,
 	}, nil
 }
+
