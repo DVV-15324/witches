@@ -134,7 +134,6 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/auth/handler/handler.go.tmpl":  filepath.Join("internal", "auth", "handler", "handler.go"),
 		"template/internal/auth/handler/login.go.tmpl":    filepath.Join("internal", "auth", "handler", "login.go"),
 		"template/internal/auth/handler/registry.go.tmpl": filepath.Join("internal", "auth", "handler", "registry.go"),
-		"template/internal/auth/handler/google.go.tmpl":   filepath.Join("internal", "auth", "handler", "google.go"),
 		"template/internal/auth/handler/logout.go.tmpl":   filepath.Join("internal", "auth", "handler", "logout.go"),
 		// AUTH SERVICE - MAPPING
 		"template/internal/auth/mapping/mapping.go.tmpl": filepath.Join("internal", "auth", "mapping", "mapping.go"),
@@ -150,7 +149,6 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/auth/usecase/login.go.tmpl":    filepath.Join("internal", "auth", "usecase", "login.go"),
 		"template/internal/auth/usecase/register.go.tmpl": filepath.Join("internal", "auth", "usecase", "register.go"),
 		"template/internal/auth/usecase/get.go.tmpl":      filepath.Join("internal", "auth", "usecase", "get.go"),
-		"template/internal/auth/usecase/google.go.tmpl":   filepath.Join("internal", "auth", "usecase", "google.go"),
 		"template/internal/auth/usecase/logout.go.tmpl":   filepath.Join("internal", "auth", "usecase", "logout.go"),
 		"template/internal/auth/usecase/errors.go.tmpl":   filepath.Join("internal", "auth", "usecase", "errors.go"),
 		"template/internal/auth/module.go.tmpl":           filepath.Join("internal", "auth", "module.go"),
