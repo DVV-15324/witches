@@ -1,15 +1,13 @@
 package repository
 
 import (
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
+	"{{.ModuleName}}/cmd/server/core"
 )
 
 type RefreshTokenRepository struct {
-	db    *gorm.DB
-	redis *redis.Client
+	core *core.CoreServices
 }
 
-func NewRefreshTokenRepository(db *gorm.DB, redis *redis.Client) *RefreshTokenRepository {
-	return &RefreshTokenRepository{db: db, redis: redis}
+func NewRefreshTokenRepository(core *core.CoreServices) *RefreshTokenRepository {
+	return &RefreshTokenRepository{core: core}
 }

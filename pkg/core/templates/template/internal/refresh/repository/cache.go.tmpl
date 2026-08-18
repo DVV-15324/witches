@@ -22,13 +22,13 @@ func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *modelRef
 		return err
 	}
 	key := r.cacheKeyToken(token.Token)
-	if err := r.redis.Set(ctx, key, data, 5*time.Minute).Err(); err != nil {
+	if err := r.core.Redis.GetClient().Set(ctx, key, data, 5*time.Minute).Err(); err != nil {
 		return err
 	}
 
 	// Cache by user_id (cho active tokens)
 	if !token.Revoked && time.Now().Before(time.Unix(token.ExpiresAt, 0)) {
-		r.redis.SAdd(ctx, r.cacheKeyUserTokens(token.UserID), token.Token)
+		r.core.Redis.GetClient().SAdd(ctx, r.cacheKeyUserTokens(token.UserID), token.Token)
 	}
 
 	return nil
@@ -36,7 +36,7 @@ func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *modelRef
 
 func (r *RefreshTokenRepository) getCachedToken(ctx context.Context, token string) (*modelRefresh.RefreshToken, error) {
 	key := r.cacheKeyToken(token)
-	data, err := r.redis.Get(ctx, key).Result()
+	data, err := r.core.Redis.GetClient().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -53,27 +53,27 @@ func (r *RefreshTokenRepository) getCachedToken(ctx context.Context, token strin
 
 func (r *RefreshTokenRepository) deleteCacheToken(ctx context.Context, token string) error {
 	key := r.cacheKeyToken(token)
-	return r.redis.Del(ctx, key).Err()
+	return r.core.Redis.GetClient().Del(ctx, key).Err()
 }
 
 func (r *RefreshTokenRepository) invalidateUserCache(ctx context.Context, token string) {
 	// Lấy user_id từ cache để invalidate
-	data, err := r.redis.Get(ctx, r.cacheKeyToken(token)).Result()
+	data, err := r.core.Redis.GetClient().Get(ctx, r.cacheKeyToken(token)).Result()
 	if err == nil {
 		var rt modelRefresh.RefreshToken
 		if json.Unmarshal([]byte(data), &rt) == nil {
-			r.redis.Del(ctx, r.cacheKeyActiveTokens(rt.UserID))
+			r.core.Redis.GetClient().Del(ctx, r.cacheKeyActiveTokens(rt.UserID))
 		}
 	}
 }
 
 func (r *RefreshTokenRepository) cacheNotFound(ctx context.Context, token string) {
 	key := r.cacheKeyNotFound(token)
-	r.redis.Set(ctx, key, "1", 1*time.Minute)
+	r.core.Redis.GetClient().Set(ctx, key, "1", 1*time.Minute)
 }
 
 func (r *RefreshTokenRepository) isNotFoundCached(ctx context.Context, token string) bool {
 	key := r.cacheKeyNotFound(token)
-	exists, _ := r.redis.Exists(ctx, key).Result()
+	exists, _ := r.core.Redis.GetClient().Exists(ctx, key).Result()
 	return exists == 1
 }

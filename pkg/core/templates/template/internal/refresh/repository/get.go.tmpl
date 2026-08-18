@@ -23,7 +23,7 @@ func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (
 
 	// 2. Query DB
 	var rt modelRefresh.RefreshToken
-	err = r.db.WithContext(ctx).Where("token = ?", token).First(&rt).Error
+	err = r.core.DB.WithContext(ctx).Where("token = ?", token).First(&rt).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Cache "not found" để tránh cache penetration
