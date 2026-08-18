@@ -192,7 +192,7 @@ func TestWitchesMigrateDrop(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	func() { _ = db.Close() }()
+	defer func() { _ = db.Close() }()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
