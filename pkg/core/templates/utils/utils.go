@@ -28,7 +28,9 @@ func RenderTemplate(templateFS embed.FS, baseDir, destFile, tmplFile string, con
 	if err != nil {
 		log.Fatalf("Error: create file %s: %v", fullPath, err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	// Execute template trực tiếp
 	if err := tmpl.Execute(file, config); err != nil {

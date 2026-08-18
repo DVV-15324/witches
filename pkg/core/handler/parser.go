@@ -42,7 +42,7 @@ func (p *ModelParser) Register(model interface{}) string {
 }
 
 func (p *ModelParser) registerType(t reflect.Type) string {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Ptr { //nolint:govet
 		t = t.Elem()
 	}
 

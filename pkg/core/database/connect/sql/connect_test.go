@@ -139,7 +139,9 @@ func TestNewDatabaseInstance_WithPoolConfig(t *testing.T) {
 
 	instance, err := NewDatabaseInstance(cfg, logg)
 	assert.NoError(t, err)
-	defer instance.Close()
+	defer func() {
+		_ = instance.Close()
+	}()
 
 	sqlDB, err := instance.DB.DB()
 	require.NoError(t, err)
@@ -173,7 +175,9 @@ func TestNewDatabaseInstance_WithLogger(t *testing.T) {
 	cfg := makeTestConfig("postgres", connStr)
 	instance, err := NewDatabaseInstance(cfg, logg)
 	assert.NoError(t, err)
-	defer instance.Close()
+	defer func() {
+		_ = instance.Close()
+	}()
 
 	assert.NotNil(t, instance.Log)
 	assert.Equal(t, logg, instance.Log)
@@ -208,7 +212,9 @@ func TestNewDatabaseInstance_DefaultConfig(t *testing.T) {
 
 	instance, err := NewDatabaseInstance(cfg, logg)
 	assert.NoError(t, err)
-	defer instance.Close()
+	defer func() {
+		_ = instance.Close()
+	}()
 
 	sqlDB, err := instance.DB.DB()
 	require.NoError(t, err)
@@ -252,7 +258,9 @@ func BenchmarkDatabaseInstance_Ping(b *testing.B) {
 	cfg := makeTestConfig("postgres", connStr)
 	instance, err := NewDatabaseInstance(cfg, logg)
 	require.NoError(b, err)
-	defer instance.Close()
+	defer func() {
+		_ = instance.Close()
+	}()
 
 	sqlDB, err := instance.DB.DB()
 	require.NoError(b, err)

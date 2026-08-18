@@ -50,12 +50,12 @@ func NewDatabaseInstance(
 
 	db, err := gorm.Open(dialector, gormCfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error: failed to connect database: %w", err)
+		return nil, fmt.Errorf("failed to connect database: %v", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("Error: failed to get sql.DB: %w", err)
+		return nil, fmt.Errorf("failed to get sql.DB: %v", err)
 	}
 
 	if cfg.MaxOpenConns > 0 {
@@ -90,7 +90,7 @@ func NewDatabaseInstance(
 
 func (d *DatabaseInstance) Close() error {
 	if d == nil || d.DB == nil {
-		return fmt.Errorf("Error: database instance is nil")
+		return fmt.Errorf("database instance is nil")
 	}
 	sqlDB, err := d.DB.DB()
 	if err != nil {

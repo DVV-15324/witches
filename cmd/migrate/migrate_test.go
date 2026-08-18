@@ -75,7 +75,7 @@ DROP TABLE IF EXISTS users;
 		if err := postgresContainer.Terminate(ctx); err != nil {
 			t.Logf("Failed to terminate container: %v", err)
 		}
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 	}
 	connStr = strings.TrimPrefix(connStr, "postgres://")
 	return connStr, migrationsDir, cleanup
@@ -95,7 +95,9 @@ func TestWitchesMigrateUp(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
@@ -129,7 +131,9 @@ func TestWitchesMigrateVersion(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	var version int
 	err = db.QueryRowContext(ctx, `
@@ -156,7 +160,9 @@ func TestWitchesMigrateDown(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
@@ -186,7 +192,7 @@ func TestWitchesMigrateDrop(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	defer db.Close()
+	func() { _ = db.Close() }()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
@@ -216,7 +222,9 @@ func TestWitchesMigrateForce(t *testing.T) {
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	var version int
 	err = db.QueryRowContext(ctx, `

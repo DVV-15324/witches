@@ -15,7 +15,7 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	if err != nil {
 		return fmt.Errorf("update witches.env: %v", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	DB_URL, err := GenerateDBURL(DB_DRIVER,
 		config.DBUser, config.DBPassword,

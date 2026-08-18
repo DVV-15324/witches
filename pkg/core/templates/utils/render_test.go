@@ -117,7 +117,9 @@ func TestRenderTemplate_WithNilConfig(t *testing.T) {
 	destFile := filepath.Join(tmpDir, "noconfig_output.go")
 	file, err := os.Create(destFile)
 	require.NoError(t, err)
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	err = tmpl.Execute(file, nil)
 	require.NoError(t, err)
@@ -179,7 +181,9 @@ func New{{.NameCap}}(name string) *{{.NameCap}} {
 	destFile := filepath.Join(tmpDir, "complex_output.go")
 	file, err := os.Create(destFile)
 	require.NoError(t, err)
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	err = tmpl.Execute(file, config)
 	require.NoError(t, err)

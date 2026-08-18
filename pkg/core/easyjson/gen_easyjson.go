@@ -132,11 +132,11 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 
 		// Xóa file gen cũ
 		genOutputFile := strings.TrimSuffix(outputPath, ".go") + "_easyjson.go"
-		os.Remove(genOutputFile)
+		_ = os.Remove(genOutputFile)
 
 		// Xóa file tmp
 		tmpFile := strings.TrimSuffix(outputPath, ".go") + "_easyjson.go.tmp"
-		os.Remove(tmpFile)
+		_ = os.Remove(tmpFile)
 
 		// Gen TRỰC TIẾP trên file outputPath
 		if err := generateEasyJSON(outputPath); err != nil {
@@ -149,7 +149,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 			fmt.Printf("  Generated: %s\n", genOutputFile)
 		}
 
-		os.Remove(tmpFile)
+		_ = os.Remove(tmpFile)
 	}
 
 	if len(generatedFiles) != 0 {

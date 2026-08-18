@@ -96,6 +96,6 @@ func removeEasyJSONFiles(dir string) {
 		return
 	}
 	for _, f := range files {
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 }

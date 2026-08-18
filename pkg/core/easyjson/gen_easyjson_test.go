@@ -19,7 +19,7 @@ func TestGeneratorEasyJsonRequest(t *testing.T) {
 	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "test", "request")
 	outputDir := inputDir
 	oldGenFile := filepath.Join(outputDir, "request_easyjson.go")
-	os.Remove(oldGenFile)
+	_ = os.Remove(oldGenFile)
 
 	fset := token.NewFileSet()
 	err := GeneratorEasyJson(fset, inputDir, outputDir)
@@ -37,7 +37,7 @@ func TestGeneratorEasyJsonResponse(t *testing.T) {
 	inputDir := filepath.Join(rootDir, "pkg", "core", "easyjson", "test", "response")
 	outputDir := inputDir
 	oldGenFile := filepath.Join(outputDir, "response_easyjson.go")
-	os.Remove(oldGenFile)
+	_ = os.Remove(oldGenFile)
 
 	fset := token.NewFileSet()
 	err := GeneratorEasyJson(fset, inputDir, outputDir)
@@ -116,8 +116,8 @@ func TestGenerateEasyJSON_FileExists(t *testing.T) {
 
 func TestGenerateEasyJSON_NoEasyJSON(t *testing.T) {
 	oldPath := os.Getenv("PATH")
-	defer os.Setenv("PATH", oldPath)
-	os.Setenv("PATH", "")
+	defer func() { _ = os.Setenv("PATH", oldPath) }()
+	_ = os.Setenv("PATH", "")
 
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "test.go")

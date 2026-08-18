@@ -19,7 +19,9 @@ func TestNewGormLogger(t *testing.T) {
 	defer func() {
 		_ = logger.Sync()
 	}()
-	defer os.Remove(path)
+	defer func() {
+		_ = os.Remove(path)
+	}()
 
 	config := wcmd_utils.DefaultConfig()
 	config.SlowThreshold = 5 // 5 giây
@@ -51,7 +53,9 @@ func TestGormLogger_LogMode(t *testing.T) {
 	defer func() {
 		_ = logger.Sync()
 	}()
-	defer os.Remove(path)
+	defer func() {
+		_ = os.Remove(path)
+	}()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)
@@ -77,7 +81,9 @@ func TestGormLogger_Info(t *testing.T) {
 	defer func() {
 		_ = logger.Sync()
 	}()
-	defer os.Remove(path)
+	defer func() {
+		_ = os.Remove(path)
+	}()
 
 	config := wcmd_utils.DefaultConfig()
 	gormLogger := NewGormLogger(logger, config)

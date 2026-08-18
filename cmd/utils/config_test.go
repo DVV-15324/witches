@@ -26,8 +26,10 @@ func TestGetEnvAsInt64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv(tt.key, tt.value)
-			defer os.Unsetenv(tt.key)
+			_ = os.Setenv(tt.key, tt.value)
+			defer func() {
+				_ = os.Unsetenv(tt.key)
+			}()
 			result := getEnvAsInt64(tt.key)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -126,8 +128,10 @@ RATE_LIMIT_MAX=200`
 }
 
 func TestLoadDbUrl(t *testing.T) {
-	os.Setenv("DB_URL", "postgres://admin:securepass@db.example.com:5432/prod_db")
-	defer os.Unsetenv("DB_URL")
+	_ = os.Setenv("DB_URL", "postgres://admin:securepass@db.example.com:5432/prod_db")
+	defer func() {
+		_ = os.Unsetenv("DB_URL")
+	}()
 
 	cfg := &Config{}
 	cfg = LoadDbUrl(cfg)
