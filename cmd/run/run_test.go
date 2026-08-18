@@ -398,9 +398,6 @@ func TestWitchesRun_NoMainGo(t *testing.T) {
 		if err := os.Chdir(tmpDir); err != nil {
 			t.Fatalf("failed to chdir: %v", err)
 		}
-		if err != nil {
-			os.Exit(1)
-		}
 
 		// Gọi WitchesRun - sẽ log.Fatal
 		WitchesRun()
@@ -454,7 +451,7 @@ func TestWitchesAdd_Success(t *testing.T) {
 	require.NoError(t, err)
 	keyContent := `package utils
 
-var Object uint = 10
+var Object uint = 1
 `
 	err = os.WriteFile(filepath.Join(sharedDir, "key_object.go"), []byte(keyContent), 0644)
 	require.NoError(t, err)
@@ -472,7 +469,47 @@ var Object uint = 10
 	WitchesAdd("book")
 
 	// Kiểm tra thư mục service được tạo
-	serviceDir := filepath.Join(tmpDir, "internal", "book-service")
+	serviceDir := filepath.Join(tmpDir, "internal", "book")
 	_, err = os.Stat(serviceDir)
 	assert.NoError(t, err, "Service directory should be created")
+}
+
+func TestWitchesRoll_Success(t *testing.T) {
+	tmpDir := t.TempDir()
+	goModPath := filepath.Join(tmpDir, "go.mod")
+	err := os.WriteFile(goModPath, []byte("module test-module"), 0644)
+	require.NoError(t, err)
+
+	// Tạo internal/shared/utils với Object constant
+	sharedDir := filepath.Join(tmpDir, "internal", "shared", "utils")
+	err = os.MkdirAll(sharedDir, 0755)
+	require.NoError(t, err)
+	keyContent := `package utils
+
+var Object uint = 1
+`
+	err = os.WriteFile(filepath.Join(sharedDir, "key_object.go"), []byte(keyContent), 0644)
+	require.NoError(t, err)
+
+	originalWd, _ := os.Getwd()
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			log.Printf("failed to chdir: %v", err)
+		}
+	}()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to chdir: %v", err)
+	}
+
+	WitchesAdd("book")
+
+	serviceDir := filepath.Join(tmpDir, "internal", "book")
+
+	_, err = os.Stat(serviceDir)
+	require.NoError(t, err, "Service directory should be created")
+
+	WitchesRollback("book")
+
+	_, err = os.Stat(serviceDir)
+	assert.Error(t, err, "Service directory should be removed")
 }
