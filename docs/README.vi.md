@@ -51,7 +51,7 @@
 
 ---
 
-## Bắt đầu nhanh
+## Hướng dẫn nhanh
 
 ### 1. Cài đặt
 
@@ -68,27 +68,32 @@ cd example
 
 ### 3. Cấu hình
 
-Chỉnh sửa file `witches.env`
+Sửa file `witches.env` với thông tin kết nối cơ sở dữ liệu của bạn.
 
-### 4. Thiết lập Database
+### 4. Tạo URL kết nối database từ file env
 
 ```bash
 witches database generate
 ```
 
-### 5. Khởi tạo & Cài đặt Dependencies
+### 5. Chạy migration cơ sở dữ liệu
 
 ```bash
-witches init      # Tạo file template
-witches install   # Cài đặt dependencies
+witches migrate up
 ```
 
-### 6. Chạy Server
+### 6. Khởi tạo và cài đặt các thư viện phụ thuộc
+
+```bash
+witches init      # Tạo các file template
+witches install   # Cài đặt các thư viện cần thiết
+```
+
+### 7. Chạy máy chủ
 
 ```bash
 witches run
 ```
-
 ---
 
 ## Câu lệnh

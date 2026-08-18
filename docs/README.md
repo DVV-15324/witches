@@ -69,27 +69,32 @@ cd example
 
 ### 3. Configure
 
-Edit `witches.env`
+Edit `witches.env` file with your database credentials.
 
-### 4. Database Setup
+### 4. Generate database URL from env
 
 ```bash
 witches database generate
 ```
 
-### 5. Init & Install Dependencies
+### 5. Run database migrations
+
+```bash
+witches migrate up
+```
+
+### 6. Init & Install Dependencies
 
 ```bash
 witches init      # Generate template files
 witches install   # Install dependencies
 ```
 
-### 6. Run the Server
+### 7. Run the Server
 
 ```bash
 witches run
 ```
-
 ---
 
 ## Commands
