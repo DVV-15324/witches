@@ -18,7 +18,7 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 
 		// Bind JSON first
 		if err := w_easyjson.BindJSON(c, &data); err != nil {
-		w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
+			w_resp.WriteErrorWithLog(c, h.Core.Logger, h.Core.Config, w_resp.NewAppError(400, errors.New("invalid request body"), time.Now()))
 			return
 		}
 
@@ -26,7 +26,7 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 		err_valid := data.Validate()
 		if err_valid != nil {
 			resq := w_resp.NewAppError(401, err_valid, time.Now())
-			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resq)
+			w_resp.WriteErrorWithLog(c, h.Core.Logger, h.Core.Config, resq)
 			return // Added missing return
 		}
 
@@ -37,7 +37,7 @@ func (h *AuthHandle) HandleRegister() func(c *gin.Context) {
 		// Register
 		resq := h.UsecaseAuth.Register(c.Request.Context(), domain, nameUser)
 		if resq != nil {
-			w_resp.WriteErrorWithLog(c, h.Log, h.Cfg, resq)
+			w_resp.WriteErrorWithLog(c, h.Core.Logger, h.Core.Config, resq)
 			return
 		}
 		w_resp.WriteSuccess(c, "Dang ki thanh cong")
