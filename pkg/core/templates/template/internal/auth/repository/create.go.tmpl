@@ -9,7 +9,7 @@ import (
 
 func (r *AuthRepository) CreateAuth(ctx context.Context, domainAuth *domainAuth.Auth) error {
 	auth := mapping.FromDomainToModelAuth(domainAuth)
-	result := r.db.WithContext(ctx).
+	result := r.core.DB.WithContext(ctx).
 		Select("email", "password", "user_id", "salt").
 		Create(auth)
 	if result.Error != nil {
@@ -18,3 +18,4 @@ func (r *AuthRepository) CreateAuth(ctx context.Context, domainAuth *domainAuth.
 
 	return nil
 }
+

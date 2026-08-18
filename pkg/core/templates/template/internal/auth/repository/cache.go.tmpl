@@ -17,7 +17,7 @@ func (r *AuthRepository) cacheAuth(ctx context.Context, auth *modelAuth.Auth) er
 		return nil
 	}
 
-	pipe := r.redis.Pipeline()
+	pipe := r.core.Redis.GetClient().Pipeline()
 
 	// Cache by email
 	emailKey := r.cacheKeyAuthByEmail(auth.Email)
@@ -35,7 +35,7 @@ func (r *AuthRepository) cacheAuth(ctx context.Context, auth *modelAuth.Auth) er
 
 func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email string) (*modelAuth.Auth, error) {
 	key := r.cacheKeyAuthByEmail(email)
-	data, err := r.redis.Get(ctx, key).Result()
+	data, err := r.core.Redis.GetClient().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -52,7 +52,7 @@ func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email stri
 
 func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID uint32) (*modelAuth.Auth, error) {
 	key := r.cacheKeyAuthByUserID(userID)
-	data, err := r.redis.Get(ctx, key).Result()
+	data, err := r.core.Redis.GetClient().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -68,15 +68,10 @@ func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID ui
 }
 
 func (r *AuthRepository) invalidateAuthCache(ctx context.Context, email string, userID uint32) {
-	r.redis.Del(ctx, r.cacheKeyAuthByEmail(email))
-	r.redis.Del(ctx, r.cacheKeyAuthByUserID(userID))
+	r.core.Redis.GetClient().Del(ctx, r.cacheKeyAuthByEmail(email))
+	r.core.Redis.GetClient().Del(ctx, r.cacheKeyAuthByUserID(userID))
 }
 
 func (r *AuthRepository) cacheNotFound(ctx context.Context, key string) {
-	r.redis.Set(ctx, key, "1", 1*time.Minute)
+	r.core.Redis.GetClient().Set(ctx, key, "1", 1*time.Minute)
 }
-
-// func (r *AuthRepository) isNotFoundCached(ctx context.Context, key string) bool {
-// 	exists, _ := r.redis.Exists(ctx, key).Result()
-// 	return exists == 1
-// }

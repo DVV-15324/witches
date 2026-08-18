@@ -20,7 +20,7 @@ func (r *AuthRepository) GetAuthByEmail(ctx context.Context, email string) (*dom
 
 	// 2. Query DB
 	var data modelAuth.Auth
-	err = r.db.WithContext(ctx).Where("email = ?", email).First(&data).Error
+	err = r.core.DB.WithContext(ctx).Where("email = ?", email).First(&data).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -41,7 +41,7 @@ func (r *AuthRepository) GetAuthByUserId(ctx context.Context, userID uint32) (*d
 	} else {
 		// 2. Query DB
 		var data modelAuth.Auth
-		err = r.db.WithContext(ctx).Where("user_id = ?", userID).First(&data).Error
+		err = r.core.DB.WithContext(ctx).Where("user_id = ?", userID).First(&data).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 
