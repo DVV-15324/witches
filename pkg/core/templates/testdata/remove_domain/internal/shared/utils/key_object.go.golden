@@ -1,0 +1,7 @@
+package utils
+
+var (
+	ObjectUser    uint = 1
+	ObjectAuth    uint = 2
+	ObjectRefresh uint = 3
+)
