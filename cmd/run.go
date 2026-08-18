@@ -1,41 +1,31 @@
 package cmd
 
 import (
-	"fmt"
 	run "github.com/DVV-15324/witches/cmd/run"
 	utils "github.com/DVV-15324/witches/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
 var createCmd = &cobra.Command{
-	Use: "create",
+	Use:  "create",
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("Error: missing create project")
-			return
-		}
 		run.WitchesCreate(args[0])
 	},
 }
 
 var runCmd = &cobra.Command{
-	Use: "run",
+	Use:  "run",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			fmt.Println("Error: missing run project")
-			return
-		}
 		run.WitchesRun()
 	},
 }
 
 var initCmd = &cobra.Command{
-	Use: "init",
+	Use:  "init",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			fmt.Println("Error: missing run project")
-			return
-		}
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
 		run.WitchesInit(cfg.DBDriver)
@@ -43,12 +33,9 @@ var initCmd = &cobra.Command{
 }
 
 var installCmd = &cobra.Command{
-	Use: "install",
+	Use:  "install",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			fmt.Println("Error: missing install project")
-			return
-		}
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
 		run.WitchesInstall(cfg.DBDriver)
@@ -56,13 +43,17 @@ var installCmd = &cobra.Command{
 }
 
 var addCmd = &cobra.Command{
-	Use: "add",
+	Use:  "add",
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 1 {
-			fmt.Println("Error: missing domain name")
-			return
-		}
 		domainName := args[0]
 		run.WitchesAdd(domainName)
+	},
+}
+var removeCmd = &cobra.Command{
+	Use:  "rm",
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		run.WitchesRollback(args[0])
 	},
 }
