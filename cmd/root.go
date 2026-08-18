@@ -8,7 +8,9 @@ import (
 var rootCmd = &cobra.Command{
 	Use:     "witches",
 	Version: "v1.0.9",
-	Run:     func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
 }
 
 func Execute() {
@@ -20,6 +22,7 @@ func Execute() {
 
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
+	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 	// Scaffold
 	rootCmd.AddCommand(createCmd)
 
@@ -30,6 +33,7 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(removeCmd)
 
 	rootCmd.AddCommand(migrateCmd)
 	migrateCmd.AddCommand(migrateDropCmd)
