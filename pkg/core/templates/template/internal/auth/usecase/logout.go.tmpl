@@ -23,9 +23,9 @@ func (a *AuthUseCase) Logout(ctx context.Context, accessToken, refreshTokenStr s
 		return err
 	}
 	// 3. Blacklist access token
-	a.BlacklistService.BlacklistToken(ctx, accessToken)
+	a.Core.Blacklist.BlacklistToken(ctx, accessToken)
 	// 4. Delete session
-	a.SessionService.DeleteSession(ctx, token.UserID, deviceID)
+	a.Core.Session.DeleteSession(ctx, token.UserID, deviceID)
 
 	return nil
 }

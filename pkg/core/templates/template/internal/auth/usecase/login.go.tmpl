@@ -42,7 +42,7 @@ func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID s
 	}
 
 	// 3. Verify password
-	if !a.Hash.CompareHashAndPassword(auth.Password, au.Password, auth.Salt) {
+	if !a.Core.Hash.CompareHashAndPassword(auth.Password, au.Password, auth.Salt) {
 
 		resp := w_resp.NewAppError(500, errors.New("email hoặc mật khẩu không đúng"), time.Now())
 		return nil, resp
@@ -56,13 +56,13 @@ func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID s
 	tid := uuid.New().String()
 
 	//4. Tạo Access Token
-	accessToken, err_access_token := a.Jwt.IssueAccessToken(ctx, sub, tid)
+	accessToken, err_access_token := a.Core.JWT.IssueAccessToken(ctx, sub, tid)
 	if err_access_token != nil {
 		resp := w_resp.NewAppError(500, err_access_token, time.Now())
 		return nil, resp
 	}
 	// 5. Create Refresh Token
-	refreshTokenStr, err_refresh_token := a.Jwt.IssueRefreshToken(ctx, sub, tid)
+	refreshTokenStr, err_refresh_token := a.Core.JWT.IssueRefreshToken(ctx, sub, tid)
 	if err_refresh_token != nil {
 		resp := w_resp.NewAppError(500, err_refresh_token, time.Now())
 		return nil, resp
@@ -75,7 +75,7 @@ func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID s
 		UserAgent: UserAgent,
 		Locale:    Locale,
 		Timezone:  TimeZone,
-		ExpiresAt: a.Config.RefreshTokenTTL,
+		ExpiresAt: a.Core.Config.RefreshTokenTTL,
 	}
 	if err := a.RefreshTokenUseCase.Create(ctx, refreshToken); err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID s
 		AccessToken: accessToken.Token,
 		LoginAt:     time.Now().Unix(),
 	}
-	_ = a.SessionService.CreateSession(ctx, session)
+	_ = a.Core.Session.CreateSession(ctx, session)
 
 	return &w_utils.TokenResponse{
 		AccessToken:  *accessToken,

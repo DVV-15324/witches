@@ -2,16 +2,18 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	
 	domainAuth "{{.ModuleName}}/internal/shared/domain"
 	domainUser "{{.ModuleName}}/internal/shared/domain"
 )
 
 func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name string) *w_resp.AppError {
-	err := a.TxManager.WithinTransaction(ctx, func(ctx context.Context) error {
+	err := a.Core.TxManager.WithinTransaction(ctx, func(ctx context.Context) error {
 		// check tài khoản tồn tại
 		authEmail, err := a.AuthReponsitory.GetAuthByEmail(ctx, auth.Email)
 		if authEmail != nil {
@@ -26,17 +28,22 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name 
 			return err
 		}
 
-		hash, err := a.Hash.GenerateFromPassword(auth.Password, randomString)
+		hash, err := a.Core.Hash.GenerateFromPassword(auth.Password, randomString)
 		if err != nil {
 			return err
 		}
 
 		// Tạo User
-		userUid, _ := a.UserUseCase.CreateUser(ctx, &domainUser.User{
+		userUid, err_create := a.UserUseCase.CreateUser(ctx, &domainUser.User{
 			Email: auth.Email,
 			Name:  name,
 		})
-
+		if err_create != nil {
+			return err_create
+		}
+		if userUid == 0 {
+			return errors.New("user id is 0, cannot create auth")
+		}
 		// Tạo Auth
 		err_auth := a.AuthReponsitory.CreateAuth(ctx, &domainAuth.Auth{
 			Salt:     randomString,
@@ -45,7 +52,7 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name 
 			UserId:   userUid,
 		})
 		if err_auth != nil {
-			return err
+			return err_auth
 		}
 		return nil
 	})

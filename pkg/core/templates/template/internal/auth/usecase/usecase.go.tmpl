@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"context"
+	core "{{.ModuleName}}/cmd/server/core"
 	domainAuth "{{.ModuleName}}/internal/shared/domain"
 	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 	domainUser "{{.ModuleName}}/internal/shared/domain"
-	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
@@ -39,39 +39,21 @@ type IJwt interface {
 }
 
 type AuthUseCase struct {
-	Config              *wcmd_utils.Config
-	TxManager           w_utils.TxManager
-	Jwt                 IJwt
+	Core                *core.CoreServices
 	UserUseCase         IUserUseCase
-	Hash                IHash
 	AuthReponsitory     IAuthReponsitory
 	RefreshTokenUseCase IRefreshTokenUsecase
-
-	SessionService   *w_utils.SessionService
-	BlacklistService *w_utils.BlacklistService
 }
 
 func NewAuthUseCase(
-	jwt IJwt,
-	userUseCase IUserUseCase,
-	hash IHash,
+	core *core.CoreServices,
 	authReponsitory IAuthReponsitory,
+	userUseCase IUserUseCase,
 	refreshTokenUseCase IRefreshTokenUsecase,
-	txManager w_utils.TxManager,
-	sessionService *w_utils.SessionService,
-	blacklistService *w_utils.BlacklistService,
-	config *wcmd_utils.Config,
 ) *AuthUseCase {
 	return &AuthUseCase{
-		Config:              config,
-		Jwt:                 jwt,
-		UserUseCase:         userUseCase,
-		Hash:                hash,
+		Core:                core,
 		AuthReponsitory:     authReponsitory,
 		RefreshTokenUseCase: refreshTokenUseCase,
-		TxManager:           txManager,
-
-		SessionService:   sessionService,
-		BlacklistService: blacklistService,
 	}
 }
