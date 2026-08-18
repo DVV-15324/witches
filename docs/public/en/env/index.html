@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="auto">
+<head><script src="/witches/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=witches/livereload" data-no-instant defer></script>
+  <!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Below is a detailed table describing each environment variable in the witches.env file:
+Environment Variables Reference# Variable Description Type Default Value SERVER CONFIGURATION APP_PORT HTTP server port int 8080 APP_HOST Server binding hostname string localhost METRIC_PORT Prometheus metrics port int 8088 UID_BITS Number of bits for ID generation (Snowflake/ULID) int 26 REQUEST_KEY Key for storing request context string request_context LOGGING LOG_PATH Directory for log files string ./logs CORS CORS_ALLOW_ORIGINS Allowed origins (* = all) string * CORS_ALLOW_METHODS Allowed HTTP methods string GET,POST,PUT,DELETE,OPTIONS CORS_ALLOW_HEADERS Allowed request headers string Content-Type,Authorization TIMEZONE TIMEZONE Application timezone string UTC SUPPORTED_LANGUAGES Supported languages (for i18n) string en-US,vi-VN SECURITY JWT_SECRET Secret key for JWT signing string your_secret_key DATABASE CONFIGURATION DB_DRIVER Database driver (postgres/mysql/mssql) string your_driver DB_USER Database username string your_user DB_HOST Database host string localhost DB_PORT Database port int 3306 DB_NAME Database name string your_database DB_PASSWORD Database password string your_password Database Connection Pool DB_MAX_OPEN_CONNS Maximum number of open connections int 100 DB_MAX_IDLE_CONNS Maximum number of idle connections int 10 DB_CONN_MAX_LIFETIME Maximum lifetime of a connection (seconds) int 60 DB_CONN_MAX_IDLE_TIME Maximum idle time of a connection (seconds) int 600 SLOW_THRESHOLD Threshold for slow query logging (seconds) float 5 REDIS CONFIGURATION REDIS_HOST Redis server host string localhost REDIS_PORT Redis server port int 6379 REDIS_PASSWORD Redis password (leave empty if none) string empty TOKEN EXPIRATION ACCESS_TOKEN_TTL Access token lifetime (seconds) int 900 (15 minutes) REFRESH_TOKEN_TTL Refresh token lifetime (seconds) int 604800 (7 days) SESSION SETTINGS SESSION_TTL Session lifetime (seconds) int 604800 (7 days) IDLE_TIMEOUT Session idle timeout (seconds) int 1800 (30 minutes) BLACKLIST SETTINGS REVOKED_TTL Revoked token storage time (seconds) int 300 (5 minutes) RATE LIMIT RATE_LIMIT_PERIOD Rate limit period (seconds) int 60 RATE_LIMIT_MAX Maximum requests per period int 100 Notes# Time values: All TTL/time values are in seconds. DB_DRIVER: Valid values: postgres, postgresql, mysql, mssql, sqlserver. CORS_ALLOW_ORIGINS: Use * for all origins, or comma-separate multiple origins. JWT_SECRET: Should be changed to a strong secret key in production environments. ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/en/env/">
+	<meta property="og:site_name" content="Witches Documentation">
+	<meta property="og:title" content="Configure witches.env">
+	<meta property="og:description" content="Below is a detailed table describing each environment variable in the witches.env file:
+Environment Variables Reference# Variable Description Type Default Value SERVER CONFIGURATION APP_PORT HTTP server port int 8080 APP_HOST Server binding hostname string localhost METRIC_PORT Prometheus metrics port int 8088 UID_BITS Number of bits for ID generation (Snowflake/ULID) int 26 REQUEST_KEY Key for storing request context string request_context LOGGING LOG_PATH Directory for log files string ./logs CORS CORS_ALLOW_ORIGINS Allowed origins (* = all) string * CORS_ALLOW_METHODS Allowed HTTP methods string GET,POST,PUT,DELETE,OPTIONS CORS_ALLOW_HEADERS Allowed request headers string Content-Type,Authorization TIMEZONE TIMEZONE Application timezone string UTC SUPPORTED_LANGUAGES Supported languages (for i18n) string en-US,vi-VN SECURITY JWT_SECRET Secret key for JWT signing string your_secret_key DATABASE CONFIGURATION DB_DRIVER Database driver (postgres/mysql/mssql) string your_driver DB_USER Database username string your_user DB_HOST Database host string localhost DB_PORT Database port int 3306 DB_NAME Database name string your_database DB_PASSWORD Database password string your_password Database Connection Pool DB_MAX_OPEN_CONNS Maximum number of open connections int 100 DB_MAX_IDLE_CONNS Maximum number of idle connections int 10 DB_CONN_MAX_LIFETIME Maximum lifetime of a connection (seconds) int 60 DB_CONN_MAX_IDLE_TIME Maximum idle time of a connection (seconds) int 600 SLOW_THRESHOLD Threshold for slow query logging (seconds) float 5 REDIS CONFIGURATION REDIS_HOST Redis server host string localhost REDIS_PORT Redis server port int 6379 REDIS_PASSWORD Redis password (leave empty if none) string empty TOKEN EXPIRATION ACCESS_TOKEN_TTL Access token lifetime (seconds) int 900 (15 minutes) REFRESH_TOKEN_TTL Refresh token lifetime (seconds) int 604800 (7 days) SESSION SETTINGS SESSION_TTL Session lifetime (seconds) int 604800 (7 days) IDLE_TIMEOUT Session idle timeout (seconds) int 1800 (30 minutes) BLACKLIST SETTINGS REVOKED_TTL Revoked token storage time (seconds) int 300 (5 minutes) RATE LIMIT RATE_LIMIT_PERIOD Rate limit period (seconds) int 60 RATE_LIMIT_MAX Maximum requests per period int 100 Notes# Time values: All TTL/time values are in seconds. DB_DRIVER: Valid values: postgres, postgresql, mysql, mssql, sqlserver. CORS_ALLOW_ORIGINS: Use * for all origins, or comma-separate multiple origins. JWT_SECRET: Should be changed to a strong secret key in production environments.">
+	<meta property="og:locale" content="en">
+	<meta property="og:type" content="article">
+
+
+	<meta itemprop="name" content="Configure witches.env">
+	<meta itemprop="description" content="Below is a detailed table describing each environment variable in the witches.env file:
+Environment Variables Reference# Variable Description Type Default Value SERVER CONFIGURATION APP_PORT HTTP server port int 8080 APP_HOST Server binding hostname string localhost METRIC_PORT Prometheus metrics port int 8088 UID_BITS Number of bits for ID generation (Snowflake/ULID) int 26 REQUEST_KEY Key for storing request context string request_context LOGGING LOG_PATH Directory for log files string ./logs CORS CORS_ALLOW_ORIGINS Allowed origins (* = all) string * CORS_ALLOW_METHODS Allowed HTTP methods string GET,POST,PUT,DELETE,OPTIONS CORS_ALLOW_HEADERS Allowed request headers string Content-Type,Authorization TIMEZONE TIMEZONE Application timezone string UTC SUPPORTED_LANGUAGES Supported languages (for i18n) string en-US,vi-VN SECURITY JWT_SECRET Secret key for JWT signing string your_secret_key DATABASE CONFIGURATION DB_DRIVER Database driver (postgres/mysql/mssql) string your_driver DB_USER Database username string your_user DB_HOST Database host string localhost DB_PORT Database port int 3306 DB_NAME Database name string your_database DB_PASSWORD Database password string your_password Database Connection Pool DB_MAX_OPEN_CONNS Maximum number of open connections int 100 DB_MAX_IDLE_CONNS Maximum number of idle connections int 10 DB_CONN_MAX_LIFETIME Maximum lifetime of a connection (seconds) int 60 DB_CONN_MAX_IDLE_TIME Maximum idle time of a connection (seconds) int 600 SLOW_THRESHOLD Threshold for slow query logging (seconds) float 5 REDIS CONFIGURATION REDIS_HOST Redis server host string localhost REDIS_PORT Redis server port int 6379 REDIS_PASSWORD Redis password (leave empty if none) string empty TOKEN EXPIRATION ACCESS_TOKEN_TTL Access token lifetime (seconds) int 900 (15 minutes) REFRESH_TOKEN_TTL Refresh token lifetime (seconds) int 604800 (7 days) SESSION SETTINGS SESSION_TTL Session lifetime (seconds) int 604800 (7 days) IDLE_TIMEOUT Session idle timeout (seconds) int 1800 (30 minutes) BLACKLIST SETTINGS REVOKED_TTL Revoked token storage time (seconds) int 300 (5 minutes) RATE LIMIT RATE_LIMIT_PERIOD Rate limit period (seconds) int 60 RATE_LIMIT_MAX Maximum requests per period int 100 Notes# Time values: All TTL/time values are in seconds. DB_DRIVER: Valid values: postgres, postgresql, mysql, mssql, sqlserver. CORS_ALLOW_ORIGINS: Use * for all origins, or comma-separate multiple origins. JWT_SECRET: Should be changed to a strong secret key in production environments.">
+	<meta itemprop="wordCount" content="319">
+
+<title>Configure witches.env • Witches Documentation</title>
+<link rel="icon" href="/witches/favicon.png" >
+<link rel="manifest" href="/witches/manifest.json">
+<link rel="canonical" href="http://localhost:1313/witches/en/env/">
+  <link rel="alternate" hreflang="vi" href="http://localhost:1313/witches/vi/env/" title="Cấu hình witches.env">
+<link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
+
+
+
+  <script defer type="module" src="/witches/en.search.min.ef3521b5e02b7754fa1267e02a3698ebce6f56f34f7e0bf09867eaf6af3b1197.js" integrity="sha256-7zUhteArd1T6EmfgKjaY685vVvNPfgvwmGfq9q87EZc=" crossorigin="anonymous"></script>
+
+  
+</head>
+<body dir="ltr" class="book-kind-page book-type-page">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    
+<aside class="book-menu">
+  <div class="book-menu-content">
+    
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/witches/en/"><span>Witches Documentation</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input id="book-search-input" type="text" 
+    placeholder="Search"
+    aria-label="Search"
+    maxlength="64" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+  
+
+
+  
+    
+  
+
+
+  
+
+
+<ul class="book-languages">
+  <li>
+    <input type="checkbox" id="languages" class="toggle" />
+    <label for="languages" class="flex">
+      <a role="button">
+        <img src="/witches/icons/translate.svg" class="book-icon" alt="Languages" />
+        English</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+
+    <ul>
+      
+      <li>
+        <a href="/witches/vi/env/" class="flex flex-auto">
+          Tiếng Việt
+        </a>
+      </li>
+      
+    </ul>
+  </li>
+</ul>
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-6b79dd37cd15c35c9f987bba45f5ad38" class="toggle"  />
+    <label for="section-6b79dd37cd15c35c9f987bba45f5ad38" class="flex">
+      <a href="/witches/en/docs/" class="">
+        Get start Witches</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0382ebb740ee327358266e75bcce4af0" class="toggle"  />
+    <label for="section-0382ebb740ee327358266e75bcce4af0" class="flex">
+      <a href="/witches/en/command/" class="">
+        Witches Command</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e52f8112d5cd306bc3dd7c8134fe86bd" class="toggle" checked />
+    <label for="section-e52f8112d5cd306bc3dd7c8134fe86bd" class="flex">
+      <a href="/witches/en/env/" class="active">
+        Configure witches.env</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bcf52cab2d3fbb261868b8a2b21c2aab" class="toggle"  />
+    <label for="section-bcf52cab2d3fbb261868b8a2b21c2aab" class="flex">
+      <a href="/witches/en/structure/" class="">
+        Structure</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f4dcd97c0296535f9cd6cdeb483bb9b9" class="toggle"  />
+    <label for="section-f4dcd97c0296535f9cd6cdeb483bb9b9" class="flex">
+      <a href="/witches/en/licen/" class="">
+        License</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+
+  </div>
+</aside>
+ 
+
+    <div class="book-page">
+      <header class="book-header hidden">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Configure witches.env</h3>
+
+  <label for="toc-control">
+    
+    <img src="/witches/icons/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#environment-variables-reference">Environment Variables Reference</a></li>
+    <li><a href="#notes">Notes</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p>Below is a detailed table describing each environment variable in the <code>witches.env</code> file:</p>
+<h2 id="environment-variables-reference">Environment Variables Reference<a class="anchor" href="#environment-variables-reference">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>Variable</th>
+					<th>Description</th>
+					<th>Type</th>
+					<th>Default Value</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>SERVER CONFIGURATION</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>APP_PORT</code></td>
+					<td>HTTP server port</td>
+					<td><code>int</code></td>
+					<td><code>8080</code></td>
+			</tr>
+			<tr>
+					<td><code>APP_HOST</code></td>
+					<td>Server binding hostname</td>
+					<td><code>string</code></td>
+					<td><code>localhost</code></td>
+			</tr>
+			<tr>
+					<td><code>METRIC_PORT</code></td>
+					<td>Prometheus metrics port</td>
+					<td><code>int</code></td>
+					<td><code>8088</code></td>
+			</tr>
+			<tr>
+					<td><code>UID_BITS</code></td>
+					<td>Number of bits for ID generation (Snowflake/ULID)</td>
+					<td><code>int</code></td>
+					<td><code>26</code></td>
+			</tr>
+			<tr>
+					<td><code>REQUEST_KEY</code></td>
+					<td>Key for storing request context</td>
+					<td><code>string</code></td>
+					<td><code>request_context</code></td>
+			</tr>
+			<tr>
+					<td><strong>LOGGING</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>LOG_PATH</code></td>
+					<td>Directory for log files</td>
+					<td><code>string</code></td>
+					<td><code>./logs</code></td>
+			</tr>
+			<tr>
+					<td><strong>CORS</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>CORS_ALLOW_ORIGINS</code></td>
+					<td>Allowed origins (* = all)</td>
+					<td><code>string</code></td>
+					<td><code>*</code></td>
+			</tr>
+			<tr>
+					<td><code>CORS_ALLOW_METHODS</code></td>
+					<td>Allowed HTTP methods</td>
+					<td><code>string</code></td>
+					<td><code>GET,POST,PUT,DELETE,OPTIONS</code></td>
+			</tr>
+			<tr>
+					<td><code>CORS_ALLOW_HEADERS</code></td>
+					<td>Allowed request headers</td>
+					<td><code>string</code></td>
+					<td><code>Content-Type,Authorization</code></td>
+			</tr>
+			<tr>
+					<td><strong>TIMEZONE</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>TIMEZONE</code></td>
+					<td>Application timezone</td>
+					<td><code>string</code></td>
+					<td><code>UTC</code></td>
+			</tr>
+			<tr>
+					<td><code>SUPPORTED_LANGUAGES</code></td>
+					<td>Supported languages (for i18n)</td>
+					<td><code>string</code></td>
+					<td><code>en-US,vi-VN</code></td>
+			</tr>
+			<tr>
+					<td><strong>SECURITY</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>JWT_SECRET</code></td>
+					<td>Secret key for JWT signing</td>
+					<td><code>string</code></td>
+					<td><code>your_secret_key</code></td>
+			</tr>
+			<tr>
+					<td><strong>DATABASE CONFIGURATION</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>DB_DRIVER</code></td>
+					<td>Database driver (postgres/mysql/mssql)</td>
+					<td><code>string</code></td>
+					<td><code>your_driver</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_USER</code></td>
+					<td>Database username</td>
+					<td><code>string</code></td>
+					<td><code>your_user</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_HOST</code></td>
+					<td>Database host</td>
+					<td><code>string</code></td>
+					<td><code>localhost</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_PORT</code></td>
+					<td>Database port</td>
+					<td><code>int</code></td>
+					<td><code>3306</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_NAME</code></td>
+					<td>Database name</td>
+					<td><code>string</code></td>
+					<td><code>your_database</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_PASSWORD</code></td>
+					<td>Database password</td>
+					<td><code>string</code></td>
+					<td><code>your_password</code></td>
+			</tr>
+			<tr>
+					<td><strong>Database Connection Pool</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>DB_MAX_OPEN_CONNS</code></td>
+					<td>Maximum number of open connections</td>
+					<td><code>int</code></td>
+					<td><code>100</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_MAX_IDLE_CONNS</code></td>
+					<td>Maximum number of idle connections</td>
+					<td><code>int</code></td>
+					<td><code>10</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_CONN_MAX_LIFETIME</code></td>
+					<td>Maximum lifetime of a connection (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>60</code></td>
+			</tr>
+			<tr>
+					<td><code>DB_CONN_MAX_IDLE_TIME</code></td>
+					<td>Maximum idle time of a connection (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>600</code></td>
+			</tr>
+			<tr>
+					<td><code>SLOW_THRESHOLD</code></td>
+					<td>Threshold for slow query logging (seconds)</td>
+					<td><code>float</code></td>
+					<td><code>5</code></td>
+			</tr>
+			<tr>
+					<td><strong>REDIS CONFIGURATION</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>REDIS_HOST</code></td>
+					<td>Redis server host</td>
+					<td><code>string</code></td>
+					<td><code>localhost</code></td>
+			</tr>
+			<tr>
+					<td><code>REDIS_PORT</code></td>
+					<td>Redis server port</td>
+					<td><code>int</code></td>
+					<td><code>6379</code></td>
+			</tr>
+			<tr>
+					<td><code>REDIS_PASSWORD</code></td>
+					<td>Redis password (leave empty if none)</td>
+					<td><code>string</code></td>
+					<td><em>empty</em></td>
+			</tr>
+			<tr>
+					<td><strong>TOKEN EXPIRATION</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>ACCESS_TOKEN_TTL</code></td>
+					<td>Access token lifetime (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>900</code> (15 minutes)</td>
+			</tr>
+			<tr>
+					<td><code>REFRESH_TOKEN_TTL</code></td>
+					<td>Refresh token lifetime (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>604800</code> (7 days)</td>
+			</tr>
+			<tr>
+					<td><strong>SESSION SETTINGS</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>SESSION_TTL</code></td>
+					<td>Session lifetime (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>604800</code> (7 days)</td>
+			</tr>
+			<tr>
+					<td><code>IDLE_TIMEOUT</code></td>
+					<td>Session idle timeout (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>1800</code> (30 minutes)</td>
+			</tr>
+			<tr>
+					<td><strong>BLACKLIST SETTINGS</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>REVOKED_TTL</code></td>
+					<td>Revoked token storage time (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>300</code> (5 minutes)</td>
+			</tr>
+			<tr>
+					<td><strong>RATE LIMIT</strong></td>
+					<td></td>
+					<td></td>
+					<td></td>
+			</tr>
+			<tr>
+					<td><code>RATE_LIMIT_PERIOD</code></td>
+					<td>Rate limit period (seconds)</td>
+					<td><code>int</code></td>
+					<td><code>60</code></td>
+			</tr>
+			<tr>
+					<td><code>RATE_LIMIT_MAX</code></td>
+					<td>Maximum requests per period</td>
+					<td><code>int</code></td>
+					<td><code>100</code></td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="notes">Notes<a class="anchor" href="#notes">#</a></h2>
+<ul>
+<li><strong>Time values</strong>: All TTL/time values are in <strong>seconds</strong>.</li>
+<li><strong>DB_DRIVER</strong>: Valid values: <code>postgres</code>, <code>postgresql</code>, <code>mysql</code>, <code>mssql</code>, <code>sqlserver</code>.</li>
+<li><strong>CORS_ALLOW_ORIGINS</strong>: Use <code>*</code> for all origins, or comma-separate multiple origins.</li>
+<li><strong>JWT_SECRET</strong>: Should be changed to a strong secret key in production environments.</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+<div>
+
+</div>
+
+<div>
+
+</div>
+
+</div>
+
+<div class="flex flex-wrap justify-between">
+    <span>
+    
+      <a href="/witches/en/command/" class="flex align-center">
+        <img src="/witches/icons/backward.svg" class="book-icon" alt="Backward" />
+        <span>Witches Command</span>
+      </a>
+    
+    </span>
+    <span>
+    
+      <a href="/witches/en/structure/" class="flex align-center">
+        <span>Structure</span>
+        <img src="/witches/icons/forward.svg" class="book-icon" alt="Forward" />
+      </a>
+    
+    </span>
+  </div>
+
+ 
+        
+  
+ 
+        
+        
+  
+ 
+        
+  
+    <script>(function(){document.querySelectorAll("pre:has(code)").forEach(e=>{e.addEventListener("click",e.focus),e.addEventListener("copy",function(t){if(t.preventDefault(),navigator.clipboard){const t=window.getSelection().toString()||e.textContent;navigator.clipboard.writeText(t)}})})})()</script>
+  
+
+      </footer>
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+  
+  <aside class="book-toc">
+    <div class="book-toc-content">
+      
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#environment-variables-reference">Environment Variables Reference</a></li>
+    <li><a href="#notes">Notes</a></li>
+  </ul>
+</nav>
+
+
+
+    </div>
+  </aside>
+  
+ 
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,10 +1,10 @@
 ---
-title: "Tài liệu Witches"
+title: "Bắt đầu với Witches"
 weight: 1
 bookCollapseSection: true
 ---
 
-## Bắt đầu nhanh
+## Hướng dẫn nhanh
 
 ### 1. Cài đặt
 
@@ -21,52 +21,37 @@ cd example
 
 ### 3. Cấu hình
 
-Chỉnh sửa file `witches.env`
+Sửa file `witches.env` với thông tin kết nối cơ sở dữ liệu của bạn.
 
-### 4. Thiết lập Database
+### 4. Tạo URL kết nối database từ file env
 
 ```bash
 witches database generate
 ```
 
-### 5. Khởi tạo & Cài đặt Dependencies
+### 5. Chạy migration cơ sở dữ liệu
 
 ```bash
-witches init      # Tạo file template
-witches install   # Cài đặt dependencies
+witches migrate up
 ```
 
-### 6. Chạy Server
+### 6. Khởi tạo và cài đặt các thư viện phụ thuộc
+
+```bash
+witches init      # Tạo các file template
+witches install   # Cài đặt các thư viện cần thiết
+```
+
+### 7. Chạy máy chủ
 
 ```bash
 witches run
 ```
-
----
-
-## Câu lệnh
-
-| Câu lệnh | Mô tả |
-|----------|-------|
-| `witches create <name>` | Tạo dự án mới |
-| `witches init` | Tạo file template và cấu trúc |
-| `witches install` | Cài đặt dependencies |
-| `witches run` | Khởi động server |
-| `witches migrate up` | Chạy tất cả migrations |
-| `witches migrate down` | Rollback migration cuối cùng |
-| `witches database generate` | Tạo URL kết nối database |
-| `witches add <service>` | Thêm 1 service mới  |
-
----
-
-## Giấy phép
-
-MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
-
 ---
 
 <div align="center">
   <br>
-  Được tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  Tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
 </div>
+

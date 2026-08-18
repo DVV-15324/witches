@@ -8,35 +8,34 @@ https://github.com/alex-shpak/hugo-book
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
-4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.
-">
+<meta name="description" content="Hướng dẫn nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Sửa file witches.env với thông tin kết nối cơ sở dữ liệu của bạn.
+4. Tạo URL kết nối database từ file env# witches database generate5. Chạy migration cơ sở dữ liệu# witches migrate up6. Khởi tạo và cài đặt các thư viện phụ thuộc# witches init # Tạo các file template witches install # Cài đặt các thư viện cần thiết7. Chạy máy chủ# witches run Tạo với ❤️ bởi DVV-15324">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/witches/vi/docs/">
 	<meta property="og:site_name" content="Witches Documentation">
-	<meta property="og:title" content="Tài liệu Witches">
-	<meta property="og:description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
-4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.">
+	<meta property="og:title" content="Bắt đầu với Witches">
+	<meta property="og:description" content="Hướng dẫn nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Sửa file witches.env với thông tin kết nối cơ sở dữ liệu của bạn.
+4. Tạo URL kết nối database từ file env# witches database generate5. Chạy migration cơ sở dữ liệu# witches migrate up6. Khởi tạo và cài đặt các thư viện phụ thuộc# witches init # Tạo các file template witches install # Cài đặt các thư viện cần thiết7. Chạy máy chủ# witches run Tạo với ❤️ bởi DVV-15324">
 	<meta property="og:locale" content="vi">
 	<meta property="og:type" content="article">
 
 
-	<meta itemprop="name" content="Tài liệu Witches">
-	<meta itemprop="description" content="Bắt đầu nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Chỉnh sửa file witches.env
-4. Thiết lập Database# witches database generate5. Khởi tạo &amp; Cài đặt Dependencies# witches init # Tạo file template witches install # Cài đặt dependencies6. Chạy Server# witches run Câu lệnh# Câu lệnh Mô tả witches create &lt;name&gt; Tạo dự án mới witches init Tạo file template và cấu trúc witches install Cài đặt dependencies witches run Khởi động server witches migrate up Chạy tất cả migrations witches migrate down Rollback migration cuối cùng witches database generate Tạo URL kết nối database witches add &lt;service&gt; Thêm 1 service mới Giấy phép# MIT License - xem file LICENSE để biết thêm chi tiết.">
-	<meta itemprop="wordCount" content="132">
+	<meta itemprop="name" content="Bắt đầu với Witches">
+	<meta itemprop="description" content="Hướng dẫn nhanh# 1. Cài đặt# go install github.com/DVV-15324/witches@latest2. Tạo dự án mới# witches create example cd example3. Cấu hình# Sửa file witches.env với thông tin kết nối cơ sở dữ liệu của bạn.
+4. Tạo URL kết nối database từ file env# witches database generate5. Chạy migration cơ sở dữ liệu# witches migrate up6. Khởi tạo và cài đặt các thư viện phụ thuộc# witches init # Tạo các file template witches install # Cài đặt các thư viện cần thiết7. Chạy máy chủ# witches run Tạo với ❤️ bởi DVV-15324">
+	<meta itemprop="wordCount" content="92">
 
-<title>Tài liệu Witches • Witches Documentation</title>
+<title>Bắt đầu với Witches • Witches Documentation</title>
 <link rel="icon" href="/witches/favicon.png" >
 <link rel="manifest" href="/witches/manifest.json">
 <link rel="canonical" href="http://localhost:1313/witches/vi/docs/">
-  <link rel="alternate" hreflang="en" href="http://localhost:1313/witches/en/docs/" title="Witches Documentation">
+  <link rel="alternate" hreflang="en" href="http://localhost:1313/witches/en/docs/" title="Get start Witches">
 <link rel="stylesheet" href="/witches/book.min.4d77e98d764f495b145946ef9260681bab38aaf7bc01f96a6f61a3a0fea19dbf.css" integrity="sha256-TXfpjXZPSVsUWUbvkmBoG6s4qve8Aflqb2GjoP6hnb8=" crossorigin="anonymous">
 
 
 
-  <script defer type="module" src="/witches/vi.search.min.abee6fad3bc514de557805db57d5b337bb1f8a98dae393c6d5213976bc4f5f62.js" integrity="sha256-q&#43;5vrTvFFN5VeAXbV9WzN7sfipja45PG1SE5drxPX2I=" crossorigin="anonymous"></script>
+  <script defer type="module" src="/witches/vi.search.min.eabd044886c72f1f1ae472f12129ff1fcddc6be980cc459dfa79713a81d38825.js" integrity="sha256-6r0ESIbHLx8a5HLxISn/H83ca&#43;mAzEWd&#43;nlxOoHTiCU=" crossorigin="anonymous"></script>
 
   
 </head>
@@ -121,7 +120,79 @@ https://github.com/alex-shpak/hugo-book
     <input type="checkbox" id="section-f23d6fdd37ed26eacd6c0d5785fe0805" class="toggle" checked />
     <label for="section-f23d6fdd37ed26eacd6c0d5785fe0805" class="flex">
       <a href="/witches/vi/docs/" class="active">
-        Tài liệu Witches</a>
+        Bắt đầu với Witches</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a3bbf8ba245350816b055f5a5a07e8e2" class="toggle"  />
+    <label for="section-a3bbf8ba245350816b055f5a5a07e8e2" class="flex">
+      <a href="/witches/vi/command/" class="">
+        Câu lệnh Witches</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-402226d31265a1fc41b6136279cb3765" class="toggle"  />
+    <label for="section-402226d31265a1fc41b6136279cb3765" class="flex">
+      <a href="/witches/vi/env/" class="">
+        Cấu hình witches.env</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e9e08db255646cfb168506458ade402d" class="toggle"  />
+    <label for="section-e9e08db255646cfb168506458ade402d" class="flex">
+      <a href="/witches/vi/structure/" class="">
+        Kiến trúc</a>
+      <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
+    </label>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f7743842e9e113dba9c008df745d78b8" class="toggle"  />
+    <label for="section-f7743842e9e113dba9c008df745d78b8" class="flex">
+      <a href="/witches/vi/licen/" class="">
+        Giấy phép</a>
       <img src="/witches/icons/chevron-right.svg" class="book-icon" alt="Expand" />
     </label>
   
@@ -164,7 +235,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/witches/icons/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Tài liệu Witches</h3>
+  <h3>Bắt đầu với Witches</h3>
 
   <label for="toc-control">
     
@@ -180,18 +251,17 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
+    <li><a href="#hướng-dẫn-nhanh">Hướng dẫn nhanh</a>
       <ul>
         <li><a href="#1-cài-đặt">1. Cài đặt</a></li>
         <li><a href="#2-tạo-dự-án-mới">2. Tạo dự án mới</a></li>
         <li><a href="#3-cấu-hình">3. Cấu hình</a></li>
-        <li><a href="#4-thiết-lập-database">4. Thiết lập Database</a></li>
-        <li><a href="#5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies</a></li>
-        <li><a href="#6-chạy-server">6. Chạy Server</a></li>
+        <li><a href="#4-tạo-url-kết-nối-database-từ-file-env">4. Tạo URL kết nối database từ file env</a></li>
+        <li><a href="#5-chạy-migration-cơ-sở-dữ-liệu">5. Chạy migration cơ sở dữ liệu</a></li>
+        <li><a href="#6-khởi-tạo-và-cài-đặt-các-thư-viện-phụ-thuộc">6. Khởi tạo và cài đặt các thư viện phụ thuộc</a></li>
+        <li><a href="#7-chạy-máy-chủ">7. Chạy máy chủ</a></li>
       </ul>
     </li>
-    <li><a href="#câu-lệnh">Câu lệnh</a></li>
-    <li><a href="#giấy-phép">Giấy phép</a></li>
   </ul>
 </nav>
 
@@ -204,67 +274,21 @@ https://github.com/alex-shpak/hugo-book
 
       
       
-  <article class="markdown book-article"><h2 id="bắt-đầu-nhanh">Bắt đầu nhanh<a class="anchor" href="#b%e1%ba%aft-%c4%91%e1%ba%a7u-nhanh">#</a></h2>
+  <article class="markdown book-article"><h2 id="hướng-dẫn-nhanh">Hướng dẫn nhanh<a class="anchor" href="#h%c6%b0%e1%bb%9bng-d%e1%ba%abn-nhanh">#</a></h2>
 <h3 id="1-cài-đặt">1. Cài đặt<a class="anchor" href="#1-c%c3%a0i-%c4%91%e1%ba%b7t">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/DVV-15324/witches@latest</span></span></code></pre></div><h3 id="2-tạo-dự-án-mới">2. Tạo dự án mới<a class="anchor" href="#2-t%e1%ba%a1o-d%e1%bb%b1-%c3%a1n-m%e1%bb%9bi">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches create example
 </span></span><span style="display:flex;"><span>cd example</span></span></code></pre></div><h3 id="3-cấu-hình">3. Cấu hình<a class="anchor" href="#3-c%e1%ba%a5u-h%c3%acnh">#</a></h3>
-<p>Chỉnh sửa file <code>witches.env</code></p>
-<h3 id="4-thiết-lập-database">4. Thiết lập Database<a class="anchor" href="#4-thi%e1%ba%bft-l%e1%ba%adp-database">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches database generate</span></span></code></pre></div><h3 id="5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies<a class="anchor" href="#5-kh%e1%bb%9fi-t%e1%ba%a1o--c%c3%a0i-%c4%91%e1%ba%b7t-dependencies">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches init      <span style="color:#75715e"># Tạo file template</span>
-</span></span><span style="display:flex;"><span>witches install   <span style="color:#75715e"># Cài đặt dependencies</span></span></span></code></pre></div><h3 id="6-chạy-server">6. Chạy Server<a class="anchor" href="#6-ch%e1%ba%a1y-server">#</a></h3>
+<p>Sửa file <code>witches.env</code> với thông tin kết nối cơ sở dữ liệu của bạn.</p>
+<h3 id="4-tạo-url-kết-nối-database-từ-file-env">4. Tạo URL kết nối database từ file env<a class="anchor" href="#4-t%e1%ba%a1o-url-k%e1%ba%bft-n%e1%bb%91i-database-t%e1%bb%ab-file-env">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches database generate</span></span></code></pre></div><h3 id="5-chạy-migration-cơ-sở-dữ-liệu">5. Chạy migration cơ sở dữ liệu<a class="anchor" href="#5-ch%e1%ba%a1y-migration-c%c6%a1-s%e1%bb%9f-d%e1%bb%af-li%e1%bb%87u">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches migrate up</span></span></code></pre></div><h3 id="6-khởi-tạo-và-cài-đặt-các-thư-viện-phụ-thuộc">6. Khởi tạo và cài đặt các thư viện phụ thuộc<a class="anchor" href="#6-kh%e1%bb%9fi-t%e1%ba%a1o-v%c3%a0-c%c3%a0i-%c4%91%e1%ba%b7t-c%c3%a1c-th%c6%b0-vi%e1%bb%87n-ph%e1%bb%a5-thu%e1%bb%99c">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches init      <span style="color:#75715e"># Tạo các file template</span>
+</span></span><span style="display:flex;"><span>witches install   <span style="color:#75715e"># Cài đặt các thư viện cần thiết</span></span></span></code></pre></div><h3 id="7-chạy-máy-chủ">7. Chạy máy chủ<a class="anchor" href="#7-ch%e1%ba%a1y-m%c3%a1y-ch%e1%bb%a7">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>witches run</span></span></code></pre></div><hr>
-<h2 id="câu-lệnh">Câu lệnh<a class="anchor" href="#c%c3%a2u-l%e1%bb%87nh">#</a></h2>
-<table>
-	<thead>
-			<tr>
-					<th>Câu lệnh</th>
-					<th>Mô tả</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><code>witches create &lt;name&gt;</code></td>
-					<td>Tạo dự án mới</td>
-			</tr>
-			<tr>
-					<td><code>witches init</code></td>
-					<td>Tạo file template và cấu trúc</td>
-			</tr>
-			<tr>
-					<td><code>witches install</code></td>
-					<td>Cài đặt dependencies</td>
-			</tr>
-			<tr>
-					<td><code>witches run</code></td>
-					<td>Khởi động server</td>
-			</tr>
-			<tr>
-					<td><code>witches migrate up</code></td>
-					<td>Chạy tất cả migrations</td>
-			</tr>
-			<tr>
-					<td><code>witches migrate down</code></td>
-					<td>Rollback migration cuối cùng</td>
-			</tr>
-			<tr>
-					<td><code>witches database generate</code></td>
-					<td>Tạo URL kết nối database</td>
-			</tr>
-			<tr>
-					<td><code>witches add &lt;service&gt;</code></td>
-					<td>Thêm 1 service mới</td>
-			</tr>
-	</tbody>
-</table>
-<hr>
-<h2 id="giấy-phép">Giấy phép<a class="anchor" href="#gi%e1%ba%a5y-ph%c3%a9p">#</a></h2>
-<p>MIT License - xem file <a href="LICENSE">LICENSE</a> để biết thêm chi tiết.</p>
-<hr>
 <div align="center">
   <br>
-  Được tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
+  Tạo với ❤️ bởi <a href="https://github.com/DVV-15324">DVV-15324</a>
   <br><br>
 </div>
 </article>
@@ -285,7 +309,19 @@ https://github.com/alex-shpak/hugo-book
 
 </div>
 
-
+<div class="flex flex-wrap justify-between">
+    <span>
+    
+    </span>
+    <span>
+    
+      <a href="/witches/vi/command/" class="flex align-center">
+        <span>Câu lệnh Witches</span>
+        <img src="/witches/icons/forward.svg" class="book-icon" alt="Forward" />
+      </a>
+    
+    </span>
+  </div>
 
  
         
@@ -313,18 +349,17 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#bắt-đầu-nhanh">Bắt đầu nhanh</a>
+    <li><a href="#hướng-dẫn-nhanh">Hướng dẫn nhanh</a>
       <ul>
         <li><a href="#1-cài-đặt">1. Cài đặt</a></li>
         <li><a href="#2-tạo-dự-án-mới">2. Tạo dự án mới</a></li>
         <li><a href="#3-cấu-hình">3. Cấu hình</a></li>
-        <li><a href="#4-thiết-lập-database">4. Thiết lập Database</a></li>
-        <li><a href="#5-khởi-tạo--cài-đặt-dependencies">5. Khởi tạo &amp; Cài đặt Dependencies</a></li>
-        <li><a href="#6-chạy-server">6. Chạy Server</a></li>
+        <li><a href="#4-tạo-url-kết-nối-database-từ-file-env">4. Tạo URL kết nối database từ file env</a></li>
+        <li><a href="#5-chạy-migration-cơ-sở-dữ-liệu">5. Chạy migration cơ sở dữ liệu</a></li>
+        <li><a href="#6-khởi-tạo-và-cài-đặt-các-thư-viện-phụ-thuộc">6. Khởi tạo và cài đặt các thư viện phụ thuộc</a></li>
+        <li><a href="#7-chạy-máy-chủ">7. Chạy máy chủ</a></li>
       </ul>
     </li>
-    <li><a href="#câu-lệnh">Câu lệnh</a></li>
-    <li><a href="#giấy-phép">Giấy phép</a></li>
   </ul>
 </nav>
 

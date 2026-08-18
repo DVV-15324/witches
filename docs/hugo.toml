@@ -5,7 +5,7 @@ theme = "hugo-book"
 
 defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = true
-
+staticDir = ["static"]
 [languages]
   [languages.en]
     label = "English"

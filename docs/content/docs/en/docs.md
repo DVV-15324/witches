@@ -1,5 +1,5 @@
 ---
-title: "Witches Documentation"
+title: "Get start Witches"
 weight: 1
 bookCollapseSection: true
 ---
@@ -21,48 +21,32 @@ cd example
 
 ### 3. Configure
 
-Edit `witches.env`
+Edit `witches.env` file with your database credentials.
 
-### 4. Database Setup
+### 4. Generate database URL from env
 
 ```bash
 witches database generate
 ```
 
-### 5. Init & Install Dependencies
+### 5. Run database migrations
+
+```bash
+witches migrate up
+```
+
+### 6. Init & Install Dependencies
 
 ```bash
 witches init      # Generate template files
 witches install   # Install dependencies
 ```
 
-### 6. Run the Server
+### 7. Run the Server
 
 ```bash
 witches run
 ```
-
----
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `witches create <name>` | Create a new project |
-| `witches init` | Generate template files and structure |
-| `witches install` | Install dependencies |
-| `witches run` | Start the server |
-| `witches migrate up` | Apply all migrations |
-| `witches migrate down` | Rollback last migration |
-| `witches database generate` | Generate database URL |
-| `witches add <your_service>` | Add a new service  |
-
----
-
-## License
-
-MIT License - see the [LICENSE](LICENSE) file for details.
-
 ---
 
 <div align="center">
