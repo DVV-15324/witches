@@ -108,13 +108,14 @@ witches run
 | `witches migrate up` | Apply all migrations |
 | `witches migrate down` | Rollback last migration |
 | `witches database generate` | Generate database URL |
-| `witches add <your_service>` | Add a new service  |
+|`witches add <your_domain>` | Add a new domain |
+|`witches rm  <your_domain>`| Remove a domain |
 
 ---
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 

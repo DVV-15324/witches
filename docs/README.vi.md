@@ -107,13 +107,13 @@ witches run
 | `witches migrate up` | Chạy tất cả migrations |
 | `witches migrate down` | Rollback migration cuối cùng |
 | `witches database generate` | Tạo URL kết nối database |
-| `witches add <service>` | Thêm 1 service mới  |
-
+|`witches add <domain>`	| Thêm 1 domain mới |
+|`witches rm <domain>`	| Xóa 1 domain |
 ---
 
 ## Giấy phép
 
-MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+MIT License - xem file [LICENSE](../LICENSE) để biết thêm chi tiết.
 
 ---
 
