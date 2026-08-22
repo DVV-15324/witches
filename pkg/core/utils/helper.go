@@ -33,9 +33,9 @@ func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
 	}
 }
 
-func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, ipAddress, userAgent, locale, timezone string) {
-	ipAddress = c.ClientIP()
-	userAgent = c.GetHeader("User-Agent")
+func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, locale, timezone string) {
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
 	deviceID = generateDeviceID(ipAddress, userAgent)
 	acceptLang := c.GetHeader("Accept-Language")
 	if acceptLang != "" {

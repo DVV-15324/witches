@@ -14,7 +14,7 @@ func TestNewDeviceHelper(t *testing.T) {
 	tests := []struct {
 		name   string
 		cfg    *utils.Config
-		expect int // không dùng, chỉ để kiểm tra cơ bản
+		expect int
 	}{
 		{
 			name: "with valid locales",
@@ -77,9 +77,7 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 				c, _ := gin.CreateTestContext(httptest.NewRecorder())
 				c.Request = httptest.NewRequest("GET", "/", nil)
 				ctx := context.WithValue(c.Request.Context(), cfg.RequestKey, &RequestContext{
-					DeviceID:  "mock-device-id",
-					IPAddress: "192.168.1.1",
-					UserAgent: "mock-agent",
+					DeviceID: "192.168.1.1:mock-device-id",
 				})
 				c.Request = c.Request.WithContext(ctx)
 				return c
@@ -134,7 +132,7 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 			expectedDeviceID:  generateDeviceID("2.2.2.2", "test-ua2"),
 			expectedIP:        "2.2.2.2",
 			expectedUserAgent: "test-ua2",
-			expectedLocale:    "en-US", // fallback vì fr không có trong supported
+			expectedLocale:    "en-US",
 			expectedTimezone:  "UTC",
 		},
 		{
@@ -158,11 +156,9 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.setupContext()
-			deviceID, ip, ua, locale, tz := helper.GetDeviceInfo(c)
+			deviceID, locale, tz := helper.GetDeviceInfo(c)
 
 			assert.Equal(t, tt.expectedDeviceID, deviceID, "deviceID mismatch")
-			assert.Equal(t, tt.expectedIP, ip, "IP mismatch")
-			assert.Equal(t, tt.expectedUserAgent, ua, "User-Agent mismatch")
 			assert.Equal(t, tt.expectedLocale, locale, "Locale mismatch")
 			assert.Equal(t, tt.expectedTimezone, tz, "Timezone mismatch")
 		})
@@ -208,8 +204,7 @@ func TestGenerateDeviceID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			id := generateDeviceID(tt.ip, tt.userAgent)
-			assert.Len(t, id, 32) // MD5 hex length
-			// Kiểm tra tính nhất quán
+			assert.Len(t, id, 32)
 			id2 := generateDeviceID(tt.ip, tt.userAgent)
 			assert.Equal(t, id, id2)
 		})
