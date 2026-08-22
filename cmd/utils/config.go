@@ -1,13 +1,12 @@
 package utils
 
 import (
+	godotenv "github.com/joho/godotenv"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	godotenv "github.com/joho/godotenv"
 )
 
 type contextKey string
@@ -15,8 +14,10 @@ type contextKey string
 type Config struct {
 	Port               int64
 	Host               string
+	Env                string
 	MetrictPort        int64
-	UIDBits            int
+	UIDBits            int64
+	HashLen            int64
 	RequestKey         contextKey
 	LogPath            string
 	CorsAllowOrigins   string
@@ -42,7 +43,6 @@ type Config struct {
 	RedisPassword      string
 	AccessTokenTTL     int64
 	RefreshTokenTTL    int64
-	SessionTTL         int64
 	RevokedTTL         int64
 	IdleTimeout        int64
 	RateLimitPeriod    int64
@@ -69,11 +69,20 @@ func PreloadNotDBURL() *Config {
 	if val := os.Getenv("APP_HOST"); val != "" {
 		cfg.Host = os.Getenv("APP_HOST")
 	}
+
+	if val := os.Getenv("ENV"); val != "" {
+		if isValidEnv(val) {
+			cfg.Env = val
+		}
+	}
 	if val := os.Getenv("METRIC_PORT"); val != "" {
 		cfg.MetrictPort = getEnvAsInt64("METRIC_PORT")
 	}
 	if val := os.Getenv("UID_BITS"); val != "" {
-		cfg.UIDBits = int(getEnvAsInt64("UID_BITS"))
+		cfg.UIDBits = int64(getEnvAsInt64("UID_BITS"))
+	}
+	if val := os.Getenv("HASH_LEN"); val != "" {
+		cfg.HashLen = int64(getEnvAsInt64("HASH_LEN"))
 	}
 	if val := os.Getenv("REQUEST_KEY"); val != "" {
 		cfg.RequestKey = contextKey(os.Getenv("REQUEST_KEY"))
@@ -147,9 +156,6 @@ func PreloadNotDBURL() *Config {
 	if val := os.Getenv("REFRESH_TOKEN_TTL"); val != "" {
 		cfg.RefreshTokenTTL = getEnvAsInt64("REFRESH_TOKEN_TTL")
 	}
-	if val := os.Getenv("SESSION_TTL"); val != "" {
-		cfg.SessionTTL = getEnvAsInt64("SESSION_TTL")
-	}
 	if val := os.Getenv("IDLE_TIMEOUT"); val != "" {
 		cfg.IdleTimeout = getEnvAsInt64("IDLE_TIMEOUT")
 	}
@@ -183,8 +189,10 @@ func DefaultConfig() *Config {
 	return &Config{
 		Port:               8080,
 		Host:               "localhost",
+		Env:                "development",
 		MetrictPort:        8088,
 		UIDBits:            26,
+		HashLen:            16,
 		RequestKey:         "request_context",
 		LogPath:            "./logs",
 		CorsAllowOrigins:   "*",
@@ -209,7 +217,6 @@ func DefaultConfig() *Config {
 		RedisPassword:      "",
 		AccessTokenTTL:     900,
 		RefreshTokenTTL:    604800,
-		SessionTTL:         604800,
 		IdleTimeout:        1800,
 		RevokedTTL:         300,
 		RateLimitPeriod:    60,
@@ -229,4 +236,13 @@ func splitAndTrim(s, sep string) []string {
 		}
 	}
 	return result
+}
+
+func isValidEnv(env string) bool {
+	switch env {
+	case "development", "test", "production":
+		return true
+	default:
+		return false
+	}
 }
