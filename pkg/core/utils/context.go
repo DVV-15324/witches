@@ -5,54 +5,36 @@ import (
 	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
-// RequestContext chứa tất cả thông tin của request
 type RequestContext struct {
-	Tid       string // Trace ID
-	Sub       string // Subject/User ID
-	DeviceID  string // Device ID
-	IPAddress string // Client IP
-	UserAgent string // User Agent
-	SessionID string // Session ID
-	Platform  string // Platform: web, ios, android, etc.
-	Locale    string // Locale/Language (vd: vi-VN, en-US)
-	Timezone  string // Timezone (vd: Asia/Ho_Chi_Minh)
+	Tid      string
+	Sub      string
+	DeviceID string
+	Locale   string
+	Timezone string
 }
 
-// NewRequestContext tạo mới RequestContext
-func NewRequestContext(sub, tid, deviceID, ipAddress, userAgent string) *RequestContext {
+func NewRequestContext(sub, tid, deviceID string) *RequestContext {
 	return &RequestContext{
-		Sub:       sub,
-		Tid:       tid,
-		DeviceID:  deviceID,
-		IPAddress: ipAddress,
-		UserAgent: userAgent,
+		Sub:      sub,
+		Tid:      tid,
+		DeviceID: deviceID,
 	}
 }
 
-// NewRequestContextFull tạo mới RequestContext với đầy đủ thông tin
-func NewRequestContextFull(
-	sub, tid, deviceID, ipAddress, userAgent,
-	shardID, sessionID, requestID, platform, locale, timezone string,
-) *RequestContext {
+func NewRequestContextFull(sub, tid, deviceID, locale, timezone string) *RequestContext {
 	return &RequestContext{
-		Sub:       sub,
-		Tid:       tid,
-		DeviceID:  deviceID,
-		IPAddress: ipAddress,
-		UserAgent: userAgent,
-		SessionID: sessionID,
-		Platform:  platform,
-		Locale:    locale,
-		Timezone:  timezone,
+		Sub:      sub,
+		Tid:      tid,
+		DeviceID: deviceID,
+		Locale:   locale,
+		Timezone: timezone,
 	}
 }
 
-// SaveRequestContext lưu RequestContext vào context
 func SaveRequestContext(ctx context.Context, reqCtx *RequestContext, cfg *wcmd_utils.Config) context.Context {
 	return context.WithValue(ctx, cfg.RequestKey, reqCtx)
 }
 
-// GetRequestContext lấy RequestContext từ context
 func GetRequestContext(ctx context.Context, cfg *wcmd_utils.Config) *RequestContext {
 	val := ctx.Value(cfg.RequestKey)
 	if val == nil {
@@ -65,55 +47,26 @@ func GetRequestContext(ctx context.Context, cfg *wcmd_utils.Config) *RequestCont
 	return r
 }
 
-// GetSub lấy Subject từ context
 func GetSub(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Sub
 }
 
-// GetTid lấy Trace ID từ context
 func GetTid(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Tid
 }
 
-// GetDeviceID lấy Device ID từ context
 func GetDeviceID(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.DeviceID
 }
 
-// GetSessionID lấy Session ID từ context
-func GetSessionID(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.SessionID
-}
-
-// GetIPAddress lấy IP Address từ context
-func GetIPAddress(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.IPAddress
-}
-
-// GetUserAgent lấy User Agent từ context
-func GetUserAgent(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.UserAgent
-}
-
-// GetPlatform lấy Platform từ context
-func GetPlatform(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.Platform
-}
-
-// GetLocale lấy Locale từ context
 func GetLocale(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Locale
 }
 
-// GetTimezone lấy Timezone từ context
 func GetTimezone(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Timezone
