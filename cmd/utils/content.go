@@ -9,8 +9,10 @@ func CreateContentRefresh() string {
 	return `# SERVER CONFIGURATION
 APP_PORT=8080
 APP_HOST=localhost
+APP_ENV=development
 METRIC_PORT=8088
 UID_BITS=26
+HASH_LEN=16
 REQUEST_KEY=request_context
 
 # LOGGING
@@ -49,12 +51,11 @@ REDIS_PORT=6379
 REDIS_PASSWORD=
 
 # TOKEN EXPIRATION
-ACCESS_TOKEN_TTL=900
+ACCESS_TOKEN_TTL=3600
 REFRESH_TOKEN_TTL=604800
 
 # SESSION SETTINGS
-SESSION_TTL=604800
-IDLE_TIMEOUT=1800
+IDLE_TIMEOUT=3600
 
 # BLACKLIST SETTINGS
 REVOKED_TTL=300
@@ -69,8 +70,10 @@ func CreateContentRefreshUsed(DB_URL string, cfg *Config) string {
 	return fmt.Sprintf(`# SERVER CONFIGURATION
 APP_PORT=%d
 APP_HOST=%s
+APP_ENV=%s
 METRIC_PORT=%d
 UID_BITS=%d
+HASH_LEN=%d
 REQUEST_KEY=%s
 
 # LOGGING
@@ -114,7 +117,6 @@ ACCESS_TOKEN_TTL=%d
 REFRESH_TOKEN_TTL=%d
 
 # SESSION SETTINGS
-SESSION_TTL=%d
 IDLE_TIMEOUT=%d
 
 # BLACKLIST SETTINGS
@@ -124,8 +126,8 @@ REVOKED_TTL=%d
 RATE_LIMIT_PERIOD=%d
 RATE_LIMIT_MAX=%d
 `,
-		cfg.Port, cfg.Host, cfg.MetrictPort,
-		cfg.UIDBits, cfg.RequestKey,
+		cfg.Port, cfg.Host, cfg.Env, cfg.MetrictPort,
+		cfg.UIDBits, cfg.HashLen, cfg.RequestKey,
 		cfg.LogPath,
 		cfg.CorsAllowOrigins, cfg.CorsAllowMethods, cfg.CorsAllowHeaders,
 		cfg.Timezone, strings.Join(cfg.SupportedLanguages, ","),
@@ -136,7 +138,7 @@ RATE_LIMIT_MAX=%d
 		cfg.ConnMaxIdleTime, cfg.SlowThreshold,
 		cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword,
 		cfg.AccessTokenTTL, cfg.RefreshTokenTTL,
-		cfg.SessionTTL, cfg.IdleTimeout,
+		cfg.IdleTimeout,
 		cfg.RevokedTTL,
 		cfg.RateLimitPeriod, cfg.RateLimitMax,
 	)
