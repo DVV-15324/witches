@@ -16,9 +16,7 @@ type DeviceHelper struct {
 	matcher language.Matcher
 }
 
-// NewDeviceHelper khởi tạo helper với config
 func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
-
 	tags := make([]language.Tag, 0, len(cfg.SupportedLanguages))
 	for _, locale := range cfg.SupportedLanguages {
 		tag, err := language.Parse(locale)
@@ -36,17 +34,9 @@ func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
 }
 
 func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, ipAddress, userAgent, locale, timezone string) {
-	reqCtx := GetRequestContext(c.Request.Context(), h.config)
-	if reqCtx.DeviceID != "" {
-		deviceID = reqCtx.DeviceID
-		ipAddress = reqCtx.IPAddress
-		userAgent = reqCtx.UserAgent
-	} else {
-		ipAddress = c.ClientIP()
-		userAgent = c.GetHeader("User-Agent")
-		deviceID = generateDeviceID(ipAddress, userAgent)
-	}
-
+	ipAddress = c.ClientIP()
+	userAgent = c.GetHeader("User-Agent")
+	deviceID = generateDeviceID(ipAddress, userAgent)
 	acceptLang := c.GetHeader("Accept-Language")
 	if acceptLang != "" {
 		tag, _ := language.MatchStrings(h.matcher, acceptLang)
