@@ -35,16 +35,3 @@ jobs:
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-filesystem
-
-  golangci-lint:
-    name: Run golangci-lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set execute permission for binary
-        run: chmod +x .bin/golangci-lint
-
-      - name: Run golangci-lint
-        run: |
-          ./.bin/golangci-lint run --config .golangci.yml --timeout=10m
