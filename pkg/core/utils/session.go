@@ -12,7 +12,9 @@ import (
 type SessionCache struct {
 	SessionID   string `json:"session_id"`
 	UserID      int64  `json:"user_id"`
-	DeviceID    string `json:"device_id"`
+	JKT         string `json:"JKT"`
+	IPAddress   string `json:"ip_address"`
+	UserAgent   string `json:"user_agent"`
 	AccessToken string `json:"access_token"`
 	LastActive  int64  `json:"last_active"`
 	Locale      string `json:"locale"`
@@ -29,8 +31,8 @@ func NewSessionService(redis *redis.Client, RefreshTokenTTL int64, IdleTimeout i
 	return &SessionService{redis: redis, IdleTimeout: IdleTimeout, RefreshTokenTTL: RefreshTokenTTL}
 }
 
-func (s *SessionService) cacheKeySession(userID int64, deviceID string) string {
-	return fmt.Sprintf("session:userID:%d:deviceID:%s", userID, deviceID)
+func (s *SessionService) cacheKeySession(userID int64, JKT string) string {
+	return fmt.Sprintf("session:userID:%d:JKT:%s", userID, JKT)
 }
 
 func (s *SessionService) CreateSession(ctx context.Context, session *SessionCache) error {
@@ -38,7 +40,7 @@ func (s *SessionService) CreateSession(ctx context.Context, session *SessionCach
 		return fmt.Errorf("session cannot be nil")
 	}
 	session.SessionID = uuid.New().String()
-	key := s.cacheKeySession(session.UserID, session.DeviceID)
+	key := s.cacheKeySession(session.UserID, session.JKT)
 	data, err := json.Marshal(session)
 	if err != nil {
 		return err
@@ -47,8 +49,8 @@ func (s *SessionService) CreateSession(ctx context.Context, session *SessionCach
 	return s.redis.Set(ctx, key, data, ttl).Err()
 }
 
-func (s *SessionService) GetSession(ctx context.Context, userID int64, deviceID string) (*SessionCache, error) {
-	key := s.cacheKeySession(userID, deviceID)
+func (s *SessionService) GetSession(ctx context.Context, userID int64, JKT string) (*SessionCache, error) {
+	key := s.cacheKeySession(userID, JKT)
 	data, err := s.redis.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -63,38 +65,38 @@ func (s *SessionService) GetSession(ctx context.Context, userID int64, deviceID 
 	return &session, nil
 }
 
-func (s *SessionService) DeleteSession(ctx context.Context, userID int64, deviceID string) error {
-	key := s.cacheKeySession(userID, deviceID)
+func (s *SessionService) DeleteSession(ctx context.Context, userID int64, JKT string) error {
+	key := s.cacheKeySession(userID, JKT)
 	return s.redis.Del(ctx, key).Err()
 }
 
-func (s *SessionService) UpdateSession(ctx context.Context, userID int64, deviceID string, accessToken string) error {
-	session, err := s.GetSession(ctx, userID, deviceID)
+func (s *SessionService) UpdateSession(ctx context.Context, userID int64, JKT string, accessToken string) error {
+	session, err := s.GetSession(ctx, userID, JKT)
 	if err != nil {
 		return err
 	}
 	if session == nil {
-		return fmt.Errorf("session not found for user %d, device %s", userID, deviceID)
+		return fmt.Errorf("session not found for user %d, device %s", userID, JKT)
 	}
 	session.AccessToken = accessToken
 	session.LastActive = time.Now().Unix()
 	return s.CreateSession(ctx, session)
 }
 
-func (s *SessionService) UpdateLastActive(ctx context.Context, userID int64, deviceID string) error {
-	session, err := s.GetSession(ctx, userID, deviceID)
+func (s *SessionService) UpdateLastActive(ctx context.Context, userID int64, JKT string) error {
+	session, err := s.GetSession(ctx, userID, JKT)
 	if err != nil {
 		return err
 	}
 	if session == nil {
-		return fmt.Errorf("session not found for user %d, device %s", userID, deviceID)
+		return fmt.Errorf("session not found for user %d, device %s", userID, JKT)
 	}
 	session.LastActive = time.Now().Unix()
 	return s.CreateSession(ctx, session)
 }
 
-func (s *SessionService) IsSessionIdle(ctx context.Context, userID int64, deviceID string) (bool, error) {
-	session, err := s.GetSession(ctx, userID, deviceID)
+func (s *SessionService) IsSessionIdle(ctx context.Context, userID int64, JKT string) (bool, error) {
+	session, err := s.GetSession(ctx, userID, JKT)
 	if err != nil {
 		return false, err
 	}
@@ -105,8 +107,8 @@ func (s *SessionService) IsSessionIdle(ctx context.Context, userID int64, device
 	return (now - session.LastActive) > s.IdleTimeout, nil
 }
 
-func (s *SessionService) ValidateSession(ctx context.Context, userID int64, deviceID string, accessToken string) (*SessionCache, error) {
-	session, err := s.GetSession(ctx, userID, deviceID)
+func (s *SessionService) ValidateSession(ctx context.Context, userID int64, JKT string, accessToken string) (*SessionCache, error) {
+	session, err := s.GetSession(ctx, userID, JKT)
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +120,11 @@ func (s *SessionService) ValidateSession(ctx context.Context, userID int64, devi
 		return nil, fmt.Errorf("token mismatch")
 	}
 
-	if session.DeviceID != deviceID {
+	if session.JKT != JKT {
 		return nil, fmt.Errorf("device mismatch")
 	}
 
-	isIdle, err := s.IsSessionIdle(ctx, userID, deviceID)
+	isIdle, err := s.IsSessionIdle(ctx, userID, JKT)
 	if err != nil {
 		return nil, err
 	}
