@@ -59,20 +59,6 @@ func (h *Helper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale,
 	return
 }
 
-func ExtractBearerTokenFromHeader(header string) (string, error) {
-	if header == "" {
-		return "", errors.New("authorization header is required")
-	}
-
-	parts := strings.Fields(header)
-
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return "", errors.New("invalid authorization header format")
-	}
-
-	return parts[1], nil
-}
-
 func ExtractDPoPTokenFromHeader(header string) (string, error) {
 	if header == "" {
 		return "", errors.New("authorization header is required")
