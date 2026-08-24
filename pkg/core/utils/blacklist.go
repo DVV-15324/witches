@@ -26,12 +26,10 @@ func (s *BlacklistService) BlacklistToken(ctx context.Context, accessToken strin
 	if accessToken == "" {
 		return fmt.Errorf("Error: accessToken cannot be empty")
 	}
-
 	key := s.cacheKeyBlacklist(accessToken)
 	return s.redis.Set(ctx, key, "revoked", time.Duration(s.config.RevokedTTL)*time.Second).Err()
 }
 
-// Việc Check nên để ở middleware
 func (s *BlacklistService) IsTokenBlacklisted(ctx context.Context, token string) bool {
 	if token == "" {
 		return false
