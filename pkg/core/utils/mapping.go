@@ -1,6 +1,6 @@
 package utils
 
-// MapPtrSlice chuyển slice []*T sang []*U
+// []*T -> []*U
 func MapPtrSlice[T any, U any](items []*T, mapper func(*T) *U) []*U {
 	if items == nil {
 		return nil
