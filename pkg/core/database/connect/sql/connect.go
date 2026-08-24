@@ -29,7 +29,6 @@ func NewDatabaseInstance(
 
 	dsn := cfg.DBUrl
 
-	// Chọn driver
 	var dialector gorm.Dialector
 	switch cfg.DBDriver {
 	case "mysql":

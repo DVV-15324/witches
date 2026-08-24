@@ -88,7 +88,6 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 
 			if hasMarker {
 				targetFiles = append(targetFiles, path)
-				//fmt.Printf("  Found marker in: %s\n", path)
 			}
 			return nil
 		})
@@ -117,7 +116,6 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 			continue
 		}
 
-		// Nếu output khác input, copy file sang output
 		if outputPath != path {
 			content, err := os.ReadFile(path)
 			if err != nil {
@@ -130,15 +128,12 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 			}
 		}
 
-		// Xóa file gen cũ
 		genOutputFile := strings.TrimSuffix(outputPath, ".go") + "_easyjson.go"
 		_ = os.Remove(genOutputFile)
 
-		// Xóa file tmp
 		tmpFile := strings.TrimSuffix(outputPath, ".go") + "_easyjson.go.tmp"
 		_ = os.Remove(tmpFile)
 
-		// Gen TRỰC TIẾP trên file outputPath
 		if err := generateEasyJSON(outputPath); err != nil {
 			fmt.Printf("  Warning: easyjson failed for %s: %v\n", path, err)
 			continue
