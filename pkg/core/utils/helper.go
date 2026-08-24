@@ -9,12 +9,12 @@ import (
 	"golang.org/x/text/language"
 )
 
-type DeviceHelper struct {
+type Helper struct {
 	config  *utils.Config
 	matcher language.Matcher
 }
 
-func NewHelper(cfg *utils.Config) *DeviceHelper {
+func NewHelper(cfg *utils.Config) *Helper {
 	tags := make([]language.Tag, 0, len(cfg.SupportedLanguages))
 	for _, locale := range cfg.SupportedLanguages {
 		tag, err := language.Parse(locale)
@@ -25,13 +25,13 @@ func NewHelper(cfg *utils.Config) *DeviceHelper {
 	if len(tags) == 0 {
 		tags = []language.Tag{language.English, language.MustParse("vi-VN")}
 	}
-	return &DeviceHelper{
+	return &Helper{
 		config:  cfg,
 		matcher: language.NewMatcher(tags),
 	}
 }
 
-func (h *DeviceHelper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale, timezone string) {
+func (h *Helper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale, timezone string) {
 	ipAddress = c.ClientIP()
 	userAgent = c.GetHeader("User-Agent")
 	acceptLang := c.GetHeader("Accept-Language")
