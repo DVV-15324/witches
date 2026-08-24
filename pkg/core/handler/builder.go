@@ -139,7 +139,6 @@ func (b *RouteBuilder) Response(code int, model interface{}, desc string) *Route
 	return b
 }
 
-// Handler gán handler
 func (b *RouteBuilder) Handler(h gin.HandlerFunc) *RouteBuilder {
 	b.handler = h
 	return b
