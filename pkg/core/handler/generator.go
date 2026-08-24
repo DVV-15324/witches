@@ -46,7 +46,7 @@ func NewSwaggerGenerator(title, version, host, basePath string) *SwaggerGenerato
 		globalSecurity:      []SecurityRequirement{},
 		modelParser:         NewModelParser(),
 		globalMiddlewares:   []gin.HandlerFunc{},
-		rateLimitMiddleware: nil, // mặc định không có
+		rateLimitMiddleware: nil,
 	}
 }
 
@@ -71,10 +71,6 @@ func (g *SwaggerGenerator) SetRateLimitMiddleware(middleware IRateLimitMiddlewar
 	return g
 }
 
-func (g *SwaggerGenerator) GetRateLimitMiddleware() IRateLimitMiddleware {
-	return g.rateLimitMiddleware
-}
-
 func (g *SwaggerGenerator) Use(middlewares ...gin.HandlerFunc) *SwaggerGenerator {
 	g.globalMiddlewares = append(g.globalMiddlewares, middlewares...)
 	if g.engine != nil {
@@ -83,23 +79,6 @@ func (g *SwaggerGenerator) Use(middlewares ...gin.HandlerFunc) *SwaggerGenerator
 	return g
 }
 
-func (g *SwaggerGenerator) AddBearerAuth(name string) {
-	g.doc.SecurityDefinitions[name] = SecurityScheme{
-		Type:        "apiKey",
-		In:          "header",
-		Name:        "Authorization",
-		Description: "Bearer token authentication. Example: 'Bearer {token}'",
-	}
-}
-
-func (g *SwaggerGenerator) AddBearerAuthWithDescription(name, description string) {
-	g.doc.SecurityDefinitions[name] = SecurityScheme{
-		Type:        "apiKey",
-		In:          "header",
-		Name:        "Authorization",
-		Description: description,
-	}
-}
 func (g *SwaggerGenerator) AddTag(name, description string) {
 	g.doc.Tags = append(g.doc.Tags, Tag{Name: name, Description: description})
 }
@@ -116,7 +95,7 @@ func (g *SwaggerGenerator) RegisterModel(model interface{}) string {
 }
 
 func (g *SwaggerGenerator) GenerateJSON() string {
-	// Merge definitions từ model parser
+
 	for name, schema := range g.modelParser.GetSchemas() {
 		g.doc.Definitions[name] = schema
 	}
