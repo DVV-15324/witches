@@ -7,7 +7,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:     "witches",
-	Version: "v1.0.9",
+	Version: "v1.1.1",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Help()
 	},
