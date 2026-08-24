@@ -6,28 +6,21 @@ import (
 )
 
 type RequestContext struct {
-	Tid      string
-	Sub      string
-	DeviceID string
-	Locale   string
-	Timezone string
+	Tid string
+	Sub string
 }
 
-func NewRequestContext(sub, tid, deviceID string) *RequestContext {
+func NewRequestContext(sub, tid string) *RequestContext {
 	return &RequestContext{
-		Sub:      sub,
-		Tid:      tid,
-		DeviceID: deviceID,
+		Sub: sub,
+		Tid: tid,
 	}
 }
 
-func NewRequestContextFull(sub, tid, deviceID, locale, timezone string) *RequestContext {
+func NewRequestContextFull(sub, tid string) *RequestContext {
 	return &RequestContext{
-		Sub:      sub,
-		Tid:      tid,
-		DeviceID: deviceID,
-		Locale:   locale,
-		Timezone: timezone,
+		Sub: sub,
+		Tid: tid,
 	}
 }
 
@@ -55,19 +48,4 @@ func GetSub(ctx context.Context, cfg *wcmd_utils.Config) string {
 func GetTid(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Tid
-}
-
-func GetDeviceID(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.DeviceID
-}
-
-func GetLocale(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.Locale
-}
-
-func GetTimezone(ctx context.Context, cfg *wcmd_utils.Config) string {
-	reqCtx := GetRequestContext(ctx, cfg)
-	return reqCtx.Timezone
 }
