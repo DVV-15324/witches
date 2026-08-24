@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"fmt"
 	"strings"
 
 	"github.com/DVV-15324/witches/cmd/utils"
@@ -16,7 +14,7 @@ type DeviceHelper struct {
 	matcher language.Matcher
 }
 
-func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
+func NewHelper(cfg *utils.Config) *DeviceHelper {
 	tags := make([]language.Tag, 0, len(cfg.SupportedLanguages))
 	for _, locale := range cfg.SupportedLanguages {
 		tag, err := language.Parse(locale)
@@ -33,11 +31,11 @@ func NewDeviceHelper(cfg *utils.Config) *DeviceHelper {
 	}
 }
 
-func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, locale, timezone string) {
-	ipAddress := c.ClientIP()
-	userAgent := c.GetHeader("User-Agent")
-	deviceID = generateDeviceID(ipAddress, userAgent)
+func (h *DeviceHelper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale, timezone string) {
+	ipAddress = c.ClientIP()
+	userAgent = c.GetHeader("User-Agent")
 	acceptLang := c.GetHeader("Accept-Language")
+	DPoPJwk = c.GetHeader("DPoP")
 	if acceptLang != "" {
 		tag, _ := language.MatchStrings(h.matcher, acceptLang)
 		base, _ := tag.Base()
@@ -61,18 +59,30 @@ func (h *DeviceHelper) GetDeviceInfo(c *gin.Context) (deviceID, locale, timezone
 	return
 }
 
-func ExtractTokenFromHeader(accessToken string) (string, error) {
-	if accessToken == "" {
+func ExtractBearerTokenFromHeader(header string) (string, error) {
+	if header == "" {
 		return "", errors.New("authorization header is required")
 	}
-	args := strings.Split(accessToken, " ")
-	if len(args) != 2 || args[0] != "Bearer" {
+
+	parts := strings.Fields(header)
+
+	if len(parts) != 2 || parts[0] != "Bearer" {
 		return "", errors.New("invalid authorization header format")
 	}
-	return args[1], nil
+
+	return parts[1], nil
 }
 
-func generateDeviceID(ip, userAgent string) string {
-	data := fmt.Sprintf("%s|%s", ip, userAgent)
-	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
+func ExtractDPoPTokenFromHeader(header string) (string, error) {
+	if header == "" {
+		return "", errors.New("authorization header is required")
+	}
+
+	parts := strings.Fields(header)
+
+	if len(parts) != 2 || parts[0] != "DPoP" {
+		return "", errors.New("invalid authorization header format")
+	}
+
+	return parts[1], nil
 }
