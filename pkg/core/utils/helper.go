@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"strings"
-
+	w_dpop "github.com/DVV-15324/witches-dpop"
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
+	"strings"
 )
 
 type Helper struct {
@@ -31,11 +31,11 @@ func NewHelper(cfg *utils.Config) *Helper {
 	}
 }
 
-func (h *Helper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale, timezone string) {
+func (h *Helper) GetInfo(c *gin.Context) (dpopProof string, ipAddress, userAgent, locale, timezone string) {
 	ipAddress = c.ClientIP()
 	userAgent = c.GetHeader("User-Agent")
 	acceptLang := c.GetHeader("Accept-Language")
-	DPoPJwk = c.GetHeader("DPoP")
+	dpopProof = c.GetHeader("DPoP")
 	if acceptLang != "" {
 		tag, _ := language.MatchStrings(h.matcher, acceptLang)
 		base, _ := tag.Base()
@@ -59,7 +59,7 @@ func (h *Helper) GetInfo(c *gin.Context) (DPoPJwk, ipAddress, userAgent, locale,
 	return
 }
 
-func ExtractDPoPTokenFromHeader(header string) (string, error) {
+func (h *Helper) ExtractDPoPTokenFromHeader(header string) (string, error) {
 	if header == "" {
 		return "", errors.New("authorization header is required")
 	}
@@ -71,4 +71,12 @@ func ExtractDPoPTokenFromHeader(header string) (string, error) {
 	}
 
 	return parts[1], nil
+}
+
+func (h *Helper) GetJWKFromRequest(c *gin.Context) (*w_dpop.JWK, error) {
+	var jwk w_dpop.JWK
+	if err := c.ShouldBindJSON(&jwk); err != nil {
+		return nil, err
+	}
+	return &jwk, nil
 }
