@@ -9,7 +9,6 @@ func Cors(cfg *utils.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 
-		// Lấy từ config
 		allowOrigin := cfg.CorsAllowOrigins
 		if allowOrigin == "" {
 			allowOrigin = "*"
