@@ -117,7 +117,7 @@ func (s *SessionService) ValidateSession(ctx context.Context, userID int64, JKT 
 	}
 
 	if session.JKT != JKT {
-		return nil, fmt.Errorf("device mismatch")
+		return nil, fmt.Errorf("JKT mismatch")
 	}
 
 	isIdle, err := s.IsSessionIdle(ctx, userID, JKT)
