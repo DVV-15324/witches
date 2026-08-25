@@ -107,17 +107,13 @@ func (s *SessionService) IsSessionIdle(ctx context.Context, userID int64, JKT st
 	return (now - session.LastActive) > s.IdleTimeout, nil
 }
 
-func (s *SessionService) ValidateSession(ctx context.Context, userID int64, JKT string, accessToken string) (*SessionCache, error) {
+func (s *SessionService) ValidateSession(ctx context.Context, userID int64, JKT string) (*SessionCache, error) {
 	session, err := s.GetSession(ctx, userID, JKT)
 	if err != nil {
 		return nil, err
 	}
 	if session == nil {
 		return nil, fmt.Errorf("session not found")
-	}
-
-	if session.AccessToken != accessToken {
-		return nil, fmt.Errorf("token mismatch")
 	}
 
 	if session.JKT != JKT {

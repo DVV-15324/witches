@@ -1,7 +1,6 @@
 package utils
 
 import (
-	w_dpop "github.com/DVV-15324/witches-dpop"
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -71,12 +70,4 @@ func (h *Helper) ExtractDPoPTokenFromHeader(header string) (string, error) {
 	}
 
 	return parts[1], nil
-}
-
-func (h *Helper) GetJWKFromRequest(c *gin.Context) (*w_dpop.JWK, error) {
-	var jwk w_dpop.JWK
-	if err := c.ShouldBindJSON(&jwk); err != nil {
-		return nil, err
-	}
-	return &jwk, nil
 }
