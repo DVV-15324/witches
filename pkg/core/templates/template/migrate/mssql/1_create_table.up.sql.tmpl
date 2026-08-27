@@ -60,7 +60,7 @@ CREATE TABLE refresh_tokens (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
     token NVARCHAR(255) NOT NULL UNIQUE,
-    device_id NVARCHAR(255) NOT NULL,
+    JKT   NVARCHAR(255) NOT NULL,
     ip_address NVARCHAR(255),
     user_agent NVARCHAR(MAX),
     locale NVARCHAR(50) DEFAULT 'en-US',
