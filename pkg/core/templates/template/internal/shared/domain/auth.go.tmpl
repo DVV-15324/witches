@@ -3,10 +3,10 @@ package domain
 import "time"
 
 type Auth struct {
-	Id        int
+	ID        int64
 	Email     string
 	Password  string
-	UserId    int
+	UserId    int64
 	Salt      string
 	Banned    bool
 	AuthType  string
