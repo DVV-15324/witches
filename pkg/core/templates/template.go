@@ -130,7 +130,7 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		// AUTH SERVICE - HANDLER
 		"template/internal/auth/handler/handler.go.tmpl":  filepath.Join("internal", "auth", "handler", "handler.go"),
 		"template/internal/auth/handler/login.go.tmpl":    filepath.Join("internal", "auth", "handler", "login.go"),
-		"template/internal/auth/handler/registry.go.tmpl": filepath.Join("internal", "auth", "handler", "registry.go"),
+		"template/internal/auth/handler/register.go.tmpl": filepath.Join("internal", "auth", "handler", "registry.go"),
 		"template/internal/auth/handler/logout.go.tmpl":   filepath.Join("internal", "auth", "handler", "logout.go"),
 		// AUTH SERVICE - MAPPING
 		"template/internal/auth/mapping/mapping.go.tmpl": filepath.Join("internal", "auth", "mapping", "mapping.go"),
