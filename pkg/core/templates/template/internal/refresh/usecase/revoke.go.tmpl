@@ -9,7 +9,7 @@ import (
 )
 
 // Revoke - Thu hồi refresh token
-func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason string, deviceID string) *w_resp.AppError {
+func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason string, jkt string) *w_resp.AppError {
 	if token == "" {
 		return w_resp.NewAppError(400, errors.New("token cannot be empty"), time.Now())
 	}
@@ -35,7 +35,7 @@ func (uc *RefreshUseCase) Revoke(ctx context.Context, token string, reason strin
 
 	// Delete session của user đó
 	if storedToken.UserID > 0 {
-		uc.Core.Session.DeleteSession(ctx, storedToken.UserID, deviceID)
+		uc.Core.Session.DeleteSession(ctx, storedToken.UserID, jkt)
 	}
 
 	return nil
