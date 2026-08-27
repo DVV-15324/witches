@@ -24,7 +24,7 @@ func TestNewGormLogger(t *testing.T) {
 	}()
 
 	config := wcmd_utils.DefaultConfig()
-	config.SlowThreshold = 5 // 5 giây
+	config.SlowThreshold = 5
 	gormLogger := NewGormLogger(logger, config)
 
 	if gormLogger == nil {
@@ -235,9 +235,8 @@ func TestGormLogger_Trace(t *testing.T) {
 	defer func() { _ = os.Remove(path) }()
 
 	config := wcmd_utils.DefaultConfig()
-	config.SlowThreshold = 100 // 100 giây (để test slow query cần sleep >100s là không thể, nên ta sẽ set threshold nhỏ để test)
-	// Để test slow query, ta set threshold = 0.02 giây (20ms)
-	config.SlowThreshold = 0 // tạm thời set 0 để luôn trigger slow nếu có sleep
+	config.SlowThreshold = 100
+	config.SlowThreshold = 0
 	gormLogger := NewGormLogger(logger, config)
 	if gormLogger == nil {
 		t.Fatal("GormLogger should not be nil")
@@ -291,15 +290,13 @@ func TestGormLogger_Trace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gormLogger.LogLevel = tt.logLevel
-			// Điều chỉnh threshold để test slow query
+
 			if tt.slowQuery {
-				config.SlowThreshold = 1 // 1 giây, nhưng sleep 20ms nên sẽ không chạm ngưỡng. Để chạm ngưỡng, ta set threshold=0
-				config.SlowThreshold = 0 // 0 giây => luôn slow
+				config.SlowThreshold = 1
+				config.SlowThreshold = 0
 			} else {
-				config.SlowThreshold = 100 // 100 giây, không bao giờ slow
+				config.SlowThreshold = 100
 			}
-			// Cập nhật lại config trong logger (vì config là pointer)
-			// Nhưng gormLogger.config trỏ đến cùng config, nên thay đổi sẽ ảnh hưởng
 
 			var err error
 			if tt.hasError {
@@ -332,7 +329,6 @@ func TestGormLogger_TraceWithContext(t *testing.T) {
 		t.Fatal("GormLogger should not be nil")
 	}
 
-	// Test with context that has trace_id
 	ctx := context.WithValue(context.Background(), config.RequestKey, "test-trace-123")
 	begin := time.Now()
 

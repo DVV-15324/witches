@@ -25,7 +25,6 @@ func TestLogger_File(t *testing.T) {
 	logger.ErrorWithFields("Info", zap.String("Field", "hello"))
 }
 
-// Test các config khác nhau
 func TestNewFileLogger_WithDifferentConfigs(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -76,7 +75,6 @@ func TestNewFileLogger_WithDifferentConfigs(t *testing.T) {
 	}
 }
 
-// Test tất cả methods
 func TestLoggerMethods(t *testing.T) {
 	path := "./test_methods.log"
 	logger, err := NewFileLogger(path, 1, 5, 10)
@@ -120,7 +118,6 @@ func TestLoggerMethods(t *testing.T) {
 	})
 }
 
-// Test Sync
 func TestLoggerSync(t *testing.T) {
 	path := "./test_sync.log"
 	logger, err := NewFileLogger(path, 1, 5, 10)
@@ -138,7 +135,6 @@ func TestLoggerSync(t *testing.T) {
 	}
 }
 
-// Test nhiều messages
 func TestLogger_MultipleMessages(t *testing.T) {
 	path := "./test_multiple.log"
 	logger, err := NewFileLogger(path, 1, 5, 10)
@@ -155,7 +151,6 @@ func TestLogger_MultipleMessages(t *testing.T) {
 	}
 }
 
-// Test với các loại field khác nhau
 func TestLogger_WithDifferentFieldTypes(t *testing.T) {
 	path := "./test_fields.log"
 	logger, err := NewFileLogger(path, 1, 5, 10)
@@ -178,7 +173,6 @@ func TestLogger_WithDifferentFieldTypes(t *testing.T) {
 	logger.InfoWithFields("all field types", fields...)
 }
 
-// Test concurrent
 func TestLogger_Concurrent(t *testing.T) {
 	path := "./test_concurrent.log"
 	logger, err := NewFileLogger(path, 1, 5, 10)
