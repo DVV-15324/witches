@@ -13,12 +13,11 @@ import (
 )
 
 func TestTemplateFS_ContainsFiles(t *testing.T) {
-	// Kiểm tra embed FS có chứa các file template cần thiết
+
 	entries, err := templateFS.ReadDir("template")
 	require.NoError(t, err)
 	assert.NotEmpty(t, entries)
 
-	// Kiểm tra các thư mục con
 	expectedDirs := []string{
 		"cmd",
 		"internal",
@@ -39,7 +38,7 @@ func TestTemplateFS_ContainsFiles(t *testing.T) {
 }
 
 func TestTemplateFS_ReadTemplateFile(t *testing.T) {
-	// Kiểm tra đọc được file template cụ thể
+
 	testFiles := []string{
 		"template/main.go.tmpl",
 		"template/cmd/root.go.tmpl",
@@ -54,7 +53,7 @@ func TestTemplateFS_ReadTemplateFile(t *testing.T) {
 }
 
 func TestTemplateFS_AllTemplateFiles(t *testing.T) {
-	// Đếm số lượng file template bằng fs.WalkDir
+
 	var totalFiles int
 	err := fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -70,7 +69,7 @@ func TestTemplateFS_AllTemplateFiles(t *testing.T) {
 }
 
 func TestTemplateFS_CountTmplFiles(t *testing.T) {
-	// Đếm số lượng file .tmpl
+
 	var tmplFiles int
 	err := fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -86,7 +85,7 @@ func TestTemplateFS_CountTmplFiles(t *testing.T) {
 }
 
 func TestCreateProjectStructure_Success(t *testing.T) {
-	// Tạo temp dir và chuyển vào đó
+
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
@@ -105,12 +104,11 @@ func TestCreateProjectStructure_Success(t *testing.T) {
 		ModuleName: "github.com/example/test-project",
 	}
 
-	// Test với từng loại database
 	dbTypes := []string{"mysql", "postgres", "postgresql", "mssql", "sqlserver"}
 
 	for _, dbType := range dbTypes {
 		t.Run("db_"+dbType, func(t *testing.T) {
-			// Tạo subdir cho mỗi test
+
 			testDir := filepath.Join(tmpDir, dbType)
 			err := os.MkdirAll(testDir, 0755)
 			require.NoError(t, err)
@@ -121,7 +119,6 @@ func TestCreateProjectStructure_Success(t *testing.T) {
 			err = createProjectStructure(config, dbType)
 			assert.NoError(t, err)
 
-			// Kiểm tra các file quan trọng đã được tạo
 			criticalFiles := []string{
 				"main.go",
 				"go.mod",
@@ -158,7 +155,6 @@ func TestCreateProjectStructure_InvalidDB(t *testing.T) {
 		ModuleName: "github.com/example/test",
 	}
 
-	// Test với DB không hỗ trợ
 	err = createProjectStructure(config, "invalid_db")
 	assert.Error(t, err)
 }
@@ -186,7 +182,6 @@ func TestRenderTemplate_AllTemplates(t *testing.T) {
 			err := os.MkdirAll(destDir, 0755)
 			require.NoError(t, err)
 
-			// utils.RenderTemplate(templateFS, tmpDir, dest, tmpl, config)
 		})
 	}
 }
@@ -243,13 +238,11 @@ func TestCreateProjectStructure_EmbedContents(t *testing.T) {
 	err = createProjectStructure(config, "mysql")
 	require.NoError(t, err)
 
-	// Kiểm tra nội dung file main.go
 	mainContent, err := os.ReadFile("main.go")
 	require.NoError(t, err)
 	assert.Contains(t, string(mainContent), "package main")
 	assert.Contains(t, string(mainContent), "github.com/example/embed-test")
 
-	// Kiểm tra key_object.go
 	keyContent, err := os.ReadFile("internal/shared/utils/key_object.go")
 	require.NoError(t, err)
 	assert.Contains(t, string(keyContent), "package utils")
@@ -276,7 +269,7 @@ func BenchmarkCreateProjectStructure(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
 		_ = createProjectStructure(config, "mysql")
-		// Clean up after each iteration
+
 		_ = os.RemoveAll(tmpDir)
 		_ = os.MkdirAll(tmpDir, 0755)
 		_ = os.Chdir(tmpDir)
@@ -298,7 +291,7 @@ func BenchmarkTemplateFS_WalkAll(b *testing.B) {
 }
 
 func BenchmarkTemplateFS_ReadAllFiles(b *testing.B) {
-	// Lấy danh sách file trước
+
 	var files []string
 	_ = fs.WalkDir(templateFS, "template", func(path string, d fs.DirEntry, err error) error {
 		if err == nil && !d.IsDir() {
