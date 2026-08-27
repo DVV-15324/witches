@@ -61,14 +61,10 @@ func assertGolden(t *testing.T, namespace, actual, relPath string) {
 	)
 }
 
-// TestAddGoDomain_Golden kiểm tra sinh domain mới.
 func TestAddGoDomain_Golden(t *testing.T) {
 	tmpDir := t.TempDir()
 	moduleName := "github.com/example/project"
 
-	// ------------------------------------------------------------
-	// 1. Tạo go.mod
-	// ------------------------------------------------------------
 	require.NoError(
 		t,
 		os.WriteFile(
@@ -77,12 +73,6 @@ func TestAddGoDomain_Golden(t *testing.T) {
 			0644,
 		),
 	)
-
-	// ------------------------------------------------------------
-	// 2. Tạo routers/modules.go và routers/routers.go
-	//    LƯU Ý:
-	//    Đây phải là trạng thái TRƯỚC KHI thêm book.
-	// ------------------------------------------------------------
 	routersDir := filepath.Join(
 		tmpDir,
 		"cmd",
@@ -155,11 +145,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Auth middleware
 	authMiddleware := middleware.AuthMiddleware(
 		modules.Refresh.Usecase,
-		core.Session,
-		core.Blacklist,
-		core.Logger,
-		core.Config,
-		core.DeviceHelper,
+		core,
 	)
 
 	// Rate limit config
@@ -171,7 +157,6 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Khởi tạo Swagger
 	gen := initSwagger(r, core, rateLimitMiddleware)
 	initModule(modules, gen, rateLimit, authMiddleware)
-
 	if err := gen.Save("swagger.json"); err != nil {
 		log.Printf("Error saving swagger.json: %v", err)
 	} else {
@@ -186,73 +171,28 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	})
 }
 
-func initSwagger(
-	r *gin.Engine,
-	core *core.CoreServices,
-	rateLimitMiddleware w_handl.IRateLimitMiddleware,
-) *w_handl.SwaggerGenerator {
+func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_handl.IRateLimitMiddleware) *w_handl.SwaggerGenerator {
 	address := fmt.Sprintf("%s:%d", core.Config.Host, core.Config.Port)
-
-	gen := w_handl.NewSwaggerGenerator(
-		"github.com/example/project API",
-		"1.0",
-		address,
-		"/",
-	)
-
+	gen := w_handl.NewSwaggerGenerator("example API", "1.0", address, "/")
 	gen.SetEngine(r)
 	gen.SetRedisClient(core.Redis.GetClient())
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
-
 	return gen
 }
 
-func initModule(
-	modules *Modules,
-	gen *w_handl.SwaggerGenerator,
-	rateLimit limiter.Rate,
-	authMiddleware gin.HandlerFunc,
-) {
+func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limiter.Rate, authMiddleware gin.HandlerFunc) {
 	gen.AddTag("v1", "API Version 1")
 	gen.AddTag("auth", "Auth endpoints")
-
-	modules.Auth.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.Auth.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("user", "User endpoints")
-
-	modules.User.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.User.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.User.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("refresh", "Refresh endpoints")
-
-	modules.Refresh.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
-	modules.Refresh.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
+	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
+	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 }
+
 `
 
 	require.NoError(
@@ -294,14 +234,8 @@ var (
 		),
 	)
 
-	// ------------------------------------------------------------
-	// 4. Gọi AddGoDomain
-	// ------------------------------------------------------------
 	AddGoDomain(tmpDir, moduleName, "book")
 
-	// ------------------------------------------------------------
-	// 5. Debug actual nếu cần
-	// ------------------------------------------------------------
 	actualModules, err := os.ReadFile(
 		filepath.Join(
 			tmpDir,
@@ -315,9 +249,6 @@ var (
 
 	t.Logf("GENERATED MODULES:\n%s", actualModules)
 
-	// ------------------------------------------------------------
-	// 6. Golden
-	// ------------------------------------------------------------
 	expectedFiles := []string{
 		"internal/book/handler/handler.go",
 		"internal/book/model/model.go",
@@ -343,7 +274,6 @@ var (
 	}
 }
 
-// TestCreateProjectStructure_Golden kiểm tra tạo project.
 func TestCreateProjectStructure_Golden(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -432,9 +362,6 @@ func TestRemoveGoDomain_Golden(t *testing.T) {
 	tmpDir := t.TempDir()
 	moduleName := "github.com/example/project"
 
-	// ------------------------------------------------------------
-	// 1. Tạo go.mod
-	// ------------------------------------------------------------
 	require.NoError(
 		t,
 		os.WriteFile(
@@ -444,10 +371,6 @@ func TestRemoveGoDomain_Golden(t *testing.T) {
 		),
 	)
 
-	// ------------------------------------------------------------
-	// 2. Tạo routers/modules.go và routers/routers.go
-	//    Đây là trạng thái SAU KHI thêm book (có đầy đủ book)
-	// ------------------------------------------------------------
 	routersDir := filepath.Join(
 		tmpDir,
 		"cmd",
@@ -457,7 +380,6 @@ func TestRemoveGoDomain_Golden(t *testing.T) {
 
 	require.NoError(t, os.MkdirAll(routersDir, 0755))
 
-	// modules.go với book đã được thêm vào
 	modulesContent := `package routers
 
 import (
@@ -527,11 +449,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Auth middleware
 	authMiddleware := middleware.AuthMiddleware(
 		modules.Refresh.Usecase,
-		core.Session,
-		core.Blacklist,
-		core.Logger,
-		core.Config,
-		core.DeviceHelper,
+		core,
 	)
 
 	// Rate limit config
@@ -543,7 +461,6 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Khởi tạo Swagger
 	gen := initSwagger(r, core, rateLimitMiddleware)
 	initModule(modules, gen, rateLimit, authMiddleware)
-
 	if err := gen.Save("swagger.json"); err != nil {
 		log.Printf("Error saving swagger.json: %v", err)
 	} else {
@@ -558,86 +475,31 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	})
 }
 
-func initSwagger(
-	r *gin.Engine,
-	core *core.CoreServices,
-	rateLimitMiddleware w_handl.IRateLimitMiddleware,
-) *w_handl.SwaggerGenerator {
+func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_handl.IRateLimitMiddleware) *w_handl.SwaggerGenerator {
 	address := fmt.Sprintf("%s:%d", core.Config.Host, core.Config.Port)
-
-	gen := w_handl.NewSwaggerGenerator(
-		"github.com/example/project API",
-		"1.0",
-		address,
-		"/",
-	)
-
+	gen := w_handl.NewSwaggerGenerator("example API", "1.0", address, "/")
 	gen.SetEngine(r)
 	gen.SetRedisClient(core.Redis.GetClient())
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
-
 	return gen
 }
 
-func initModule(
-	modules *Modules,
-	gen *w_handl.SwaggerGenerator,
-	rateLimit limiter.Rate,
-	authMiddleware gin.HandlerFunc,
-) {
+func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limiter.Rate, authMiddleware gin.HandlerFunc) {
 	gen.AddTag("v1", "API Version 1")
 	gen.AddTag("auth", "Auth endpoints")
-
-	modules.Auth.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.Auth.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("user", "User endpoints")
-
-	modules.User.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.User.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.User.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("refresh", "Refresh endpoints")
-
-	modules.Refresh.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
-	modules.Refresh.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
+	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
+	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	gen.AddTag("book", "Book endpoints")
-
-	modules.Book.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
-	modules.Book.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
+	modules.Book.RegisterPublicRoutes(gen,&rateLimit)
+	modules.Book.RegisterProtectedRoutes(gen,&rateLimit,authMiddleware)
 }
+
 `
 
 	require.NoError(
@@ -649,9 +511,6 @@ func initModule(
 		),
 	)
 
-	// ------------------------------------------------------------
-	// 3. Tạo key_object.go với ObjectBook
-	// ------------------------------------------------------------
 	utilsDir := filepath.Join(
 		tmpDir,
 		"internal",
@@ -680,15 +539,11 @@ var (
 		),
 	)
 
-	// ------------------------------------------------------------
-	// 4. Tạo các file của book domain (để kiểm tra xóa)
-	// ------------------------------------------------------------
 	bookDir := filepath.Join(tmpDir, "internal", "book")
 	require.NoError(t, os.MkdirAll(filepath.Join(bookDir, "handler"), 0755))
 	require.NoError(t, os.MkdirAll(filepath.Join(bookDir, "model"), 0755))
 	require.NoError(t, os.MkdirAll(filepath.Join(bookDir, "usecase"), 0755))
 
-	// handler.go
 	handlerContent := `package handler
 
 import (
@@ -714,7 +569,6 @@ func NewBookHandler(usecase *usecase.BookUsecase) *BookHandler {
 		),
 	)
 
-	// model.go
 	modelContent := `package model
 
 type Book struct {
@@ -732,7 +586,6 @@ type Book struct {
 		),
 	)
 
-	// usecase.go
 	usecaseContent := `package usecase
 
 import (
@@ -762,7 +615,6 @@ func (u *BookUsecase) GetBook(id string) (*model.Book, error) {
 		),
 	)
 
-	// module.go
 	moduleContent := `package book
 
 import (
@@ -807,7 +659,6 @@ func (m *BookModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rate
 		),
 	)
 
-	// shared domain
 	domainDir := filepath.Join(tmpDir, "internal", "shared", "domain")
 	require.NoError(t, os.MkdirAll(domainDir, 0755))
 
@@ -826,26 +677,15 @@ const (
 		),
 	)
 
-	// ------------------------------------------------------------
-	// 5. Gọi RemoveGoDomain
-	// ------------------------------------------------------------
 	err := RollbackDomain(tmpDir, moduleName, "book")
 	require.NoError(t, err)
 
-	// ------------------------------------------------------------
-	// 6. Kiểm tra các file đã bị xóa
-	// ------------------------------------------------------------
-	// Kiểm tra thư mục book không còn tồn tại
 	_, err = os.Stat(filepath.Join(tmpDir, "internal", "book"))
 	assert.True(t, os.IsNotExist(err), "book directory should be removed")
 
-	// Kiểm tra shared domain file đã bị xóa
 	_, err = os.Stat(filepath.Join(tmpDir, "internal", "shared", "domain", "book.go"))
 	assert.True(t, os.IsNotExist(err), "shared domain file should be removed")
 
-	// ------------------------------------------------------------
-	// 7. Golden cho các file còn lại
-	// ------------------------------------------------------------
 	expectedFiles := []string{
 		"cmd/server/routers/modules.go",
 		"cmd/server/routers/routers.go",
