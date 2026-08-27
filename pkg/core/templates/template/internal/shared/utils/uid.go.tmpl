@@ -2,24 +2,32 @@ package utils
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/btcsuite/btcutil/base58"
+	"strconv"
 )
 
-// Bits (ví dụ 26, 32, 33,...)
-var Bits int64 = 26
+var Bits int64
 
 type UID struct {
-	LocalID  uint32
-	ObjectID uint
+	LocalID  int64
+	ObjectID int64
 }
 
-func NewUID(localID uint32, objectID uint) *UID {
+func NewUID(localID int64, objectID int64) *UID {
 	return &UID{
 		LocalID:  localID,
 		ObjectID: objectID,
 	}
+}
+
+func (u *UID) Validate() error {
+	if u.LocalID < 0 {
+		return fmt.Errorf("localID cannot be negative")
+	}
+	if u.ObjectID < 0 {
+		return fmt.Errorf("objectID cannot be negative")
+	}
+	return nil
 }
 
 func (u *UID) ToBase58() string {
@@ -34,7 +42,7 @@ func DecodeFromBase58(fakeUID string) *UID {
 	uidByte := base58.Decode(fakeUID)
 	uid, _ := strconv.ParseUint(string(uidByte), 10, 64)
 	return &UID{
-		LocalID:  uint32(uid >> Bits),
-		ObjectID: uint(uid & mask),
+		LocalID:  int64(uid >> Bits),
+		ObjectID: int64(uid & mask),
 	}
 }
