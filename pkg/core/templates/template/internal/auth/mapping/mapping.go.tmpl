@@ -7,6 +7,7 @@ import (
 	w_dpop "github.com/DVV-15324/witches-dpop"
 )
 
+
 func FromRegisterToDomainAuth(dtoAuth *dtoAuth.Register) *domainAuth.Auth {
 	return &domainAuth.Auth{
 		Email:    dtoAuth.Email,
@@ -29,7 +30,7 @@ func FromLoginToDomainAuth(dtoAuth *dtoAuth.Login) (*domainAuth.Auth, *w_dpop.JW
 
 func FromDomainToModelAuth(domain *domainAuth.Auth) *modelAuth.Auth {
 	return &modelAuth.Auth{
-		Id:        domain.Id,
+		ID:        domain.ID,
 		Email:     domain.Email,
 		UserId:    domain.UserId,
 		Password:  domain.Password,
@@ -41,10 +42,9 @@ func FromDomainToModelAuth(domain *domainAuth.Auth) *modelAuth.Auth {
 	}
 }
 
-// Domain → Model
 func FromModelToDomainAuth(model *modelAuth.Auth) *domainAuth.Auth {
 	return &domainAuth.Auth{
-		Id:        model.Id,
+		ID:        model.ID,
 		Email:     model.Email,
 		UserId:    model.UserId,
 		Password:  model.Password,
