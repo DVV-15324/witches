@@ -15,8 +15,6 @@ func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *modelRef
 	if token == nil {
 		return nil
 	}
-
-	// Cache by token
 	data, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -24,11 +22,6 @@ func (r *RefreshTokenRepository) cacheToken(ctx context.Context, token *modelRef
 	key := r.cacheKeyToken(token.Token)
 	if err := r.core.Redis.GetClient().Set(ctx, key, data, 5*time.Minute).Err(); err != nil {
 		return err
-	}
-
-	// Cache by user_id (cho active tokens)
-	if !token.Revoked && time.Now().Before(time.Unix(token.ExpiresAt, 0)) {
-		r.core.Redis.GetClient().SAdd(ctx, r.cacheKeyUserTokens(token.UserID), token.Token)
 	}
 
 	return nil
@@ -56,24 +49,38 @@ func (r *RefreshTokenRepository) deleteCacheToken(ctx context.Context, token str
 	return r.core.Redis.GetClient().Del(ctx, key).Err()
 }
 
-func (r *RefreshTokenRepository) invalidateUserCache(ctx context.Context, token string) {
-	// Lấy user_id từ cache để invalidate
-	data, err := r.core.Redis.GetClient().Get(ctx, r.cacheKeyToken(token)).Result()
-	if err == nil {
-		var rt modelRefresh.RefreshToken
-		if json.Unmarshal([]byte(data), &rt) == nil {
-			r.core.Redis.GetClient().Del(ctx, r.cacheKeyActiveTokens(rt.UserID))
-		}
+func (r *RefreshTokenRepository) cacheJKT(ctx context.Context, token *modelRefresh.RefreshToken) error {
+	if token == nil {
+		return nil
 	}
+	data, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	key := r.cacheKeyJKT(token.JKT)
+	return r.core.Redis.GetClient().Set(ctx, key, data, 5*time.Minute).Err()
 }
 
-func (r *RefreshTokenRepository) cacheNotFound(ctx context.Context, token string) {
-	key := r.cacheKeyNotFound(token)
-	r.core.Redis.GetClient().Set(ctx, key, "1", 1*time.Minute)
+// getCachedJTK lấy refresh token theo JTK
+func (r *RefreshTokenRepository) getCachedJKT(ctx context.Context, JKT string) (*modelRefresh.RefreshToken, error) {
+	key := r.cacheKeyJKT(JKT)
+	data, err := r.core.Redis.GetClient().Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var rt modelRefresh.RefreshToken
+	if err := json.Unmarshal([]byte(data), &rt); err != nil {
+		return nil, err
+	}
+	return &rt, nil
 }
 
-func (r *RefreshTokenRepository) isNotFoundCached(ctx context.Context, token string) bool {
-	key := r.cacheKeyNotFound(token)
-	exists, _ := r.core.Redis.GetClient().Exists(ctx, key).Result()
-	return exists == 1
+// deleteCacheJTK xóa cache theo JTK
+func (r *RefreshTokenRepository) deleteCacheJTK(ctx context.Context, JKT string) error {
+	key := r.cacheKeyJKT(JKT)
+	return r.core.Redis.GetClient().Del(ctx, key).Err()
 }
