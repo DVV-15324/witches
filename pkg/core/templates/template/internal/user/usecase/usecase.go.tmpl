@@ -8,7 +8,6 @@ import (
 	domainUser "{{.ModuleName}}/internal/shared/domain"
 )
 
-// interface
 type IUserResponsitory interface {
 	CreateUser(cxt context.Context, user *domainUser.User) (int, error)
 	GetUserById(ctx context.Context, id int) (*domainUser.User, error)
