@@ -24,11 +24,10 @@ func TestInitMetric(t *testing.T) {
 
 	port := "8083"
 	host := "localhost"
-	InitMetric(port, host, engine)
+	InstanceMetric(port, host, engine)
 
 	time.Sleep(200 * time.Millisecond)
 
-	// Test metrics endpoint
 	resp, err := http.Get("http://localhost:8083/metrics")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.StatusCode)
