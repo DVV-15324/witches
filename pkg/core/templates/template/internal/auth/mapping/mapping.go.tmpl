@@ -4,6 +4,7 @@ import (
 	dtoAuth "{{.ModuleName}}/internal/auth/dto/request"
 	modelAuth "{{.ModuleName}}/internal/auth/model"
 	domainAuth "{{.ModuleName}}/internal/shared/domain"
+	w_dpop "github.com/DVV-15324/witches-dpop"
 )
 
 func FromRegisterToDomainAuth(dtoAuth *dtoAuth.Register) *domainAuth.Auth {
@@ -13,11 +14,17 @@ func FromRegisterToDomainAuth(dtoAuth *dtoAuth.Register) *domainAuth.Auth {
 	}
 }
 
-func FromLoginToDomainAuth(dtoAuth *dtoAuth.Login) *domainAuth.Auth {
+func FromLoginToDomainAuth(dtoAuth *dtoAuth.Login) (*domainAuth.Auth, *w_dpop.JWK) {
 	return &domainAuth.Auth{
-		Email:    dtoAuth.Email,
-		Password: dtoAuth.Password,
-	}
+			Email:    dtoAuth.Email,
+			Password: dtoAuth.Password,
+		},
+		&w_dpop.JWK{
+			Kty: dtoAuth.JWK.Kty,
+			Crv: dtoAuth.JWK.Crv,
+			X:   dtoAuth.JWK.X,
+			Y:   dtoAuth.JWK.Y,
+		}
 }
 
 func FromDomainToModelAuth(domain *domainAuth.Auth) *modelAuth.Auth {
