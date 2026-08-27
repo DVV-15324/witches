@@ -9,117 +9,89 @@ import (
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"time"
+	w_dpop "github.com/DVV-15324/witches-dpop"
 	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
-
-type UsecaseAuth interface {
-	IntrospectToken(ctx context.Context, accessToken string) (*w_utils.JwtClaims, *w_resp.AppError)
+type UsecaseRefresh interface {
+	GetByJKT(ctx context.Context, JKT string) (*domainRefresh.RefreshToken, *w_resp.AppError)
 }
 
 func AuthMiddleware(
-	usecaseAuth UsecaseAuth,
-	sessionSvc *w_utils.SessionService,
-	blacklistSvc *w_utils.BlacklistService,
-	log *logger.ModelLogger,
-	cfg *wcmd_utils.Config,
-	deviceHeper *w_utils.DeviceHelper,
+	usecaseRefresh UsecaseRefresh,
+	core *core.CoreServices,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Lấy tid từ RequestContext
-		tid := w_utils.GetTid(c.Request.Context(), cfg)
-		if tid == "" {
-			// Fallback: lấy từ Gin context
-			if val, exists := c.Get("tid"); exists {
-				tid = val.(string)
-			}
-		}
-		// 1.
-		// En: Extract token
-		// Vi: Trích xuất mã Token
-		token, err := w_utils.ExtractTokenFromHeader(c.GetHeader("Authorization"))
+		token, err := core.Helper.ExtractDPoPTokenFromHeader(c.GetHeader("Authorization"))
 		if err != nil {
 			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteErrorWithLog(c, log, cfg, resp)
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
 			c.Abort()
 			return
 		}
-		// 1.1
-		// En: Get device Info
-		// Vi: Lấy device Info
-		deviceID, ipAddress, userAgent, locale, timeZone := deviceHeper.GetDeviceInfo(c)
-		// 2.
-		// En: Check blacklist
-		// Vi: Kiểm tra blacklist
-		isBlacklisted := blacklistSvc.IsTokenBlacklisted(c.Request.Context(), token)
+		dpopProof, _, _, _, _ := core.Helper.GetInfo(c)
+		jkt, _ := core.JWT.GetJKTFromToken(c, token)
+		refreshToken, err_jkt := usecaseRefresh.GetByJKT(c, jkt)
+		if err_jkt != nil {
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, err_jkt)
+			c.Abort()
+			return
+		}
+		proof_, err_verity := w_dpop.DPoPVerify(c, dpopProof, refreshToken.JKT, 5*time.Second, token)
+		if err_verity != nil {
+			resp := w_resp.NewAppError(401, err_verity, time.Now())
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
+			c.Abort()
+			return
+		}
+		isBlacklisted := core.Blacklist.IsTokenBlacklisted(c.Request.Context(), token)
 		if isBlacklisted {
 			resp := w_resp.NewAppError(401, errors.New("Error: token has been revoked"), time.Now())
-			w_resp.WriteErrorWithLog(c, log, cfg, resp)
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
 			c.Abort()
 			return
 		}
-
-		//3.
-		// En:  Verify Access Token
-		// Vi: Xác thực access token
-		claims, errResp := usecaseAuth.IntrospectToken(c.Request.Context(), token)
+		claims, errResp := core.JWT.ParseToken(c.Request.Context(), token)
 		if errResp != nil {
-			w_resp.WriteErrorWithLog(c, log, cfg, errResp)
+			resp := w_resp.NewAppError(401, errResp, time.Now())
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
 			c.Abort()
 			return
 		}
 
-		// 4.
-		// En: Get userID from claims
-		// Vi: Lấy userID từ claims
 		UID := utils.DecodeFromBase58(claims.Subject)
 		userID := UID.LocalID
 
 		if userID == 0 {
 			resp := w_resp.NewAppError(401, errors.New("Error: invalid user ID in token"), time.Now())
-			w_resp.WriteErrorWithLog(c, log, cfg, resp)
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
 			c.Abort()
 			return
 		}
+		reqCtx := w_utils.GetRequestContext(c.Request.Context(), core.Config)
 
-		// 5.
-		// En: Get request context
-		// Vi: Lấy request context
-		reqCtx := w_utils.GetRequestContext(c.Request.Context(), cfg)
-
-		session, err := sessionSvc.ValidateSession(c.Request.Context(), userID, deviceID, token)
+		_, err = core.Session.ValidateSession(c.Request.Context(), userID, proof_.JKT)
 		if err != nil {
-			// Session không hợp lệ → blacklist token để tránh dùng lại
-			blacklistSvc.BlacklistToken(c.Request.Context(), token)
-			resp := w_resp.NewAppError(401, err, time.Now())
-			w_resp.WriteErrorWithLog(c, log, cfg, resp)
 			c.Abort()
+			resp := w_resp.NewAppError(401, err, time.Now())
+			w_resp.WriteErrorWithLog(c, core.Logger, core.Config, resp)
 			return
 		}
 
-		// 6: Save Context
 		reqCtx.Sub = claims.Subject
-		reqCtx.SessionID = session.SessionID
-		reqCtx.DeviceID = deviceID
-		reqCtx.IPAddress = ipAddress
-		reqCtx.UserAgent = userAgent
-		reqCtx.Locale = locale
-		reqCtx.Timezone = timeZone
-		ctx := w_utils.SaveRequestContext(c.Request.Context(), reqCtx, cfg)
+		reqCtx.Tid = claims.ID
+		ctx := w_utils.SaveRequestContext(c.Request.Context(), reqCtx, core.Config)
 		c.Request = c.Request.WithContext(ctx)
 
-		//6.1: RBAC kiểm tra role của token
-		//
-
-		// 7: Next()
+		// RBAC
 		c.Next()
 
-		// 8.
-		// Chạy async để không block response
+		// async response
 		go func() {
 			ctxBg, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			sessionSvc.UpdateLastActive(ctxBg, userID, deviceID)
+			core.Session.UpdateLastActive(ctxBg, userID, dpopProof)
 		}()
 	}
 }
+
