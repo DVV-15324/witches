@@ -41,8 +41,10 @@ func TestPreloadNotDBURL(t *testing.T) {
 	tmpDir := t.TempDir()
 	envContent := `APP_PORT=9090
 APP_HOST=127.0.0.1
+APP_ENV=developmet
 METRIC_PORT=9091
-UID_BITS=30
+UID_BITS=26
+HASH_LEN=16
 REQUEST_KEY=custom_key
 LOG_PATH=/var/log
 CORS_ALLOW_ORIGINS=http://example.com
@@ -94,8 +96,10 @@ RATE_LIMIT_MAX=200`
 	// Kiểm tra tất cả các field
 	assert.Equal(t, int64(9090), cfg.Port)
 	assert.Equal(t, "127.0.0.1", cfg.Host)
+	assert.Equal(t, "development", cfg.Env)
 	assert.Equal(t, int64(9091), cfg.MetrictPort)
-	assert.Equal(t, 30, cfg.UIDBits)
+	assert.Equal(t, int64(26), cfg.UIDBits)
+	assert.Equal(t, int64(16), cfg.HashLen)
 	assert.Equal(t, contextKey("custom_key"), contextKey(cfg.RequestKey))
 	assert.Equal(t, "/var/log", cfg.LogPath)
 	assert.Equal(t, "http://example.com", cfg.CorsAllowOrigins)
@@ -120,7 +124,6 @@ RATE_LIMIT_MAX=200`
 	assert.Equal(t, "redispass", cfg.RedisPassword)
 	assert.Equal(t, int64(1800), cfg.AccessTokenTTL)
 	assert.Equal(t, int64(86400), cfg.RefreshTokenTTL)
-	assert.Equal(t, int64(86400), cfg.SessionTTL)
 	assert.Equal(t, int64(3600), cfg.IdleTimeout)
 	assert.Equal(t, int64(600), cfg.RevokedTTL)
 	assert.Equal(t, int64(120), cfg.RateLimitPeriod)
