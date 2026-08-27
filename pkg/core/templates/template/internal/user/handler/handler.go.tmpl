@@ -3,7 +3,7 @@ package handler
 import (
 	domain "{{.ModuleName}}/internal/shared/domain"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/DVV-15324/witches/pkg/core/response/logger"
+	"{{.ModuleName}}/cmd/server/core"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 
 	"context"
@@ -11,7 +11,7 @@ import (
 
 type IUserUseCase interface {
 	GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*domain.User, int64, *w_resp.AppError)
-	GetUserById(ctx context.Context, id int) (*domain.User, *w_resp.AppError)
+	GetUserById(ctx context.Context, id int64) (*domain.User, *w_resp.AppError)
 }
 type UserHandle struct {
 	UserUseCase IUserUseCase
