@@ -3,13 +3,14 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	domainAuth "{{.ModuleName}}/internal/shared/domain"
 	domainToken "{{.ModuleName}}/internal/shared/domain"
-	//"fmt"
+	utils "{{.ModuleName}}/internal/shared/utils"
 	"time"
 
-	utils "{{.ModuleName}}/internal/shared/utils"
+	w_dpop "github.com/DVV-15324/witches-dpop"
 
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
@@ -17,11 +18,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// Login chỉ đọc không cần transaction - tiết kiệm tài nguyên
-func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID string, IPAddress string, UserAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError) {
-	// 1. Check user
+func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, jwk *w_dpop.JWK, ipAddress string, userAgent string, timeZone string, locale string) (*w_utils.TokenResponse, *w_resp.AppError) {
 	auth, err := a.AuthReponsitory.GetAuthByEmail(ctx, au.Email)
-	///fmt.Println(auth)
 	if err != nil {
 		resp := w_resp.NewAppError(500, err, time.Now())
 		return nil, resp
@@ -30,70 +28,63 @@ func (a *AuthUseCase) Login(ctx context.Context, au *domainAuth.Auth, DeviceID s
 		resp := w_resp.NewAppError(500, errors.New("email không tồn tại"), time.Now())
 		return nil, resp
 	}
-	user, err_user := a.UserUseCase.GetUserById(ctx, auth.UserId)
-	if err_user != nil {
-		return nil, err_user
-	}
 
-	// 2. Check banned
 	if auth.Banned {
 		resp := w_resp.NewAppError(500, errors.New("tài khoản đã bị khóa"), time.Now())
 		return nil, resp
 	}
 
-	// 3. Verify password
 	if !a.Core.Hash.CompareHashAndPassword(auth.Password, au.Password, auth.Salt) {
 
 		resp := w_resp.NewAppError(500, errors.New("email hoặc mật khẩu không đúng"), time.Now())
 		return nil, resp
 	}
 
-	//Tạo tid, sub
-	s := utils.NewUID(uint32(auth.UserId), 1)
-	// Mã hóa Base58
+	s := utils.NewUID(auth.UserId, 1)
 	sub := s.ToBase58()
-	// Tạo mã định danh cho token
 	tid := uuid.New().String()
 
-	//4. Tạo Access Token
-	accessToken, err_access_token := a.Core.JWT.IssueAccessToken(ctx, sub, tid)
+	jkt, err_jkt := w_dpop.JWKThumbprint(jwk)
+	if err_jkt != nil {
+		e := fmt.Sprintf("JWKThumbprint error: %v", err_jkt)
+		resp := w_resp.NewAppError(500, errors.New(e), time.Now())
+		return nil, resp
+	}
+
+	accessToken, err_access_token := a.Core.JWT.IssueAccessToken(ctx, sub, tid, jkt)
 	if err_access_token != nil {
 		resp := w_resp.NewAppError(500, err_access_token, time.Now())
 		return nil, resp
 	}
-	// 5. Create Refresh Token
 	refreshTokenStr, err_refresh_token := a.Core.JWT.IssueRefreshToken(ctx, sub, tid)
 	if err_refresh_token != nil {
 		resp := w_resp.NewAppError(500, err_refresh_token, time.Now())
 		return nil, resp
 	}
+
 	refreshToken := &domainToken.RefreshToken{
-		UserID:    uint32(auth.UserId),
+		UserID:    auth.UserId,
 		Token:     refreshTokenStr.Token,
-		DeviceID:  DeviceID,
-		IPAddress: IPAddress,
-		UserAgent: UserAgent,
-		Locale:    Locale,
-		Timezone:  TimeZone,
+		JKT:       jkt,
+		UserAgent: userAgent,
+		IPAddress: ipAddress,
+		Locale:    locale,
+		Timezone:  timeZone,
 		ExpiresAt: a.Core.Config.RefreshTokenTTL,
 	}
 	if err := a.RefreshTokenUseCase.Create(ctx, refreshToken); err != nil {
 		return nil, err
 	}
 
-	// 7. Cache session
 	session := &w_utils.SessionCache{
-		UserID:      uint32(auth.UserId),
-		Email:       auth.Email,
-		Role:        user.Role,
-		DeviceID:    DeviceID,
-		IPAddress:   IPAddress,
-		UserAgent:   UserAgent,
-		Locale:      Locale,
+		UserID:      auth.UserId,
+		JKT:         jkt,
+		UserAgent:   userAgent,
+		IPAddress:   ipAddress,
+		Locale:      locale,
+		Timezone:    timeZone,
 		LastActive:  time.Now().Unix(),
-		Timezone:    TimeZone,
 		AccessToken: accessToken.Token,
-		LoginAt:     time.Now().Unix(),
 	}
 	_ = a.Core.Session.CreateSession(ctx, session)
 

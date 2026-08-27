@@ -14,16 +14,14 @@ import (
 
 func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name string) *w_resp.AppError {
 	err := a.Core.TxManager.WithinTransaction(ctx, func(ctx context.Context) error {
-		// check tài khoản tồn tại
 		authEmail, err := a.AuthReponsitory.GetAuthByEmail(ctx, auth.Email)
 		if authEmail != nil {
-			return ErrorEmailIsExisted
+			return errors.New("email da ton tai")
 		}
 		if err != nil {
 			return err
 		}
-		//Hash Password
-		randomString, err := w_utils.RandomStr(16)
+		randomString, err := w_utils.RandomStr(int(a.Core.Config.HashLen))
 		if err != nil {
 			return err
 		}
@@ -32,8 +30,6 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name 
 		if err != nil {
 			return err
 		}
-
-		// Tạo User
 		userUid, err_create := a.UserUseCase.CreateUser(ctx, &domainUser.User{
 			Email: auth.Email,
 			Name:  name,
@@ -44,7 +40,6 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name 
 		if userUid == 0 {
 			return errors.New("user id is 0, cannot create auth")
 		}
-		// Tạo Auth
 		err_auth := a.AuthReponsitory.CreateAuth(ctx, &domainAuth.Auth{
 			Salt:     randomString,
 			Email:    auth.Email,
@@ -57,7 +52,7 @@ func (a *AuthUseCase) Register(ctx context.Context, auth *domainAuth.Auth, name 
 		return nil
 	})
 	if err != nil {
-		if err == ErrorEmailIsExisted {
+		if err == errors.New("email da ton tai") {
 			return w_resp.NewAppError(409, err, time.Now())
 		}
 		return w_resp.NewAppError(500, err, time.Now())
