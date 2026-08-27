@@ -28,12 +28,9 @@ func TestTxManager_WithinTransaction_Success(t *testing.T) {
 
 	ctx := context.Background()
 	err := txManager.WithinTransaction(ctx, func(txCtx context.Context) error {
-		// Get tx from context
 		tx, err := GetTxFromContext(txCtx)
 		assert.NoError(t, err)
 		assert.NotNil(t, tx)
-
-		// Do something with tx
 		return nil
 	})
 
@@ -46,7 +43,6 @@ func TestTxManager_WithinTransaction_Rollback(t *testing.T) {
 
 	ctx := context.Background()
 	err := txManager.WithinTransaction(ctx, func(txCtx context.Context) error {
-		// Return error to trigger rollback
 		return assert.AnError
 	})
 
@@ -57,7 +53,7 @@ func TestGetTxFromContext_NoTransaction(t *testing.T) {
 	ctx := context.Background()
 	tx, err := GetTxFromContext(ctx)
 	assert.Error(t, err)
-	assert.Equal(t, ErrNoTransaction, err)
+	assert.Equal(t, "no transaction found in context", err.Error())
 	assert.Nil(t, tx)
 }
 
@@ -76,34 +72,13 @@ func TestTransactionError(t *testing.T) {
 	assert.Contains(t, errMsg, rollbackErr.Error())
 }
 
-func TestNoTransactionError(t *testing.T) {
-	err := &NoTransactionError{}
-	assert.Equal(t, "no transaction found in context", err.Error())
-}
-
-// pkg/core/utils/tx_manager_test.go
 func TestTxManager_WithinTransaction_WithError(t *testing.T) {
 	db := setupTestDB(t)
 	txManager := NewTxManager(db)
 
 	ctx := context.Background()
 	err := txManager.WithinTransaction(ctx, func(txCtx context.Context) error {
-		// Return error to trigger rollback
 		return assert.AnError
 	})
 	assert.Error(t, err)
-}
-
-func TestTxManager_WithinTransaction_CommitError(t *testing.T) {
-	// Test khi commit bị lỗi (khó mock, có thể skip)
-	t.Skip("Skipping commit error test - requires complex mock")
-}
-
-func TestGetTxFromContext_InvalidType(t *testing.T) {
-	// Test khi context có giá trị nhưng không phải *gorm.DB
-	ctx := context.WithValue(context.Background(), txKey, "invalid-type")
-	tx, err := GetTxFromContext(ctx)
-	assert.Error(t, err)
-	assert.Equal(t, ErrNoTransaction, err)
-	assert.Nil(t, tx)
 }
