@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-// ==================== MOCK STORE FACTORY ====================
-
 func mockStoreFactory() (limiter.Store, error) {
 	return memory.NewStore(), nil
 }
@@ -24,12 +22,9 @@ type mockRateLimitMiddleware struct{}
 
 func (m *mockRateLimitMiddleware) CreateRateLimitMiddleware(rateLimit *limiter.Limiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Mock rate limit middleware
 		c.Next()
 	}
 }
-
-// ==================== TEST SETUP ====================
 
 func setupTest() (*SwaggerGenerator, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
@@ -41,8 +36,6 @@ func setupTest() (*SwaggerGenerator, *gin.Engine) {
 	gen.SetRateLimitMiddleware(&mockRateLimitMiddleware{})
 	return gen, engine
 }
-
-// ==================== TEST ROUTE BUILDER ====================
 
 func TestRouteBuilder_Build_GET(t *testing.T) {
 	gen, engine := setupTest()
@@ -121,11 +114,6 @@ func TestRouteBuilder_RateLimit(t *testing.T) {
 	engine.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// Bỏ test rate limit vì mock không thực hiện
-	// hoặc test rằng middleware được gọi
-	// w = httptest.NewRecorder()
-	// engine.ServeHTTP(w, req)
-	// assert.Equal(t, http.StatusTooManyRequests, w.Code)
 }
 
 func TestRouteBuilder_RateLimit_NilStore(t *testing.T) {
@@ -346,7 +334,6 @@ func TestRouteBuilder_AllMethods(t *testing.T) {
 
 	for _, m := range methods {
 		t.Run(m.method, func(t *testing.T) {
-			//  Sửa: Handler được gán sau khi build
 			builder := m.fn("/test")
 			builder.Handler(func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{"method": m.method})
