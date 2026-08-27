@@ -56,23 +56,19 @@ func TestModelParser_Register_WithTags(t *testing.T) {
 	schema := parser.schemas["User"]
 	assert.NotEmpty(t, schema.Required)
 
-	// Check name properties
 	nameProp := schema.Properties["name"]
 	assert.Equal(t, "string", nameProp.Type)
 	assert.Equal(t, 3, *nameProp.MinLength)
 	assert.Equal(t, 50, *nameProp.MaxLength)
 
-	// Check age properties
 	ageProp := schema.Properties["age"]
 	assert.Equal(t, "integer", ageProp.Type)
 	assert.Equal(t, 18, *ageProp.Minimum)
 	assert.Equal(t, 99, *ageProp.Maximum)
 
-	// Check description
 	assert.Equal(t, "User ID", schema.Properties["id"].Description)
 }
 
-// pkg/core/handler/model_parser_test.go
 func TestModelParser_Register_NestedStruct(t *testing.T) {
 	parser := NewModelParser()
 
@@ -89,15 +85,11 @@ func TestModelParser_Register_NestedStruct(t *testing.T) {
 
 	parser.Register(User{})
 
-	// Check User schema
 	userSchema, ok := parser.schemas["User"]
 	assert.True(t, ok)
 	assert.Contains(t, userSchema.Properties, "address")
 
-	// Check Address schema - có thể không được register riêng
-	// Nếu không có, thì address property đã được inline
 	if _, ok := parser.schemas["Address"]; !ok {
-		// Address không được register riêng, kiểm tra property address
 		addrProp := userSchema.Properties["address"]
 		assert.NotEmpty(t, addrProp.Type, "Address property should have type")
 		t.Log("Address schema is inlined, not registered separately")
@@ -113,11 +105,9 @@ func TestModelParser_Register_Array(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	// Register slice
 	name := parser.Register([]Item{})
 	assert.Equal(t, "[]Item", name)
 
-	// Check slice schema
 	schema, ok := parser.schemas["[]Item"]
 	assert.True(t, ok)
 	assert.Equal(t, "array", schema.Type)
@@ -127,19 +117,15 @@ func TestModelParser_Register_Array(t *testing.T) {
 func TestModelParser_Register_Primitive(t *testing.T) {
 	parser := NewModelParser()
 
-	// String
 	name := parser.Register("test")
 	assert.Equal(t, "string", name)
 
-	// Int
 	name = parser.Register(123)
 	assert.Equal(t, "int", name)
 
-	// Float
 	name = parser.Register(123.45)
 	assert.Equal(t, "float64", name)
 
-	// Bool
 	name = parser.Register(true)
 	assert.Equal(t, "bool", name)
 }
