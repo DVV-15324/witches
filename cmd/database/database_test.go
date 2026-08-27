@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ===== UNIT TESTS =====
-
 func TestGenerateDBURL(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -106,14 +104,12 @@ func TestGenerateDBURL(t *testing.T) {
 }
 
 func TestWitchesDBURL(t *testing.T) {
-	// Lưu lại thư mục làm việc hiện tại
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 	defer func() {
 		_ = os.Chdir(origDir)
 	}()
 
-	// Tạo thư mục tạm và cd vào đó
 	tmpDir := t.TempDir()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
@@ -123,7 +119,7 @@ func TestWitchesDBURL(t *testing.T) {
 		driver   string
 		config   *utils.Config
 		wantErr  bool
-		checkEnv func(t *testing.T, content string) // optional
+		checkEnv func(t *testing.T, content string)
 	}{
 		{
 			name:   "MySQL - valid",
@@ -172,21 +168,13 @@ func TestWitchesDBURL(t *testing.T) {
 			}
 			assert.NoError(t, err)
 
-			// Kiểm tra file witches.env tồn tại và nội dung chứa DB_URL
 			envPath := filepath.Join(tmpDir, "witches.env")
 			_, err = os.Stat(envPath)
 			assert.NoError(t, err, "witches.env should exist")
 
 			content, err := os.ReadFile(envPath)
 			assert.NoError(t, err)
-
-			// Kiểm tra sơ bộ nội dung chứa DB_URL (tùy theo driver)
-			// Ta không cần so sánh chính xác vì nội dung phụ thuộc CreateContentRefreshUsed
-			// Nhưng ít nhất file không rỗng và chứa DB_URL
 			assert.NotEmpty(t, content)
-
-			// Có thể kiểm tra DB_URL xuất hiện trong file
-			// Lấy DB_URL từ config.DatabaseURL đã được gán
 			assert.NotEmpty(t, tt.config.DBUrl)
 			assert.Contains(t, string(content), tt.config.DBUrl)
 		})
