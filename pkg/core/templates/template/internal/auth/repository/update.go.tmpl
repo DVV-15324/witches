@@ -28,10 +28,9 @@ func (r *AuthRepository) UpdateAuth(ctx context.Context, modleAuth *domainAuth.A
 
 	// // Invalidate cache cũ và cache mới
 	go func() {
-		r.invalidateAuthCache(context.Background(), oldAuth.Email, uint32(oldAuth.UserId))
+		r.invalidateAuthCache(context.Background(), oldAuth.Email, oldAuth.UserId)
 		r.cacheAuth(context.Background(), auth)
 	}()
 
 	return nil
 }
-
