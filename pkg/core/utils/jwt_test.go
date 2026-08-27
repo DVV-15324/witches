@@ -31,7 +31,7 @@ func TestJwtService_IssueAccessToken(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
+	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456", "jkt")
 	require.NoError(t, err)
 	assert.NotNil(t, token)
 	assert.NotEmpty(t, token.Token)
@@ -55,7 +55,7 @@ func TestJwtService_IssueTokenPair(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	pair, err := service.IssueTokenPair(ctx, "user-123", "trace-456")
+	pair, err := service.IssueTokenPair(ctx, "user-123", "trace-456", "jkt")
 	require.NoError(t, err)
 	assert.NotNil(t, pair)
 	assert.NotEmpty(t, pair.AccessToken.Token)
@@ -68,7 +68,7 @@ func TestJwtService_ParseToken_Valid(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
+	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456", "jkt")
 	require.NoError(t, err)
 
 	claims, err := service.ParseToken(ctx, token.Token)
@@ -83,7 +83,7 @@ func TestJwtService_ParseToken_Expired(t *testing.T) {
 	service := NewJwtService(cfg)
 	ctx := context.Background()
 
-	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456")
+	token, err := service.IssueAccessToken(ctx, "user-123", "trace-456", "jkt")
 	require.NoError(t, err)
 	time.Sleep(10 * time.Millisecond)
 
@@ -161,7 +161,7 @@ func TestJwtService_ParseToken_WithConfigNil(t *testing.T) {
 func TestJwtService_IssueAccessToken_WithNilConfig(t *testing.T) {
 	service := &JwtService{config: nil}
 	ctx := context.Background()
-	_, err := service.IssueAccessToken(ctx, "sub", "tid")
+	_, err := service.IssueAccessToken(ctx, "sub", "tid", "jkt")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "jwt service config is nil")
 }
