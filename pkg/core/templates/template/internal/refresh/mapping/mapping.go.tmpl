@@ -5,12 +5,13 @@ import (
 	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 )
 
+
 func FromDomainToModelRefresh(domain *domainRefresh.RefreshToken) *modelRefresh.RefreshToken {
 	return &modelRefresh.RefreshToken{
 		ID:            domain.ID,
 		UserID:        domain.UserID,
 		Token:         domain.Token,
-		DeviceID:      domain.DeviceID,
+		JKT:           domain.JKT,
 		IPAddress:     domain.IPAddress,
 		UserAgent:     domain.UserAgent,
 		ExpiresAt:     domain.ExpiresAt,
@@ -29,7 +30,7 @@ func FromModelToDomainRefresh(model *modelRefresh.RefreshToken) *domainRefresh.R
 		ID:            model.ID,
 		UserID:        model.UserID,
 		Token:         model.Token,
-		DeviceID:      model.DeviceID,
+		JKT:           model.JKT,
 		IPAddress:     model.IPAddress,
 		UserAgent:     model.UserAgent,
 		ExpiresAt:     model.ExpiresAt,
