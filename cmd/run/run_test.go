@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ==================== Test WitchesCreate ====================
-
 func TestWitchesCreate_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
@@ -127,8 +125,6 @@ func TestWitchesCreate_EnvFileExists(t *testing.T) {
 	}
 }
 
-// ==================== Test WitchesInit ====================
-
 func TestWitchesInit_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -184,15 +180,12 @@ func TestWitchesInit_InvalidDriver(t *testing.T) {
 	}
 }
 
-// ==================== Test WitchesInstall ====================
-
 func TestWitchesInstall_Success(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
 
 	tmpDir := t.TempDir()
-	// Tạo go.mod
 	goModPath := filepath.Join(tmpDir, "go.mod")
 	err := os.WriteFile(goModPath, []byte("module test"), 0644)
 	require.NoError(t, err)
@@ -209,11 +202,8 @@ func TestWitchesInstall_Success(t *testing.T) {
 	}
 	require.NoError(t, err)
 
-	// Gọi WitchesInstall với driver postgres
 	WitchesInstall("postgres")
 
-	// Kiểm tra go.mod có được cập nhật không (có thể dùng go list)
-	// Hoặc chỉ kiểm tra không có panic
 	t.Log("Installation completed successfully")
 }
 
@@ -232,8 +222,6 @@ func TestWitchesInstall_DriverMapping(t *testing.T) {
 		})
 	}
 }
-
-// ==================== Test helper functions ====================
 
 func TestFindProjectRoot_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -259,7 +247,6 @@ func TestFindProjectRoot_Success(t *testing.T) {
 	assert.Equal(t, tmpDir, root)
 }
 
-// cmd/run/run_test.go
 func TestFindProjectRoot_NoGoMod(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
@@ -275,24 +262,20 @@ func TestFindProjectRoot_NoGoMod(t *testing.T) {
 	require.NoError(t, err)
 
 	root := findProjectRoot()
-	// Nếu có go.mod ở thư mục cha (do môi trường có project Go), bỏ qua test
+
 	if root != "" {
 		t.Skip("Skipping: go.mod found in parent directory, cannot test empty root")
 	}
 	assert.Empty(t, root, "Should return empty when no go.mod found")
 }
 
-// ==================== Test WitchesRun ====================
-
 func TestWitchesRun_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Tạo go.mod
 	goModPath := filepath.Join(tmpDir, "go.mod")
 	err := os.WriteFile(goModPath, []byte("module test"), 0644)
 	require.NoError(t, err)
 
-	// Tạo main.go
 	mainFile := filepath.Join(tmpDir, "main.go")
 	mainContent := `package main
 
@@ -305,7 +288,6 @@ func main() {
 	err = os.WriteFile(mainFile, []byte(mainContent), 0644)
 	require.NoError(t, err)
 
-	// Tạo internal/dto để easyjson generate
 	dtoDir := filepath.Join(tmpDir, "internal", "user", "dto", "request")
 	err = os.MkdirAll(dtoDir, 0755)
 	require.NoError(t, err)
@@ -333,21 +315,14 @@ type UserRequest struct {
 	}
 	require.NoError(t, err)
 
-	// Gọi WitchesRun - sẽ chạy go run .
 	WitchesRun()
 }
 
-// ==================== Test generateEasyJSONForDir ====================
-
 func TestGenerateEasyJSONForDir(t *testing.T) {
-	// Skip nếu chưa có easyjson
 	if _, err := exec.LookPath("easyjson"); err != nil {
 		t.Skip("easyjson not installed, skip test")
 	}
-
 	tmpDir := t.TempDir()
-
-	// Tạo file .go với struct
 	dtoFile := filepath.Join(tmpDir, "test.go")
 	dtoContent := `package test
 
@@ -359,10 +334,8 @@ type TestStruct struct {
 	err := os.WriteFile(dtoFile, []byte(dtoContent), 0644)
 	require.NoError(t, err)
 
-	// Gọi generateEasyJSONForDir
 	generateEasyJSONForDir(tmpDir, "test")
 
-	// Kiểm tra file _easyjson.go được tạo
 	files, err := filepath.Glob(filepath.Join(tmpDir, "*_easyjson.go"))
 	assert.NoError(t, err)
 	if len(files) == 0 {
@@ -372,14 +345,11 @@ type TestStruct struct {
 	}
 }
 
-// ==================== Test WitchesRun with missing files ====================
-// cmd/run/run_test.go
 func TestWitchesRun_NoMainGo(t *testing.T) {
-	//  Dùng subprocess để test log.Fatal
+
 	if os.Getenv("TEST_SUBPROCESS_RUN") == "1" {
 		tmpDir := t.TempDir()
 
-		// Tạo go.mod nhưng không có main.go
 		goModPath := filepath.Join(tmpDir, "go.mod")
 		err := os.WriteFile(goModPath, []byte("module test"), 0644)
 		if err != nil {
@@ -399,12 +369,10 @@ func TestWitchesRun_NoMainGo(t *testing.T) {
 			t.Fatalf("failed to chdir: %v", err)
 		}
 
-		// Gọi WitchesRun - sẽ log.Fatal
 		WitchesRun()
 		return
 	}
 
-	// Chạy subprocess để test
 	cmd := exec.Command(os.Args[0], "-test.run=TestWitchesRun_NoMainGo")
 	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS_RUN=1")
 
@@ -417,8 +385,6 @@ func TestWitchesRun_NoMainGo(t *testing.T) {
 		t.Errorf("Expected ExitError, got %T", err)
 	}
 }
-
-// ==================== Test RemoveEasyJSONFiles ====================
 
 func TestRemoveEasyJSONFiles(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -445,7 +411,6 @@ func TestWitchesAdd_Success(t *testing.T) {
 	err := os.WriteFile(goModPath, []byte("module test-module"), 0644)
 	require.NoError(t, err)
 
-	// Tạo internal/shared/utils với Object constant
 	sharedDir := filepath.Join(tmpDir, "internal", "shared", "utils")
 	err = os.MkdirAll(sharedDir, 0755)
 	require.NoError(t, err)
@@ -468,7 +433,6 @@ var Object uint = 1
 
 	WitchesAdd("book")
 
-	// Kiểm tra thư mục service được tạo
 	serviceDir := filepath.Join(tmpDir, "internal", "book")
 	_, err = os.Stat(serviceDir)
 	assert.NoError(t, err, "Service directory should be created")
@@ -480,7 +444,6 @@ func TestWitchesRoll_Success(t *testing.T) {
 	err := os.WriteFile(goModPath, []byte("module test-module"), 0644)
 	require.NoError(t, err)
 
-	// Tạo internal/shared/utils với Object constant
 	sharedDir := filepath.Join(tmpDir, "internal", "shared", "utils")
 	err = os.MkdirAll(sharedDir, 0755)
 	require.NoError(t, err)
