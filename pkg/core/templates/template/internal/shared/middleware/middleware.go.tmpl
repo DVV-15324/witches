@@ -3,14 +3,14 @@ package middleware
 import (
 	"context"
 	"errors"
+	"{{.ModuleName}}/cmd/server/core"
+	domainRefresh "{{.ModuleName}}/internal/shared/domain"
 	utils "{{.ModuleName}}/internal/shared/utils"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"time"
 	w_dpop "github.com/DVV-15324/witches-dpop"
-	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
 type UsecaseRefresh interface {
