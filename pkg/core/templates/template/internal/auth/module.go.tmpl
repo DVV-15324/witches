@@ -11,7 +11,6 @@ import (
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/gin-gonic/gin"
-
 	"github.com/ulule/limiter/v3"
 )
 
@@ -37,8 +36,6 @@ func NewAuthModule(
 }
 
 func (m *AuthModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate) {
-	// En: Login
-	// Vi: Đăng nhập
 	gen.POST("/v1/auth/login").
 		Summary("User login").
 		Description("Authenticate user and return JWT token").
@@ -53,8 +50,6 @@ func (m *AuthModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLim
 		Handler(m.Handler.HandleLogin()).
 		Build()
 
-	// En: Register
-	// Vi: Đăng kí
 	gen.POST("/v1/auth/register").
 		Summary("User registration").
 		Description("Register a new user account").
@@ -72,9 +67,6 @@ func (m *AuthModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLim
 }
 
 func (m *AuthModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
-
-	// En: Logout
-	// Vi: Đăng xuất
 	gen.POST("/v1/auth/logout").
 		Summary("User logout").
 		Description("Logout user and invalidate JWT token").
@@ -83,11 +75,11 @@ func (m *AuthModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rate
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
 		RateLimit(*rateLimit).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
 		Response(200, w_resp.AppResponse{}, "Logout successful").
 		Response(401, w_resp.AppResponse{}, "Unauthorized").
 		Use(authMiddleware).
 		Handler(m.Handler.HandleLogout()).
 		Build()
-
 }
