@@ -165,7 +165,7 @@ func TestJWTAndBlacklist_Integration(t *testing.T) {
 	blacklistService := NewBlacklistService(client, cfg)
 	ctx := context.Background()
 
-	tokenPair, err := jwtService.IssueTokenPair(ctx, "user-123", "trace-456")
+	tokenPair, err := jwtService.IssueTokenPair(ctx, "user-123", "trace-456", "jkt")
 	require.NoError(t, err)
 	accessToken := tokenPair.AccessToken.Token
 
