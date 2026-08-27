@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// pkg/core/utils/hash_test.go
 func TestRandomStr(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -27,10 +26,8 @@ func TestRandomStr(t *testing.T) {
 			assert.NoError(t, err)
 			if tt.length > 0 {
 				assert.Len(t, str, tt.wantLen)
-				// Check that string is hex
 				_, err := hex.DecodeString(str)
 				assert.NoError(t, err)
-				// Check uniqueness
 				str2, err := RandomStr(tt.length)
 				assert.NoError(t, err)
 				assert.NotEqual(t, str, str2)
@@ -44,12 +41,9 @@ func TestHash_GenerateFromPassword(t *testing.T) {
 	h := &Hash{}
 	salt := "salt123"
 	password := "mypassword"
-
 	hashed, err := h.GenerateFromPassword(password, salt)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashed)
-
-	// Same password + salt should generate different hash each time
 	hashed2, err := h.GenerateFromPassword(password, salt)
 	assert.NoError(t, err)
 	assert.NotEqual(t, hashed, hashed2)
@@ -111,10 +105,7 @@ func TestHash_CompareHashAndPassword(t *testing.T) {
 
 func TestHash_GenerateFromPassword_Error(t *testing.T) {
 	h := &Hash{}
-
-	// Test với password rất dài
 	longPassword := string(make([]byte, 10000))
 	_, err := h.GenerateFromPassword(longPassword, "salt")
-	// Có thể có lỗi hoặc không, tùy thuộc vào bcrypt
 	t.Logf("Long password test: %v", err)
 }
