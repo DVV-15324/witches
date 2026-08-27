@@ -12,6 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+
 func (r *AuthRepository) cacheAuth(ctx context.Context, auth *modelAuth.Auth) error {
 	if auth == nil {
 		return nil
@@ -25,7 +26,7 @@ func (r *AuthRepository) cacheAuth(ctx context.Context, auth *modelAuth.Auth) er
 	pipe.Set(ctx, emailKey, emailData, 5*time.Minute)
 
 	// Cache by user_id
-	userKey := r.cacheKeyAuthByUserID(uint32(auth.UserId))
+	userKey := r.cacheKeyAuthByUserID(auth.UserId)
 	userData, _ := json.Marshal(auth)
 	pipe.Set(ctx, userKey, userData, 5*time.Minute)
 
@@ -50,7 +51,7 @@ func (r *AuthRepository) getAuthFromCacheByEmail(ctx context.Context, email stri
 	return &auth, nil
 }
 
-func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID uint32) (*modelAuth.Auth, error) {
+func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID int64) (*modelAuth.Auth, error) {
 	key := r.cacheKeyAuthByUserID(userID)
 	data, err := r.core.Redis.GetClient().Get(ctx, key).Result()
 	if err != nil {
@@ -67,7 +68,7 @@ func (r *AuthRepository) getAuthFromCacheByUserID(ctx context.Context, userID ui
 	return &auth, nil
 }
 
-func (r *AuthRepository) invalidateAuthCache(ctx context.Context, email string, userID uint32) {
+func (r *AuthRepository) invalidateAuthCache(ctx context.Context, email string, userID int64) {
 	r.core.Redis.GetClient().Del(ctx, r.cacheKeyAuthByEmail(email))
 	r.core.Redis.GetClient().Del(ctx, r.cacheKeyAuthByUserID(userID))
 }
