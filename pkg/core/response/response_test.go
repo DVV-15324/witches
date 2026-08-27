@@ -22,7 +22,6 @@ func getTestConfig() *wcmd_utils.Config {
 }
 
 func getTestLogger(t *testing.T) *logger.ModelLogger {
-	// Dùng thư mục tạm của hệ thống, không dùng t.TempDir() để tránh cleanup tự động
 	dir, err := os.MkdirTemp("", "test_logs_")
 	if err != nil {
 		t.Fatal(err)
@@ -34,8 +33,6 @@ func getTestLogger(t *testing.T) *logger.ModelLogger {
 	}
 	t.Cleanup(func() {
 		_ = log.Sync()
-		// Cố gắng đóng file nếu có
-		// Nếu không có, vẫn xóa thư mục (lỗi sẽ được ignore)
 		_ = os.RemoveAll(dir)
 	})
 	return log
