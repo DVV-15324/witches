@@ -13,19 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Struct không implement interface
 type SimpleStruct struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
 }
 
-// Struct implement JSONUnmarshaler
 type CustomUnmarshaler struct {
 	Value string
 }
 
 func (c *CustomUnmarshaler) UnmarshalJSON(data []byte) error {
-	// parse manually
 	var raw map[string]string
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -37,7 +34,6 @@ func (c *CustomUnmarshaler) UnmarshalJSON(data []byte) error {
 	return errors.New("missing custom field")
 }
 
-// Struct implement JSONMarshaler
 type CustomMarshaler struct {
 	Value string
 }
@@ -45,8 +41,6 @@ type CustomMarshaler struct {
 func (c CustomMarshaler) MarshalJSON() ([]byte, error) {
 	return []byte(`{"custom":"` + c.Value + `"}`), nil
 }
-
-//  Test UnmarshalJSON
 
 func TestUnmarshalJSON_WithStandardStruct(t *testing.T) {
 	data := []byte(`{"name":"Alice","age":30}`)
@@ -83,11 +77,9 @@ func TestUnmarshalJSON_WithCustomUnmarshalerError(t *testing.T) {
 func TestUnmarshalJSON_NilInput(t *testing.T) {
 	var s SimpleStruct
 	err := UnmarshalJSON(nil, &s)
-	// json.Unmarshal(nil, &s) sẽ trả về lỗi vì EOF hoặc invalid
+
 	assert.Error(t, err)
 }
-
-//  Test MarshalJSON
 
 func TestMarshalJSON_WithStandardStruct(t *testing.T) {
 	s := SimpleStruct{Name: "Bob", Age: 25}
@@ -106,13 +98,11 @@ func TestMarshalJSON_WithCustomMarshaler(t *testing.T) {
 }
 
 func TestMarshalJSON_ErrorCase(t *testing.T) {
-	// Truyền vào channel sẽ gây lỗi
+
 	ch := make(chan int)
 	_, err := MarshalJSON(ch)
 	assert.Error(t, err)
 }
-
-//  Test BindJSON
 
 func setupGinContext(body string) (*gin.Context, *httptest.ResponseRecorder) {
 	w := httptest.NewRecorder()
@@ -138,7 +128,7 @@ func TestBindJSON_EmptyBody(t *testing.T) {
 
 	var s SimpleStruct
 	err := BindJSON(c, &s)
-	// io.ReadAll trả về EOF, Unmarshal sẽ báo lỗi
+
 	assert.Error(t, err)
 }
 
@@ -161,13 +151,11 @@ func TestBindJSON_WithCustomUnmarshaler(t *testing.T) {
 	assert.Equal(t, "world", cm.Value)
 }
 
-// Test interface assertions
-
 func TestInterfaces(t *testing.T) {
-	// Kiểm tra các interface có được định nghĩa đúng không
+
 	var _ JSONUnmarshaler = (*CustomUnmarshaler)(nil)
 	var _ JSONMarshaler = (*CustomMarshaler)(nil)
-	// Nếu không có lỗi biên dịch, tức là đúng
+
 }
 
 type errorReader struct{}
