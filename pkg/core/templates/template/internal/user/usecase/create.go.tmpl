@@ -8,7 +8,7 @@ import (
 	domainUser "{{.ModuleName}}/internal/shared/domain"
 )
 
-func (u *UserUseCase) CreateUser(ctx context.Context, user *domainUser.User) (int, *w_resp.AppError) {
+func (u *UserUseCase) CreateUser(ctx context.Context, user *domainUser.User) (int64, *w_resp.AppError) {
 	uid, err := u.UserResponsitory.CreateUser(ctx, user)
 	if err != nil {
 		resp := w_resp.NewAppError(500, err, time.Now())

@@ -9,8 +9,8 @@ import (
 )
 
 type IUserResponsitory interface {
-	CreateUser(cxt context.Context, user *domainUser.User) (int, error)
-	GetUserById(ctx context.Context, id int) (*domainUser.User, error)
+	CreateUser(cxt context.Context, user *domainUser.User) (int64, error)
+	GetUserById(ctx context.Context, id int64) (*domainUser.User, error)
 	GetAllUser(ctx context.Context, req *w_utils.PaginationRequest) ([]*domainUser.User, int64, error)
 }
 

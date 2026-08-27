@@ -17,7 +17,7 @@ func (u *UserUseCase) GetAllUser(ctx context.Context, req *w_utils.PaginationReq
 	return users, total, nil
 }
 
-func (u *UserUseCase) GetUserById(ctx context.Context, id int) (*domainUser.User, *w_resp.AppError) {
+func (u *UserUseCase) GetUserById(ctx context.Context, id int64) (*domainUser.User, *w_resp.AppError) {
 	user, err := u.UserResponsitory.GetUserById(ctx, id)
 	if err != nil {
 		resp := w_resp.NewAppError(404, err, time.Now())
