@@ -11,8 +11,6 @@ import (
 func TestGetCurrentPath(t *testing.T) {
 	path := GetCurrentPath()
 	assert.NotEmpty(t, path)
-
-	// Check if path exists
 	_, err := os.Stat(path)
 	assert.NoError(t, err)
 }
