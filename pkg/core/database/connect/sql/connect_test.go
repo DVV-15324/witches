@@ -17,7 +17,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// setupPostgresContainer chạy container PostgreSQL cho test
 func setupPostgresContainer(tb testing.TB) (string, func()) {
 	ctx := context.Background()
 
@@ -45,7 +44,6 @@ func setupPostgresContainer(tb testing.TB) (string, func()) {
 	return connStr, cleanup
 }
 
-// setupTestLogger tạo logger với thư mục tạm tự quản lý (không dùng t.TempDir())
 func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 	tmpDir, err := os.MkdirTemp("", "test-log-*")
 	require.NoError(tb, err)
@@ -55,10 +53,6 @@ func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 	require.NoError(tb, err)
 
 	cleanup := func() {
-		// Đóng logger nếu có method Close
-		// if closer, ok := logg.(interface{ Close() error }); ok {
-		//     _ = closer.Close()
-		// }
 		if err := os.RemoveAll(tmpDir); err != nil {
 			tb.Logf("Failed to remove temp dir: %v", err)
 		}
@@ -67,20 +61,17 @@ func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 	return logg, cleanup
 }
 
-// makeTestConfig tạo config cho test
 func makeTestConfig(driver, dsn string) *utils.Config {
 	cfg := utils.DefaultConfig()
 	cfg.DBDriver = driver
 	cfg.DBUrl = dsn
 	cfg.MaxOpenConns = 10
 	cfg.MaxIdleConns = 5
-	cfg.ConnMaxLifetime = 30 * 60 // 30 phút (giây)
-	cfg.ConnMaxIdleTime = 5 * 60  // 5 phút (giây)
+	cfg.ConnMaxLifetime = 30 * 60
+	cfg.ConnMaxIdleTime = 5 * 60
 	cfg.SlowThreshold = 5
 	return cfg
 }
-
-// === TESTS ===
 
 func TestNewDatabaseInstance_WithPostgres(t *testing.T) {
 	connStr, cleanupContainer := setupPostgresContainer(t)
@@ -145,8 +136,6 @@ func TestNewDatabaseInstance_WithPoolConfig(t *testing.T) {
 
 	sqlDB, err := instance.DB.DB()
 	require.NoError(t, err)
-
-	// Kiểm tra pool config (có thể không lấy được chính xác qua Stats, nhưng kiểm tra tồn tại)
 	assert.NotZero(t, sqlDB.Stats().MaxOpenConnections, "MaxOpenConnections should be set")
 }
 
@@ -246,8 +235,6 @@ func TestNewDatabaseInstance_InvalidDSN(t *testing.T) {
 	assert.Nil(t, instance)
 }
 
-// === BENCHMARKS ===
-
 func BenchmarkDatabaseInstance_Ping(b *testing.B) {
 	connStr, cleanupContainer := setupPostgresContainer(b)
 	defer cleanupContainer()
@@ -266,7 +253,7 @@ func BenchmarkDatabaseInstance_Ping(b *testing.B) {
 	require.NoError(b, err)
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = sqlDB.Ping()
 	}
 }
