@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewDeviceHelper(t *testing.T) {
+func TestNewHelper(t *testing.T) {
 	tests := []struct {
 		name   string
 		cfg    *utils.Config
@@ -41,7 +41,7 @@ func TestNewDeviceHelper(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			helper := NewDeviceHelper(tt.cfg)
+			helper := NewHelper(tt.cfg)
 			assert.NotNil(t, helper)
 			assert.NotNil(t, helper.matcher)
 			if tt.cfg != nil {
@@ -53,20 +53,19 @@ func TestNewDeviceHelper(t *testing.T) {
 	}
 }
 
-func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
+func TestHelper_GetInfo(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cfg := &utils.Config{
 		RequestKey:         "request_context",
 		SupportedLanguages: []string{"en-US", "vi-VN"},
 	}
-	helper := NewDeviceHelper(cfg)
+	helper := NewHelper(cfg)
 
 	tests := []struct {
 		name              string
 		setupContext      func() *gin.Context
-		expectedDeviceID  string
-		expectedIP        string
+		expectedJwk       string
 		expectedUserAgent string
 		expectedLocale    string
 		expectedTimezone  string
@@ -76,14 +75,13 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 			setupContext: func() *gin.Context {
 				c, _ := gin.CreateTestContext(httptest.NewRecorder())
 				c.Request = httptest.NewRequest("GET", "/", nil)
-				ctx := context.WithValue(c.Request.Context(), cfg.RequestKey, &RequestContext{
-					DeviceID: "192.168.1.1:mock-device-id",
-				})
+				ctx := context.WithValue(c.Request.Context(), cfg.RequestKey, &RequestContext{})
+				c.Request.Header.Set("DPoP", "DPoP JWK123")
+				c.Request.Header.Set("User-Agent", "mock-agent")
 				c.Request = c.Request.WithContext(ctx)
 				return c
 			},
-			expectedDeviceID:  "mock-device-id",
-			expectedIP:        "192.168.1.1",
+			expectedJwk:       "DPoP JWK123",
 			expectedUserAgent: "mock-agent",
 			expectedLocale:    "en-US",
 			expectedTimezone:  "UTC",
@@ -94,11 +92,10 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 				c, _ := gin.CreateTestContext(httptest.NewRecorder())
 				c.Request = httptest.NewRequest("GET", "/", nil)
 				c.Request.Header.Set("User-Agent", "test-agent")
-				c.Request.RemoteAddr = "10.0.0.1:1234"
+				c.Request.Header.Set("DPoP", "DPoP JWK123")
 				return c
 			},
-			expectedDeviceID:  generateDeviceID("10.0.0.1", "test-agent"),
-			expectedIP:        "10.0.0.1",
+			expectedJwk:       "DPoP JWK123",
 			expectedUserAgent: "test-agent",
 			expectedLocale:    "en-US",
 			expectedTimezone:  "UTC",
@@ -110,29 +107,12 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 				c.Request = httptest.NewRequest("GET", "/", nil)
 				c.Request.Header.Set("Accept-Language", "vi-VN,vi;q=0.9,en;q=0.8")
 				c.Request.Header.Set("User-Agent", "test-ua")
-				c.Request.RemoteAddr = "1.1.1.1:1234"
+				c.Request.Header.Set("DPoP", "DPoP JWK123")
 				return c
 			},
-			expectedDeviceID:  generateDeviceID("1.1.1.1", "test-ua"),
-			expectedIP:        "1.1.1.1",
+			expectedJwk:       "DPoP JWK123",
 			expectedUserAgent: "test-ua",
 			expectedLocale:    "vi-VN",
-			expectedTimezone:  "UTC",
-		},
-		{
-			name: "with Accept-Language header - fr-FR (fallback to en-US)",
-			setupContext: func() *gin.Context {
-				c, _ := gin.CreateTestContext(httptest.NewRecorder())
-				c.Request = httptest.NewRequest("GET", "/", nil)
-				c.Request.Header.Set("Accept-Language", "fr-FR,fr;q=0.9")
-				c.Request.Header.Set("User-Agent", "test-ua2")
-				c.Request.RemoteAddr = "2.2.2.2:1234"
-				return c
-			},
-			expectedDeviceID:  generateDeviceID("2.2.2.2", "test-ua2"),
-			expectedIP:        "2.2.2.2",
-			expectedUserAgent: "test-ua2",
-			expectedLocale:    "en-US",
 			expectedTimezone:  "UTC",
 		},
 		{
@@ -142,11 +122,10 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 				c.Request = httptest.NewRequest("GET", "/", nil)
 				c.Request.Header.Set("X-Timezone", "Asia/Ho_Chi_Minh")
 				c.Request.Header.Set("User-Agent", "test-ua3")
-				c.Request.RemoteAddr = "3.3.3.3:1234"
+				c.Request.Header.Set("DPoP", "DPoP JWK123")
 				return c
 			},
-			expectedDeviceID:  generateDeviceID("3.3.3.3", "test-ua3"),
-			expectedIP:        "3.3.3.3",
+			expectedJwk:       "DPoP JWK123",
 			expectedUserAgent: "test-ua3",
 			expectedLocale:    "en-US",
 			expectedTimezone:  "Asia/Ho_Chi_Minh",
@@ -156,31 +135,33 @@ func TestDeviceHelper_GetDeviceInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.setupContext()
-			deviceID, locale, tz := helper.GetDeviceInfo(c)
+			DPoPJwk, _, userAgent, locale, tz := helper.GetInfo(c)
 
-			assert.Equal(t, tt.expectedDeviceID, deviceID, "deviceID mismatch")
+			assert.Equal(t, tt.expectedJwk, DPoPJwk, "DPoPJwk mismatch")
+			assert.Equal(t, tt.expectedUserAgent, userAgent, "UserAgent mismatch")
 			assert.Equal(t, tt.expectedLocale, locale, "Locale mismatch")
 			assert.Equal(t, tt.expectedTimezone, tz, "Timezone mismatch")
 		})
 	}
 }
 
-func TestExtractTokenFromHeader(t *testing.T) {
+func TestExtractDPoPTokenFromHeader(t *testing.T) {
 	tests := []struct {
 		name        string
 		header      string
 		expected    string
 		expectError bool
 	}{
-		{"valid token", "Bearer abc123", "abc123", false},
-		{"empty header", "", "", true},
-		{"missing Bearer prefix", "abc123", "", true},
-		{"too many parts", "Bearer abc123 extra", "", true},
-		{"invalid prefix", "Basic abc123", "", true},
+		{"valid token", "DPoP JWK123", "JWK123", false},
+		{"empty header", "", "authorization header is required", true},
+		{"missing DPoP prefix", "JWK123", "invalid authorization header format", true},
+		{"too many parts", "invalid authorization header format", "", true},
+		{"invalid prefix", "invalid authorization header format", "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := ExtractTokenFromHeader(tt.header)
+			h := Helper{}
+			result, err := h.ExtractDPoPTokenFromHeader(tt.header)
 			if tt.expectError {
 				assert.Error(t, err)
 				assert.Empty(t, result)
@@ -188,25 +169,6 @@ func TestExtractTokenFromHeader(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
-		})
-	}
-}
-
-func TestGenerateDeviceID(t *testing.T) {
-	tests := []struct {
-		name      string
-		ip        string
-		userAgent string
-	}{
-		{"basic", "192.168.1.1", "test-agent"},
-		{"empty user agent", "10.0.0.1", ""},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			id := generateDeviceID(tt.ip, tt.userAgent)
-			assert.Len(t, id, 32)
-			id2 := generateDeviceID(tt.ip, tt.userAgent)
-			assert.Equal(t, id, id2)
 		})
 	}
 }
