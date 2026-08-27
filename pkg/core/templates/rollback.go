@@ -16,7 +16,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-// RollbackDomain xóa tất cả các thay đổi liên quan đến domain
 func RollbackDomain(project string, moduleName string, domainName string) error {
 	domainName = strings.TrimSpace(domainName)
 	domainName = strings.ReplaceAll(domainName, " ", "")
@@ -26,14 +25,12 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 
 	fmt.Printf("Rolling back domain '%s' ...\n", domainName)
 
-	// 1. Xóa thư mục domain
 	domainDir := filepath.Join(project, "internal", domainName)
 	if err := os.RemoveAll(domainDir); err != nil {
 		return fmt.Errorf("failed to remove domain directory: %v", err)
 	}
 	fmt.Printf("Removed directory: %s\n", domainDir)
 
-	// 2. Xóa shared domain file
 	sharedFile := filepath.Join(project, "internal", "shared", "domain", domainName+".go")
 	if err := os.Remove(sharedFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove shared domain file: %v", err)
@@ -42,7 +39,6 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 		fmt.Printf("Removed file: %s\n", sharedFile)
 	}
 
-	// 3. Rollback key_object.go
 	keyFile := filepath.Join(project, "internal", "shared", "utils", "key_object.go")
 	if err := rollbackKeyObject(keyFile, domainNameCap); err != nil {
 		fmt.Printf("Warning: failed to rollback key_object.go: %v\n", err)
@@ -50,7 +46,6 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 		fmt.Println("Rolled back key_object.go")
 	}
 
-	// 4. Rollback modules.go
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
 	if err := rollbackModuleField(modulesPath, domainName, domainNameCap, moduleName); err != nil {
 		fmt.Printf("Warning: failed to rollback modules.go (field): %v\n", err)
@@ -64,7 +59,6 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 		fmt.Println("Rolled back modules.go: removed initialization")
 	}
 
-	// 5. Rollback routers.go
 	routersPath := filepath.Join(project, "cmd", "server", "routers", "routers.go")
 	if err := rollbackRouteRegistration(routersPath, domainName, domainNameCap); err != nil {
 		fmt.Printf("Warning: failed to rollback routers.go: %v\n", err)
@@ -76,7 +70,6 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 	return nil
 }
 
-// rollbackKeyObject xóa constant Object<DomainCap> khỏi key_object.go
 func rollbackKeyObject(filePath, domainCap string) error {
 	src, err := os.ReadFile(filePath)
 	if err != nil {
@@ -84,7 +77,7 @@ func rollbackKeyObject(filePath, domainCap string) error {
 	}
 
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "", src, parser.ParseComments) // Sửa: dùng parser.ParseComments thay vì nil
+	node, err := parser.ParseFile(fset, "", src, parser.ParseComments)
 	if err != nil {
 		return fmt.Errorf("parse file error: %w", err)
 	}
@@ -116,12 +109,9 @@ func rollbackKeyObject(filePath, domainCap string) error {
 		return fmt.Errorf("object%s not found", domainCap)
 	}
 
-	// Xóa spec
 	targetDecl.Specs = append(targetDecl.Specs[:targetIndex], targetDecl.Specs[targetIndex+1:]...)
 
-	// Nếu không còn spec nào, xóa toàn bộ declaration
 	if len(targetDecl.Specs) == 0 {
-		// Tìm và xóa decl khỏi node.Decls
 		var newDecls []ast.Decl
 		for _, decl := range node.Decls {
 			if decl != targetDecl {
@@ -139,17 +129,15 @@ func rollbackKeyObject(filePath, domainCap string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// rollbackModuleField xóa import và field khỏi struct Modules
 func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments) // Sửa: dùng parser.ParseComments thay vì nil
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
 
 	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
 
-	// 1. Xóa import
 	var importDecl *ast.GenDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		if decl, ok := n.(*ast.GenDecl); ok && decl.Tok == token.IMPORT {
@@ -164,14 +152,13 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 		for _, spec := range importDecl.Specs {
 			if imp, ok := spec.(*ast.ImportSpec); ok {
 				if imp.Path.Value == strconv.Quote(importPath) {
-					continue // Bỏ qua import này
+					continue
 				}
 			}
 			newSpecs = append(newSpecs, spec)
 		}
 		importDecl.Specs = newSpecs
 
-		// Nếu không còn import nào, xóa declaration
 		if len(importDecl.Specs) == 0 {
 			var newDecls []ast.Decl
 			for _, decl := range node.Decls {
@@ -183,7 +170,6 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 		}
 	}
 
-	// 2. Xóa field khỏi struct Modules
 	var targetStruct *ast.StructType
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -205,7 +191,7 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 	var newFields []*ast.Field
 	for _, field := range targetStruct.Fields.List {
 		if len(field.Names) > 0 && field.Names[0].Name == domainCap {
-			continue // Bỏ qua field này
+			continue
 		}
 		newFields = append(newFields, field)
 	}
@@ -218,10 +204,9 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// rollbackModuleInit xóa khởi tạo module khỏi InitModules
 func rollbackModuleInit(filePath, domain, domainCap string) error {
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments) // Sửa: dùng parser.ParseComments thay vì nil
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
@@ -253,13 +238,12 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 		return fmt.Errorf("return statement not found in InitModules")
 	}
 
-	// Xóa assign statement (domainModule := domain.NewDomainModule(core))
 	var newBody []ast.Stmt
 	for _, stmt := range targetFunc.Body.List {
 		if assign, ok := stmt.(*ast.AssignStmt); ok {
 			if len(assign.Lhs) > 0 {
 				if ident, ok := assign.Lhs[0].(*ast.Ident); ok && ident.Name == domain+"Module" {
-					continue // Bỏ qua assign statement này
+					continue
 				}
 			}
 		}
@@ -267,7 +251,6 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 	}
 	targetFunc.Body.List = newBody
 
-	// Xóa field khỏi composite literal trong return statement
 	var compLit *ast.CompositeLit
 	ast.Inspect(returnStmt, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -310,7 +293,7 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 		for _, elt := range compLit.Elts {
 			if kv, ok := elt.(*ast.KeyValueExpr); ok {
 				if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCap {
-					continue // Bỏ qua field này
+					continue
 				}
 			}
 			newElts = append(newElts, elt)
@@ -325,10 +308,9 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// rollbackRouteRegistration xóa route registration khỏi routers.go
 func rollbackRouteRegistration(filePath, domain, domainCap string) error {
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments) // Sửa: dùng parser.ParseComments thay vì nil
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
@@ -348,16 +330,14 @@ func rollbackRouteRegistration(filePath, domain, domainCap string) error {
 		return fmt.Errorf("function initModule not found in %s", filePath)
 	}
 
-	// Xóa các statement liên quan đến domain
 	var newBody []ast.Stmt
 	for _, stmt := range targetFunc.Body.List {
 		shouldRemove := false
 
-		// Kiểm tra nếu là ExprStmt
 		if exprStmt, ok := stmt.(*ast.ExprStmt); ok {
 			if call, ok := exprStmt.X.(*ast.CallExpr); ok {
 				if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-					// Kiểm tra AddTag
+
 					if sel.Sel.Name == "AddTag" && len(call.Args) > 0 {
 						if lit, ok := call.Args[0].(*ast.BasicLit); ok {
 							if lit.Value == strconv.Quote(domain) {
@@ -365,7 +345,7 @@ func rollbackRouteRegistration(filePath, domain, domainCap string) error {
 							}
 						}
 					}
-					// Kiểm tra RegisterPublicRoutes hoặc RegisterProtectedRoutes
+
 					if sel.Sel.Name == "RegisterPublicRoutes" || sel.Sel.Name == "RegisterProtectedRoutes" {
 						if innerSel, ok := sel.X.(*ast.SelectorExpr); ok {
 							if innerSel.Sel.Name == domainCap {
