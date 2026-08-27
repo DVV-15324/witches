@@ -104,7 +104,6 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		return fmt.Errorf("error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
 	}
 
-	// Map template files -> destination files
 	files := map[string]string{
 		// ROOT
 		"template/main.go.tmpl":   "main.go",
@@ -117,15 +116,13 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/cmd/server/routers/composer.go.tmpl": filepath.Join("cmd", "server", "routers", "composer.go"),
 		"template/cmd/server/routers/routers.go.tmpl":  filepath.Join("cmd", "server", "routers", "routers.go"),
 		"template/cmd/server/routers/modules.go.tmpl":  filepath.Join("cmd", "server", "routers", "modules.go"),
-
-		"template/cmd/server/core/core.go.tmpl": filepath.Join("cmd", "server", "core", "core.go"),
+		"template/cmd/server/core/core.go.tmpl":        filepath.Join("cmd", "server", "core", "core.go"),
 
 		// AUTH SERVICE - DTO REQUEST
 		"template/internal/auth/dto/request/login.go.tmpl":    filepath.Join("internal", "auth", "dto", "request", "login.go"),
 		"template/internal/auth/dto/request/register.go.tmpl": filepath.Join("internal", "auth", "dto", "request", "register.go"),
 		"template/internal/auth/dto/request/errors.go.tmpl":   filepath.Join("internal", "auth", "dto", "request", "errors.go"),
 		"template/internal/auth/dto/request/validate.go.tmpl": filepath.Join("internal", "auth", "dto", "request", "validate.go"),
-		"template/internal/auth/dto/request/gg.go.tmpl":       filepath.Join("internal", "auth", "dto", "request", "gg.go"),
 		// AUTH SERVICE - DTO RESPONSE
 		"template/internal/auth/dto/response/auth.go.tmpl": filepath.Join("internal", "auth", "dto", "response", "auth.go"),
 		// AUTH SERVICE - model
@@ -150,11 +147,12 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/auth/usecase/register.go.tmpl": filepath.Join("internal", "auth", "usecase", "register.go"),
 		"template/internal/auth/usecase/get.go.tmpl":      filepath.Join("internal", "auth", "usecase", "get.go"),
 		"template/internal/auth/usecase/logout.go.tmpl":   filepath.Join("internal", "auth", "usecase", "logout.go"),
-		"template/internal/auth/usecase/errors.go.tmpl":   filepath.Join("internal", "auth", "usecase", "errors.go"),
 		"template/internal/auth/module.go.tmpl":           filepath.Join("internal", "auth", "module.go"),
 
 		// REFRESH SERVICE - DTO
 		"template/internal/refresh/dto/request/request.go.tmpl":   filepath.Join("internal", "refresh", "dto", "request", "request.go"),
+		"template/internal/refresh/dto/request/errors.go.tmpl":    filepath.Join("internal", "refresh", "dto", "request", "errors.go"),
+		"template/internal/refresh/dto/request/validate.go.tmpl":  filepath.Join("internal", "refresh", "dto", "request", "vadidate.go"),
 		"template/internal/refresh/dto/response/response.go.tmpl": filepath.Join("internal", "refresh", "dto", "response", "response.go"),
 		// REFRESH SERVICE - model
 		"template/internal/refresh/model/model.go.tmpl": filepath.Join("internal", "refresh", "model", "model.go"),
@@ -176,11 +174,11 @@ func createProjectStructure(config ProjectConfig, typeDb string) error {
 		"template/internal/refresh/usecase/get.go.tmpl":     filepath.Join("internal", "refresh", "usecase", "get.go"),
 		"template/internal/refresh/usecase/refresh.go.tmpl": filepath.Join("internal", "refresh", "usecase", "refresh.go"),
 		"template/internal/refresh/usecase/revoke.go.tmpl":  filepath.Join("internal", "refresh", "usecase", "revoke.go"),
-		"template/internal/refresh/usecase/token.go.tmpl":   filepath.Join("internal", "refresh", "usecase", "token.go"),
 		"template/internal/refresh/module.go.tmpl":          filepath.Join("internal", "refresh", "module.go"),
 
 		// USER SERVICE - DTO
 		"template/internal/user/dto/request/errors.go.tmpl":    filepath.Join("internal", "user", "dto", "request", "errors.go"),
+		"template/internal/user/dto/request/request.go.tmpl":   filepath.Join("internal", "user", "dto", "request", "request.go"),
 		"template/internal/user/dto/request/validate.go.tmpl":  filepath.Join("internal", "user", "dto", "request", "validate.go"),
 		"template/internal/user/dto/response/response.go.tmpl": filepath.Join("internal", "user", "dto", "response", "response.go"),
 		// USER SERVICE - model
