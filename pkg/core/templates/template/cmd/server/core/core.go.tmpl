@@ -1,6 +1,7 @@
 package core
 
 import (
+	"{{.ModuleName}}/internal/shared/utils"
 	w_redis "{{.ModuleName}}/pkg/redis"
 	"fmt"
 	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
@@ -30,6 +31,9 @@ type CoreServices struct {
 }
 
 func NewCoreServices(cfg *wcmd_utils.Config) *CoreServices {
+	//UID Bit
+	utils.Bits = cfg.UIDBits
+
 	// Logger
 	logPath := filepath.Join(cfg.LogPath, "logs.log")
 	logg, err := logger.NewFileLogger(logPath, 1, 20, 30)
@@ -63,7 +67,7 @@ func NewCoreServices(cfg *wcmd_utils.Config) *CoreServices {
 
 	// Services
 	jwt := w_utils.NewJwtService(cfg)
-	sessionService := w_utils.NewSessionService(redisClient.GetClient(), cfg.SessionTTL, cfg.IdleTimeout)
+	sessionService := w_utils.NewSessionService(redisClient.GetClient(), cfg.RefreshTokenTTL, cfg.IdleTimeout)
 	blacklistService := w_utils.NewBlacklistService(redisClient.GetClient(), cfg)
 	deviceHelper := w_utils.NewDeviceHelper(cfg)
 	txManager := w_utils.NewTxManager(db.DB)
