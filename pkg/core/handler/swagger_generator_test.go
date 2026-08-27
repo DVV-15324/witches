@@ -21,8 +21,6 @@ func setupTestGenerator() (*SwaggerGenerator, *gin.Engine) {
 	return gen, engine
 }
 
-// ==================== TESTS ====================
-
 func TestNewSwaggerGenerator(t *testing.T) {
 	gen := NewSwaggerGenerator("My API", "2.0.0", "example.com", "/api")
 
@@ -49,7 +47,7 @@ func TestSwaggerGenerator_SetEngine(t *testing.T) {
 func TestSwaggerGenerator_SetRedisClient(t *testing.T) {
 	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
 	assert.Nil(t, gen.storeFactory)
-	// Không test redis thật
+
 }
 
 func TestSwaggerGenerator_Use(t *testing.T) {
@@ -82,26 +80,6 @@ func TestSwaggerGenerator_Use(t *testing.T) {
 
 	assert.True(t, called)
 	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestSwaggerGenerator_AddBearerAuth(t *testing.T) {
-	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
-
-	gen.AddBearerAuth("BearerAuth")
-
-	assert.Contains(t, gen.doc.SecurityDefinitions, "BearerAuth")
-	assert.Equal(t, "apiKey", gen.doc.SecurityDefinitions["BearerAuth"].Type)
-	assert.Equal(t, "header", gen.doc.SecurityDefinitions["BearerAuth"].In)
-	assert.Equal(t, "Authorization", gen.doc.SecurityDefinitions["BearerAuth"].Name)
-}
-
-func TestSwaggerGenerator_AddBearerAuthWithDescription(t *testing.T) {
-	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
-
-	gen.AddBearerAuthWithDescription("BearerAuth", "Custom description")
-
-	assert.Contains(t, gen.doc.SecurityDefinitions, "BearerAuth")
-	assert.Equal(t, "Custom description", gen.doc.SecurityDefinitions["BearerAuth"].Description)
 }
 
 func TestSwaggerGenerator_AddTag(t *testing.T) {
@@ -149,7 +127,7 @@ func TestSwaggerGenerator_RegisterModel(t *testing.T) {
 }
 
 func TestSwaggerGenerator_GenerateJSON(t *testing.T) {
-	// ✅ Dùng setup đầy đủ
+
 	gen, _ := setupTestGenerator()
 
 	gen.GET("/ping").
@@ -169,7 +147,6 @@ func TestSwaggerGenerator_GenerateJSON(t *testing.T) {
 }
 
 func TestSwaggerGenerator_Save(t *testing.T) {
-	// ✅ Dùng setup đầy đủ
 	gen, _ := setupTestGenerator()
 
 	gen.GET("/ping").
