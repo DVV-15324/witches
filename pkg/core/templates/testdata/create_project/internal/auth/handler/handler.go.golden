@@ -5,13 +5,14 @@ import (
 	"github.com/example/project/cmd/server/core"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	w_dpop "github.com/DVV-15324/witches-dpop"
 	domainAuth "github.com/example/project/internal/shared/domain"
 )
 
 type IUsecaseAuth interface {
-	Login(ctx context.Context, au *domainAuth.Auth, DeviceID string, IPAddress string, UserAgent string, TimeZone string, Locale string) (*w_utils.TokenResponse, *w_resp.AppError)
+	Login(ctx context.Context, au *domainAuth.Auth, jwk *w_dpop.JWK, ipAddress string, userAgent string, timeZone string, locale string) (*w_utils.TokenResponse, *w_resp.AppError)
 	Register(ctx context.Context, auth *domainAuth.Auth, name string) *w_resp.AppError
-	Logout(ctx context.Context, accessToken, refreshTokenStr string, deviceID string) *w_resp.AppError
+	Logout(ctx context.Context, accessToken, refreshTokenStr string, dPopJwk string) *w_resp.AppError
 }
 type AuthHandle struct {
 	Core        *core.CoreServices
@@ -24,3 +25,4 @@ func NewAuthHandle(core *core.CoreServices, authUseCase IUsecaseAuth) *AuthHandl
 		Core:        core,
 	}
 }
+

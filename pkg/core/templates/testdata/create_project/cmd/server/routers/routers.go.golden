@@ -23,11 +23,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Auth middleware
 	authMiddleware := middleware.AuthMiddleware(
 		modules.Refresh.Usecase,
-		core.Session,
-		core.Blacklist,
-		core.Logger,
-		core.Config,
-		core.DeviceHelper,
+		core,
 	)
 
 	// Rate limit config
@@ -35,6 +31,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 		Period: core.Limiter.Rate.Period,
 		Limit:  core.Limiter.Rate.Limit,
 	}
+	
 	// Khởi tạo Swagger
 	gen := initSwagger(r, core, rateLimitMiddleware)
 	initModule(modules, gen, rateLimit, authMiddleware)

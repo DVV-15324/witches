@@ -23,11 +23,7 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Auth middleware
 	authMiddleware := middleware.AuthMiddleware(
 		modules.Refresh.Usecase,
-		core.Session,
-		core.Blacklist,
-		core.Logger,
-		core.Config,
-		core.DeviceHelper,
+		core,
 	)
 
 	// Rate limit config
@@ -39,7 +35,6 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Khởi tạo Swagger
 	gen := initSwagger(r, core, rateLimitMiddleware)
 	initModule(modules, gen, rateLimit, authMiddleware)
-
 	if err := gen.Save("swagger.json"); err != nil {
 		log.Printf("Error saving swagger.json: %v", err)
 	} else {
@@ -54,72 +49,26 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	})
 }
 
-func initSwagger(
-	r *gin.Engine,
-	core *core.CoreServices,
-	rateLimitMiddleware w_handl.IRateLimitMiddleware,
-) *w_handl.SwaggerGenerator {
+func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_handl.IRateLimitMiddleware) *w_handl.SwaggerGenerator {
 	address := fmt.Sprintf("%s:%d", core.Config.Host, core.Config.Port)
-
-	gen := w_handl.NewSwaggerGenerator(
-		"github.com/example/project API",
-		"1.0",
-		address,
-		"/",
-	)
-
+	gen := w_handl.NewSwaggerGenerator("example API", "1.0", address, "/")
 	gen.SetEngine(r)
 	gen.SetRedisClient(core.Redis.GetClient())
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
-
 	return gen
 }
 
-func initModule(
-	modules *Modules,
-	gen *w_handl.SwaggerGenerator,
-	rateLimit limiter.Rate,
-	authMiddleware gin.HandlerFunc,
-) {
+func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limiter.Rate, authMiddleware gin.HandlerFunc) {
 	gen.AddTag("v1", "API Version 1")
 	gen.AddTag("auth", "Auth endpoints")
-
-	modules.Auth.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.Auth.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("user", "User endpoints")
-
-	modules.User.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
-
-	modules.User.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
+	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
+	modules.User.RegisterPublicRoutes(gen, &rateLimit)
 	gen.AddTag("refresh", "Refresh endpoints")
-
-	modules.Refresh.RegisterPublicRoutes(
-		gen,
-		&rateLimit,
-	)
-
-	modules.Refresh.RegisterProtectedRoutes(
-		gen,
-		&rateLimit,
-		authMiddleware,
-	)
+	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
+	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	gen.AddTag("book", "Book endpoints")
 	modules.Book.RegisterPublicRoutes(gen, &rateLimit)
 	modules.Book.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)

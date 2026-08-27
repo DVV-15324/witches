@@ -14,8 +14,6 @@ type Modules struct {
 }
 
 func InitModules(core *core.CoreServices) *Modules {
-
-	// Khởi tạo các module KHÔNG phụ thuộc lẫn nhau
 	userModule := user.NewUserModule(core)
 	refreshModule := refresh.NewRefreshModule(core, userModule.Usecase)
 	authModule := auth.NewAuthModule(core, userModule.Usecase, refreshModule.Usecase)

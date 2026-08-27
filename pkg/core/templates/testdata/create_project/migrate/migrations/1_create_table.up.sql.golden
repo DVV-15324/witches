@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     token VARCHAR(255) NOT NULL UNIQUE,
-    device_id VARCHAR(255) NOT NULL,
+    JKT   VARCHAR(255) NOT NULL,
     ip_address VARCHAR(255),
     user_agent TEXT,
     locale VARCHAR(50) DEFAULT 'en-US',
