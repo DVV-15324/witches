@@ -29,12 +29,11 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 			return
 		}
 
-		domain := mapping.FromLoginToDomainAuth(&data)
+		domain, jwk := mapping.FromLoginToDomainAuth(&data)
 
-		// Use utils to get device info
-		deviceID, ipAddress, userAgent, locale, timeZone := h.Core.DeviceHelper.GetDeviceInfo(c)
+		_, ipAddress, userAgent, locale, timeZone := h.Core.Helper.GetInfo(c)
 
-		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), domain, deviceID, ipAddress, userAgent, locale, timeZone)
+		claims, resq := h.UsecaseAuth.Login(c.Request.Context(), domain, jwk, ipAddress, userAgent, locale, timeZone)
 		if resq != nil {
 			w_resp.WriteErrorWithLog(c, h.Core.Logger, h.Core.Config, resq)
 			return
@@ -42,5 +41,3 @@ func (h *AuthHandle) HandleLogin() func(c *gin.Context) {
 		w_resp.WriteSuccess(c, claims)
 	}
 }
-
-
