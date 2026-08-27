@@ -1,4 +1,3 @@
-// cmd/utils/db_utils_test.go
 package utils
 
 import (
