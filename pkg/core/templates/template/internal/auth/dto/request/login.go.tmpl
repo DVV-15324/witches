@@ -3,8 +3,16 @@ package request
 import "strings"
 
 type Login struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string     `json:"email"`
+	Password string     `json:"password"`
+	JWK      JWKRequest `json:"jwk"`
+}
+
+type JWKRequest struct {
+	Kty string `json:"kty" example:"EC"`
+	Crv string `json:"crv" example:"P-256"`
+	X   string `json:"x"`
+	Y   string `json:"y"`
 }
 
 func (r *Login) Validate() error {
