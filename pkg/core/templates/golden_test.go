@@ -219,9 +219,9 @@ func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limit
 	keyContent := `package utils
 
 var (
-	ObjectUser   uint = 1
-	ObjectAuth   uint = 2
-	ObjectRefresh uint = 3
+	ObjectUser   int64 = 1
+	ObjectAuth   int64 = 2
+	ObjectRefresh int64 = 3
 )
 `
 
@@ -523,10 +523,10 @@ func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limit
 	keyContent := `package utils
 
 var (
-	ObjectUser   uint = 1
-	ObjectAuth   uint = 2
-	ObjectRefresh uint = 3
-	ObjectBook   uint = 4
+	ObjectUser   int64 = 1
+	ObjectAuth   int64 = 2
+	ObjectRefresh int64 = 3
+	ObjectBook   int64 = 4
 )
 `
 
