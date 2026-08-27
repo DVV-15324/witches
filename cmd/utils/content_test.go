@@ -1,4 +1,3 @@
-// cmd/utils/content_test.go
 package utils
 
 import (
@@ -24,8 +23,10 @@ func TestCreateContentRefreshUsed(t *testing.T) {
 	cfg := &Config{
 		Port:               8080,
 		Host:               "localhost",
+		Env:                "development",
 		MetrictPort:        8088,
 		UIDBits:            26,
+		HashLen:            16,
 		RequestKey:         "request_context",
 		LogPath:            "./logs",
 		CorsAllowOrigins:   "*",
@@ -50,7 +51,6 @@ func TestCreateContentRefreshUsed(t *testing.T) {
 		RedisPassword:      "",
 		AccessTokenTTL:     900,
 		RefreshTokenTTL:    604800,
-		SessionTTL:         604800,
 		IdleTimeout:        1800,
 		RevokedTTL:         300,
 		RateLimitPeriod:    60,
