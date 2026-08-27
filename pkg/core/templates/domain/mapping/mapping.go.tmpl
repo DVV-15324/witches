@@ -15,7 +15,7 @@ func FromDtoToDomain{{.NameCap}}(dto *dto{{.NameCap}}.{{.NameCap}}) *domain{{.Na
 		return nil
 	}
 	return &domain{{.NameCap}}.{{.NameCap}}{
-		ID:        int(utils.DecodeFromBase58(dto.ID).LocalID),
+		ID:        utils.DecodeFromBase58(dto.ID).LocalID,
 		CreatedAt: dto.CreatedAt,
 		UpdatedAt: dto.UpdatedAt,
 	}
@@ -66,7 +66,7 @@ func FromDomainToDto{{.NameCap}}(domain *domain{{.NameCap}}.{{.NameCap}}) *dto{{
 		return nil
 	}
 	return &dto{{.NameCap}}.{{.NameCap}}{
-		ID:        utils.NewUID(uint32(domain.ID), utils.Object{{.NameCap}}).ToBase58(),
+		ID:        utils.NewUID(domain.ID, utils.Object{{.NameCap}}).ToBase58(),
 		CreatedAt: domain.CreatedAt,
 		UpdatedAt: domain.UpdatedAt,
 	}
