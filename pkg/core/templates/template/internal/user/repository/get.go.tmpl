@@ -43,7 +43,7 @@ func (u *UserRepository) GetAllUser(ctx context.Context, req *w_utils.Pagination
 	return domainsMapping, total, nil
 }
 
-func (u *UserRepository) GetUserById(ctx context.Context, id int) (*domainUser.User, error) {
+func (u *UserRepository) GetUserById(ctx context.Context, id int64) (*domainUser.User, error) {
 	var data modelUser.User
 
 	err := u.core.DB.WithContext(ctx).First(&data, id).Error
