@@ -36,8 +36,6 @@ func NewUserModule(
 func (m *UserModule) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate) {}
 
 func (m *UserModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
-	// En: Get user by ID
-	// Vi: Lấy người dùng theo ID
 	gen.POST("/v1/user/get_user").
 		Summary("Get user by ID").
 		Description("Get user details by user ID").
@@ -45,8 +43,10 @@ func (m *UserModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rate
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
+		HeaderParam("DPoP", "DPoP proof", false).
 		RateLimit(*rateLimit).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
 		Body(map[string]int{"id": 0}, "User ID").
 		Response(200, w_resp.AppResponse{}, "User found").
 		Response(404, w_resp.AppResponse{}, "User not found").
@@ -54,8 +54,6 @@ func (m *UserModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rate
 		Handler(m.Handler.HandleGetUserById()).
 		Build()
 
-	// En: Get all users
-	// Vi: Lấy tất cả người dùng
 	gen.POST("/v1/user/get_user_all").
 		Summary("Get all users").
 		Description("Get list of all users").
@@ -63,7 +61,8 @@ func (m *UserModule) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rate
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
 		RateLimit(*rateLimit).
 		QueryParam("page", "Pagenation request", false).
 		QueryParam("limit", "Pagenation request", false).
