@@ -1,4 +1,3 @@
-// internal/user/mapping/user_mapping.go
 package mapping
 
 import (
@@ -9,14 +8,12 @@ import (
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 )
 
-// 1. DTO ↔ Domain
-
 func FromDtoToDomainUser(dto *dtoUser.User) *domainUser.User {
 	if dto == nil {
 		return nil
 	}
 	return &domainUser.User{
-		Id:        int(utils.DecodeFromBase58(dto.Id).LocalID),
+		ID:        utils.DecodeFromBase58(dto.ID).LocalID,
 		Name:      dto.Name,
 		Email:     dto.Email,
 		Role:      dto.Role,
@@ -24,20 +21,16 @@ func FromDtoToDomainUser(dto *dtoUser.User) *domainUser.User {
 		UpdatedAt: dto.UpdatedAt,
 	}
 }
-
-// 1.1 List DTO → List Domain (dùng generic)
 func FromDtoToDomainUserList(dtos []*dtoUser.User) []*domainUser.User {
 	return w_utils.MapPtrSlice(dtos, FromDtoToDomainUser)
 }
-
-// 2. Domain ↔ Model
 
 func FromDomainToModelUser(domain *domainUser.User) *modelUser.User {
 	if domain == nil {
 		return nil
 	}
 	return &modelUser.User{
-		Id:        domain.Id,
+		ID:        domain.ID,
 		Name:      domain.Name,
 		Email:     domain.Email,
 		Role:      domain.Role,
@@ -46,7 +39,6 @@ func FromDomainToModelUser(domain *domainUser.User) *modelUser.User {
 	}
 }
 
-// List Domain → List Model (dùng generic)
 func FromDomainToModelUserList(domains []*domainUser.User) []*modelUser.User {
 	return w_utils.MapPtrSlice(domains, FromDomainToModelUser)
 }
@@ -56,7 +48,7 @@ func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
 		return nil
 	}
 	return &domainUser.User{
-		Id:        model.Id,
+		ID:        model.ID,
 		Name:      model.Name,
 		Email:     model.Email,
 		Role:      model.Role,
@@ -65,18 +57,21 @@ func FromModelToDomainUser(model *modelUser.User) *domainUser.User {
 	}
 }
 
-// List Model → List Domain (dùng generic)
 func FromModelToDomainUserList(entities []*modelUser.User) []*domainUser.User {
 	return w_utils.MapPtrSlice(entities, FromModelToDomainUser)
 }
 
-// List Domain → List DTO
 func FromDomainToDtoUser(domain *domainUser.User) *dtoUser.User {
 	if domain == nil {
 		return nil
 	}
+	uid := utils.NewUID((domain.ID), utils.ObjectUser)
+	if err := uid.Validate(); err != nil {
+		return nil
+	}
+
 	return &dtoUser.User{
-		Id:        utils.NewUID(uint32(domain.Id), utils.ObjectUser).ToBase58(),
+		ID:        uid.ToBase58(),
 		Name:      domain.Name,
 		Email:     domain.Email,
 		Role:      domain.Role,
@@ -85,7 +80,6 @@ func FromDomainToDtoUser(domain *domainUser.User) *dtoUser.User {
 	}
 }
 
-// List Domain → List DTO (dùng generic)
 func FromDomainToDtoUserList(domains []*domainUser.User) []*dtoUser.User {
 	return w_utils.MapPtrSlice(domains, FromDomainToDtoUser)
 }
