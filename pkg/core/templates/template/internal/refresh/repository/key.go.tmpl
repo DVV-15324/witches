@@ -3,15 +3,6 @@ package repository
 func (r *RefreshTokenRepository) cacheKeyToken(token string) string {
 	return "refresh:token:" + token
 }
-
-func (r *RefreshTokenRepository) cacheKeyUserTokens(userID uint32) string {
-	return "refresh:user:" + string(rune(userID)) + ":tokens"
-}
-
-func (r *RefreshTokenRepository) cacheKeyActiveTokens(userID uint32) string {
-	return "refresh:user:" + string(rune(userID)) + ":active"
-}
-
-func (r *RefreshTokenRepository) cacheKeyNotFound(token string) string {
-	return "refresh:notfound:" + token
+func (r *RefreshTokenRepository) cacheKeyJKT(token string) string {
+	return "refresh:jkt:" + token
 }
