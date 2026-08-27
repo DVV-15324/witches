@@ -216,7 +216,7 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 
 	newSpec := &ast.ValueSpec{
 		Names:  []*ast.Ident{ast.NewIdent("Object" + config.NameCap)},
-		Type:   &ast.Ident{Name: "uint"},
+		Type:   &ast.Ident{Name: "int64"},
 		Values: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", maxID+1)}},
 	}
 	targetDecl.Specs = append(targetDecl.Specs, newSpec)
