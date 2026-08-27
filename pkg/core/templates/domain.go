@@ -61,7 +61,6 @@ func AddGoDomain(project string, moduleName string, domainName string) {
 		os.Exit(1)
 	}
 
-	// Cập nhật modules.go (thêm import, field, init)
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
 	if err := AddModuleField(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
 		fmt.Printf("Warning: failed to add module field: %v\n", err)
@@ -104,6 +103,8 @@ func generateDomain(project string, config DomainConfig) error {
 	}
 	files := map[string]string{
 		"domain/dto/request/request.go.tmpl":   "dto/request/request.go",
+		"domain/dto/request/validate.go.tmpl":  "dto/request/validate.go",
+		"domain/dto/request/errors.go.tmpl":    "dto/request/errors.go",
 		"domain/dto/response/response.go.tmpl": "dto/response/response.go",
 		"domain/model/model.go.tmpl":           "model/model.go",
 		"domain/handler/handler.go.tmpl":       "handler/handler.go",
@@ -228,15 +229,12 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 	return os.WriteFile(keyFile, buf.Bytes(), 0644)
 }
 
-// AddModuleField thêm import và field vào struct Modules
 func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
-
-	// 1. Thêm import nếu chưa có
 	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
 	newImport := &ast.ImportSpec{
 		Path: &ast.BasicLit{
@@ -274,7 +272,6 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 		}
 	}
 
-	// 2. Tìm struct Modules và thêm field
 	var targetStruct *ast.StructType
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -307,7 +304,6 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	}
 	targetStruct.Fields.List = append(targetStruct.Fields.List, newField)
 
-	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
 		return err
@@ -315,7 +311,6 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// AddModuleInit thêm khởi tạo module vào InitModules và return statement
 func AddModuleInit(filePath, domain, domainCamel string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -323,7 +318,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return err
 	}
 
-	// Tìm hàm InitModules
 	var targetFunc *ast.FuncDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -339,7 +333,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("function InitModules not found in %s", filePath)
 	}
 
-	// Tìm return statement
 	var returnStmt *ast.ReturnStmt
 	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
 		if rs, ok := n.(*ast.ReturnStmt); ok {
@@ -352,7 +345,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("return statement not found in InitModules")
 	}
 
-	// Tìm composite literal của Modules trong return statement (xử lý cả &Modules{...})
 	var compLit *ast.CompositeLit
 	ast.Inspect(returnStmt, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -393,7 +385,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("cannot find composite literal for Modules in return statement")
 	}
 
-	// Kiểm tra xem field đã tồn tại trong return chưa
 	for _, elt := range compLit.Elts {
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
 			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCamel {
@@ -402,7 +393,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		}
 	}
 
-	// Tạo câu lệnh khởi tạo: bookModule := book.NewBookModule(core)
 	assignStmt := &ast.AssignStmt{
 		Lhs: []ast.Expr{ast.NewIdent(domain + "Module")},
 		Tok: token.DEFINE,
@@ -415,7 +405,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 		}},
 	}
 
-	// Chèn assignStmt vào trước returnStmt
 	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+1)
 	for _, stmt := range targetFunc.Body.List {
 		if stmt == returnStmt {
@@ -425,14 +414,12 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	}
 	targetFunc.Body.List = newBody
 
-	// Thêm field vào composite literal
 	newField := &ast.KeyValueExpr{
 		Key:   ast.NewIdent(domainCamel),
 		Value: ast.NewIdent(domain + "Module"),
 	}
 	compLit.Elts = append(compLit.Elts, newField)
 
-	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
 		return fmt.Errorf("format code error: %w", err)
@@ -440,7 +427,6 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-// AddRouteRegistration thêm domain vào initModule (cả public và protected routes)
 func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -448,7 +434,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		return err
 	}
 
-	// Tìm hàm initModule
 	var targetFunc *ast.FuncDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -463,8 +448,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	if targetFunc == nil {
 		return fmt.Errorf("function initModule not found in %s", filePath)
 	}
-
-	// Kiểm tra domain đã tồn tại chưa
 	var exists bool
 	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
 		if call, ok := n.(*ast.CallExpr); ok {
@@ -485,7 +468,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		return fmt.Errorf("domain %s already registered in initModule", domainCamel)
 	}
 
-	// 1. Tạo lệnh: gen.AddTag(domain, domainCamel+" endpoints")
 	addTagStmt := &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
@@ -499,7 +481,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	// 2. Tạo lệnh: modules.<DomainCamel>.RegisterPublicRoutes(gen, &rateLimit)
 	publicStmt := &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
@@ -519,7 +500,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	// 3. Tạo lệnh: modules.<DomainCamel>.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	protectedStmt := &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
@@ -540,7 +520,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	// Chèn 3 lệnh vào cuối body (trước dấu })
 	lastStmt := targetFunc.Body.List[len(targetFunc.Body.List)-1]
 	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+3)
 	for _, stmt := range targetFunc.Body.List {
@@ -553,7 +532,6 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	}
 	targetFunc.Body.List = newBody
 
-	// Ghi lại file
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
 		return err
