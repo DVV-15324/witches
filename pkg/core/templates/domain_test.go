@@ -24,7 +24,6 @@ func TestDomainNameProcessing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test logic của AddGodomain
 			domainName := strings.TrimSpace(tt.input)
 			domainName = strings.ToLower(domainName)
 			domainName = strings.ReplaceAll(domainName, " ", "")
