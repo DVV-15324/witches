@@ -25,7 +25,6 @@ func init() {
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 	// Scaffold
 	rootCmd.AddCommand(createCmd)
-
 	rootCmd.AddCommand(databaseCmd)
 	databaseCmd.AddCommand(generateCmd)
 
@@ -34,6 +33,9 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(removeCmd)
+	rootCmd.AddCommand(linkCmd)
+	initCmd.AddCommand(initCaptainCmd)
+	initCmd.AddCommand(initMemberCmd)
 
 	rootCmd.AddCommand(migrateCmd)
 	migrateCmd.AddCommand(migrateDropCmd)
