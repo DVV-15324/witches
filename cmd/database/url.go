@@ -31,7 +31,7 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	}
 	log.Printf("Info: successfully updated witches.env")
 	fmt.Printf("\nNext steps:\n")
-	fmt.Print("  witches init\n")
+	fmt.Print("  witches init captain or witches init member\n")
 	return nil
 }
 
