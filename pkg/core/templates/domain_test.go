@@ -1,10 +1,13 @@
 package template
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -46,4 +49,106 @@ func TestDomainConfig(t *testing.T) {
 	assert.Equal(t, "github.com/example/myproject", config.GetModuleName())
 	assert.Equal(t, "user", config.Name)
 	assert.Equal(t, "User", config.NameCap)
+}
+
+func TestAddDomain_Golden(t *testing.T) {
+	tmpDir := t.TempDir()
+	moduleName := "github.com/example/myproject"
+
+	// Tạo go.mod
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module "+moduleName),
+		0644,
+	))
+
+	// Tạo các thư mục cần thiết
+	dirs := []string{
+		"cmd/server/routers",
+		"internal/shared/domain",
+		"internal/shared/utils",
+	}
+	for _, dir := range dirs {
+		require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, dir), 0755))
+	}
+
+	// Tạo modules.go
+	modulesContent := `package routers
+
+type Modules struct {
+	User *user.UserModule
+}
+
+func InitModules() *Modules {
+	return &Modules{
+		User: &user.UserModule{},
+	}
+}
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "cmd", "server", "routers", "modules.go"),
+		[]byte(modulesContent),
+		0644,
+	))
+
+	// Tạo routers.go
+	routersContent := `package routers
+
+func initModule(modules *Modules) {
+	// Routes will be registered here
+}
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "cmd", "server", "routers", "routers.go"),
+		[]byte(routersContent),
+		0644,
+	))
+
+	// Tạo key_object.go
+	keyContent := `package utils
+
+var (
+	ObjectUser int64 = 1
+)
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "internal", "shared", "utils", "key_object.go"),
+		[]byte(keyContent),
+		0644,
+	))
+
+	// Chạy AddDomain
+	AddDomain(tmpDir, moduleName, "book", "postgres")
+
+	// Kiểm tra các file đã được tạo
+	expectedFiles := []string{
+		"internal/book/module.go",
+		"internal/book/model/model.go",
+		"internal/book/handler/handler.go",
+		"internal/book/repository/repository.go",
+		"internal/book/usecase/usecase.go",
+		"internal/book/migrate/migrations/1_create_table.up.sql",
+		"internal/book/migrate/migrations/1_drop_table.down.sql",
+		"internal/shared/domain/book.go",
+	}
+
+	for _, relPath := range expectedFiles {
+		actualPath := filepath.Join(tmpDir, relPath)
+		_, err := os.Stat(actualPath)
+		assert.NoError(t, err, "file should exist: %s", relPath)
+	}
+
+	// Golden test cho các file đã sửa
+	filesToCheck := []string{
+		"cmd/server/routers/modules.go",
+		"cmd/server/routers/routers.go",
+		"internal/shared/utils/key_object.go",
+	}
+
+	for _, relPath := range filesToCheck {
+		actualPath := filepath.Join(tmpDir, relPath)
+		actual, err := os.ReadFile(actualPath)
+		require.NoError(t, err)
+		assertGolden(t, "add_domain", string(actual), relPath)
+	}
 }
