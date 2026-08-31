@@ -2,18 +2,16 @@ package {{.Name}}
 
 import (
 	core "{{.ModuleName}}/cmd/server/core"
-
 	handler "{{.ModuleName}}/internal/{{.Name}}/handler"
 	"{{.ModuleName}}/internal/{{.Name}}/repository"
 	usecase_{{.Name}} "{{.ModuleName}}/internal/{{.Name}}/usecase"
-
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
-	"github.com/gin-gonic/gin"
 	"github.com/ulule/limiter/v3"
 )
 
 type {{.NameCap}}Module struct {
+	Core    *core.CoreServices
 	Handler *handler.{{.NameCap}}Handler
 	Usecase *usecase_{{.Name}}.{{.NameCap}}Usecase
 	Repo    *repository.{{.NameCap}}Repository
@@ -26,18 +24,19 @@ func New{{.NameCap}}Module(
 	usecase := usecase_{{.Name}}.New{{.NameCap}}Usecase(repo)
 	handler := handler.New{{.NameCap}}Handler(usecase, core.Logger, core.Config)
 	return &{{.NameCap}}Module{
+		Core:    core,
 		Handler: handler,
 		Usecase: usecase,
 		Repo:    repo,
 	}
 }
 
-func (m *{{.NameCap}}Module) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate) {
+func (m *{{.NameCap}}Module) RegisterPublicRoutes(gen *w_handl.SwaggerGenerator) {
 	// Public routes (nếu có)
 	// Ví dụ: gen.POST("/v1/{{.Name}}/public", ...)
 }
 
-func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator, rateLimit *limiter.Rate, authMiddleware gin.HandlerFunc) {
+func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerator) {
 	// --- Create ---
 	gen.POST("/v1/{{.Name}}/create").
 		Summary("Create {{.NameCap}}").
@@ -46,12 +45,13 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
-		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
+		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		Body(map[string]interface{}{}, "Request body").
 		Response(200, w_resp.AppResponse{}, "Created successfully").
 		Response(400, w_resp.AppResponse{}, "Bad request").
-		Use(authMiddleware).
+		Use(m.Core.Middleware).
 		Handler(m.Handler.Create()).
 		Build()
 
@@ -63,12 +63,13 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
-		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
+		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		Body(map[string]int{"id": 0}, "{{.NameCap}} ID").
 		Response(200, w_resp.AppResponse{}, "{{.NameCap}} found").
 		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
-		Use(authMiddleware).
+		Use(m.Core.Middleware).
 		Handler(m.Handler.GetByID()).
 		Build()
 
@@ -80,15 +81,16 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
-		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
+		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		QueryParam("page", "Page number", false).
 		QueryParam("limit", "Items per page", false).
 		QueryParam("search", "Search keyword", false).
 		QueryParam("sort", "Sort field", false).
 		QueryParam("order", "Sort order (asc/desc)", false).
 		Response(200, w_resp.AppResponse{}, "List of {{.NameCap}}s").
-		Use(authMiddleware).
+		Use(m.Core.Middleware).
 		Handler(m.Handler.GetAll()).
 		Build()
 
@@ -100,14 +102,15 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
-		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
+		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		PathParam("id", "{{.NameCap}} ID", false).
 		Body(map[string]interface{}{}, "Update data").
 		Response(200, w_resp.AppResponse{}, "Updated successfully").
 		Response(400, w_resp.AppResponse{}, "Bad request").
 		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
-		Use(authMiddleware).
+		Use(m.Core.Middleware).
 		Handler(m.Handler.Update()).
 		Build()
 
@@ -119,12 +122,13 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "Bearer token for authentication", false).
-		RateLimit(*rateLimit).
+		HeaderParam("Authorization", "DPoP access token for authentication", false).
+		HeaderParam("DPoP", "DPoP proof JWT", false).
+		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		PathParam("id", "{{.NameCap}} ID", false).
 		Response(200, w_resp.AppResponse{}, "Deleted successfully").
 		Response(404, w_resp.AppResponse{}, "{{.NameCap}} not found").
-		Use(authMiddleware).
+		Use(m.Core.Middleware).
 		Handler(m.Handler.Delete()).
 		Build()
 }

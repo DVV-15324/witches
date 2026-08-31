@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-
 	u_tx "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -11,10 +10,10 @@ import (
 type {{.NameCap}}Repository struct {
 	db        *gorm.DB
 	redis     *redis.Client
-	TxManager u_tx.TxManager
+	TxManager *u_tx.TxManager
 }
 
-func New{{.NameCap}}Repository(db *gorm.DB, txManager u_tx.TxManager, redis *redis.Client) *{{.NameCap}}Repository {
+func New{{.NameCap}}Repository(db *gorm.DB, txManager *u_tx.TxManager, redis *redis.Client) *{{.NameCap}}Repository {
 	return &{{.NameCap}}Repository{
 		db:        db,
 		TxManager: txManager,
