@@ -22,16 +22,6 @@ var runCmd = &cobra.Command{
 	},
 }
 
-var initCmd = &cobra.Command{
-	Use:  "init",
-	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
-		run.WitchesInit(cfg.DBDriver)
-	},
-}
-
 var installCmd = &cobra.Command{
 	Use:  "install",
 	Args: cobra.NoArgs,
@@ -46,8 +36,10 @@ var addCmd = &cobra.Command{
 	Use:  "add",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg := utils.PreloadNotDBURL()
+		utils.LoadDbUrl(cfg)
 		domainName := args[0]
-		run.WitchesAdd(domainName)
+		run.WitchesAdd(domainName, cfg.DBDriver)
 	},
 }
 var removeCmd = &cobra.Command{
@@ -55,5 +47,14 @@ var removeCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		run.WitchesRollback(args[0])
+	},
+}
+var linkCmd = &cobra.Command{
+	Use:  "link",
+	Args: cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		domainName := args[0]
+		url := args[1]
+		run.WitchesLink(domainName, url)
 	},
 }
