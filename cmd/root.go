@@ -8,6 +8,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:     "witches",
 	Version: "v1.1.1",
+	Short:   "Witches CLI - Go project generator",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Help()
 	},
