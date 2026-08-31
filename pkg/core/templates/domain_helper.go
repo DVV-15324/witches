@@ -312,6 +312,14 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 	if targetFunc == nil {
 		return fmt.Errorf("function initModule not found in %s", filePath)
 	}
+
+	// Đảm bảo body không nil và không rỗng
+	if targetFunc.Body == nil {
+		targetFunc.Body = &ast.BlockStmt{
+			List: []ast.Stmt{},
+		}
+	}
+
 	var exists bool
 	ast.Inspect(targetFunc.Body, func(n ast.Node) bool {
 		if call, ok := n.(*ast.CallExpr); ok {
@@ -375,17 +383,23 @@ func AddRouteRegistration(filePath, domain, domainCamel string) error {
 		},
 	}
 
-	lastStmt := targetFunc.Body.List[len(targetFunc.Body.List)-1]
-	newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+3)
-	for _, stmt := range targetFunc.Body.List {
-		newBody = append(newBody, stmt)
-		if stmt == lastStmt {
-			newBody = append(newBody, addTagStmt)
-			newBody = append(newBody, publicStmt)
-			newBody = append(newBody, protectedStmt)
+	//  Nếu body rỗng, thêm trực tiếp, nếu không thì chèn vào cuối
+	if len(targetFunc.Body.List) == 0 {
+		targetFunc.Body.List = []ast.Stmt{addTagStmt, publicStmt, protectedStmt}
+	} else {
+		// Chèn vào cuối body
+		lastStmt := targetFunc.Body.List[len(targetFunc.Body.List)-1]
+		newBody := make([]ast.Stmt, 0, len(targetFunc.Body.List)+3)
+		for _, stmt := range targetFunc.Body.List {
+			newBody = append(newBody, stmt)
+			if stmt == lastStmt {
+				newBody = append(newBody, addTagStmt)
+				newBody = append(newBody, publicStmt)
+				newBody = append(newBody, protectedStmt)
+			}
 		}
+		targetFunc.Body.List = newBody
 	}
-	targetFunc.Body.List = newBody
 
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, node); err != nil {
