@@ -1,0 +1,13 @@
+package routers
+
+import (
+	"testmember/cmd/server/core"
+)
+
+type Modules struct {
+}
+
+func InitModules(core *core.CoreServices) *Modules {
+
+	return &Modules{}
+}

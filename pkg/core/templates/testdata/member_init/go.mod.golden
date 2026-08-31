@@ -1,0 +1,5 @@
+module testmember
+
+go 1.25.0
+
+
