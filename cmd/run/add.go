@@ -8,11 +8,11 @@ import (
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
-func WitchesAdd(domainName string) {
+func WitchesAdd(domainName string, DBdriver string) {
 	projectPath, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 	moduleName := filepath.Base(projectPath)
-	templates.AddGoDomain(projectPath, moduleName, domainName)
+	templates.AddDomain(projectPath, moduleName, domainName, DBdriver)
 }
