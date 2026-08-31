@@ -15,17 +15,26 @@ var migrateCmd = &cobra.Command{
 
 var migrateDropCmd = &cobra.Command{
 	Use: "drop",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		migratePath := utils.GetMigrationsURL()
+		switch cfg.Env {
+		case "development", "test":
+		case "production":
+			return fmt.Errorf(
+				"migrate command is not allowed in production",
+			)
+		default:
+			return fmt.Errorf("invalid ENV: %s", cfg.Env)
+		}
+		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateDrop(cfg.DBUrl, cfg.DBDriver, migratePath)
+		return nil
 	},
 }
 
 var migrateUpCmd = &cobra.Command{
 	Use: "up",
-
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
@@ -39,7 +48,7 @@ var migrateUpCmd = &cobra.Command{
 		default:
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
-		migratePath := utils.GetMigrationsURL()
+		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateUp(cfg.DBUrl, cfg.DBDriver, migratePath)
 		return nil
 	},
@@ -59,7 +68,7 @@ var migrateDownCmd = &cobra.Command{
 		default:
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
-		migratePath := utils.GetMigrationsURL()
+		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateDown(cfg.DBUrl, cfg.DBDriver, migratePath)
 		return nil
 	},
@@ -79,7 +88,7 @@ var migrateVersionCmd = &cobra.Command{
 		default:
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
-		migratePath := utils.GetMigrationsURL()
+		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, migratePath, args[0])
 		return nil
 	},
@@ -89,7 +98,7 @@ var migrateForceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
 		utils.LoadDbUrl(cfg)
-		migratePath := utils.GetMigrationsURL()
+		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateVersion(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
 }
