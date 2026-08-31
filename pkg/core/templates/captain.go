@@ -19,7 +19,6 @@ import (
 //go:embed captain/migrate/postgresql/*.tmpl
 //go:embed captain/internal/shared/utils/*.tmpl
 //go:embed captain/internal/shared/middleware/*.tmpl
-
 var templateCaptainFS embed.FS
 
 type CaptainConfig struct {
@@ -107,6 +106,13 @@ func createCaptainProjectStructure(config CaptainConfig, typeDb string) error {
 		// PKG REDIS
 		"captain/pkg/redis/client.go.tmpl": "pkg/redis/client.go",
 	}
+
+	// Tạo thư mục migrate/migrations trước
+	migrateDir := filepath.Join(baseDir, "migrate", "migrations")
+	if err := os.MkdirAll(migrateDir, 0755); err != nil {
+		return fmt.Errorf("failed to create migrate directory: %w", err)
+	}
+
 	directories := []string{
 		filepath.Join("internal", "shared", "domain"),
 	}
@@ -115,7 +121,10 @@ func createCaptainProjectStructure(config CaptainConfig, typeDb string) error {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
 	}
+
 	for tmpl, dest := range files {
+		// Debug: In ra template đang render
+		fmt.Printf("  Rendering: %s -> %s\n", tmpl, dest)
 		utils.RenderTemplate(templateCaptainFS, baseDir, dest, tmpl, config)
 	}
 
