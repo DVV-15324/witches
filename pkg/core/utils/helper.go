@@ -3,9 +3,7 @@ package utils
 import (
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"golang.org/x/text/language"
-	"strings"
 )
 
 type Helper struct {
@@ -30,11 +28,10 @@ func NewHelper(cfg *utils.Config) *Helper {
 	}
 }
 
-func (h *Helper) GetInfo(c *gin.Context) (dpopProof string, ipAddress, userAgent, locale, timezone string) {
+func (h *Helper) GetInfo(c *gin.Context) (ipAddress, userAgent, locale, timezone string) {
 	ipAddress = c.ClientIP()
 	userAgent = c.GetHeader("User-Agent")
 	acceptLang := c.GetHeader("Accept-Language")
-	dpopProof = c.GetHeader("DPoP")
 	if acceptLang != "" {
 		tag, _ := language.MatchStrings(h.matcher, acceptLang)
 		base, _ := tag.Base()
@@ -56,18 +53,4 @@ func (h *Helper) GetInfo(c *gin.Context) (dpopProof string, ipAddress, userAgent
 		timezone = "UTC"
 	}
 	return
-}
-
-func (h *Helper) ExtractDPoPTokenFromHeader(header string) (string, error) {
-	if header == "" {
-		return "", errors.New("authorization header is required")
-	}
-
-	parts := strings.Fields(header)
-
-	if len(parts) != 2 || parts[0] != "DPoP" {
-		return "", errors.New("invalid authorization header format")
-	}
-
-	return parts[1], nil
 }
