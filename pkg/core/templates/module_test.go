@@ -39,14 +39,13 @@ func TestDomainNameProcessing(t *testing.T) {
 }
 
 func TestDomainConfig(t *testing.T) {
-	config := DomainConfig{
-		NameCap:    "User",
-		Name:       "user",
-		FolderName: "user",
-		ModuleName: "github.com/example/myproject",
+	config := ModuleConfig{
+		NameCap:     "User",
+		Name:        "user",
+		ProjectName: "github.com/example/myproject",
 	}
 
-	assert.Equal(t, "github.com/example/myproject", config.GetModuleName())
+	assert.Equal(t, "github.com/example/myproject", config.GetProjectName())
 	assert.Equal(t, "user", config.Name)
 	assert.Equal(t, "User", config.NameCap)
 }
@@ -118,7 +117,7 @@ var (
 	))
 
 	// Chạy AddDomain
-	AddDomain(tmpDir, moduleName, "book", "postgres")
+	AddModule(tmpDir, moduleName, "book", "postgres")
 
 	// Kiểm tra các file đã được tạo
 	expectedFiles := []string{
@@ -151,4 +150,83 @@ var (
 		require.NoError(t, err)
 		assertGolden(t, "add_domain", string(actual), relPath)
 	}
+}
+func TestAddModule_MySQL_Golden(t *testing.T) {
+	tmpDir := t.TempDir()
+	moduleName := "github.com/example/project"
+
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module "+moduleName),
+		0644,
+	))
+
+	routersDir := filepath.Join(tmpDir, "cmd", "server", "routers")
+	require.NoError(t, os.MkdirAll(routersDir, 0755))
+
+	modulesContent := `package routers
+
+type Modules struct {
+	User *user.UserModule
+}
+
+func InitModules() *Modules {
+	return &Modules{
+		User: &user.UserModule{},
+	}
+}
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(routersDir, "modules.go"),
+		[]byte(modulesContent),
+		0644,
+	))
+
+	routersContent := `package routers
+
+func initModule(modules *Modules) {
+}
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(routersDir, "routers.go"),
+		[]byte(routersContent),
+		0644,
+	))
+
+	utilsDir := filepath.Join(tmpDir, "internal", "shared", "utils")
+	require.NoError(t, os.MkdirAll(utilsDir, 0755))
+
+	keyContent := `package utils
+
+var (
+	ObjectUser int64 = 1
+)
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(utilsDir, "key_object.go"),
+		[]byte(keyContent),
+		0644,
+	))
+
+	err := AddModule(tmpDir, moduleName, "book", "mysql")
+	assert.NoError(t, err)
+
+	// Kiểm tra migration files với MySQL
+	_, err = os.Stat(filepath.Join(tmpDir, "internal", "book", "migrate", "migrations", "1_create_table.up.sql"))
+	assert.NoError(t, err)
+}
+
+func TestAddModule_UnsupportedDriver(t *testing.T) {
+	tmpDir := t.TempDir()
+	moduleName := "github.com/example/project"
+
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module "+moduleName),
+		0644,
+	))
+
+	err := AddModule(tmpDir, moduleName, "book", "invalid")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported database")
 }
