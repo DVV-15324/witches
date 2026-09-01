@@ -12,8 +12,7 @@ import (
 	"strings"
 )
 
-func ValidateModuleStructure(templateFiles map[string]string, config DomainConfig) error {
-	// Các file bắt buộc cho domain
+func ValidateModuleStructure(templateFiles map[string]string, config ModuleConfig) error {
 	required := []string{
 		fmt.Sprintf("internal/%s/model/model.go", config.Name),
 		fmt.Sprintf("internal/%s/handler/handler.go", config.Name),
@@ -102,9 +101,7 @@ func ValidateModuleStructure(templateFiles map[string]string, config DomainConfi
 }
 
 func AddSharedDomainImport(filePath, domainName, moduleName string) error {
-	// Kiểm tra file tồn tại
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		// File chưa tồn tại, bỏ qua
 		return nil
 	}
 
@@ -119,7 +116,6 @@ func AddSharedDomainImport(filePath, domainName, moduleName string) error {
 		return err
 	}
 
-	// Kiểm tra xem đã có import shared domain chưa
 	importPath := fmt.Sprintf("%s/internal/shared/domain", moduleName)
 	hasImport := false
 
@@ -131,7 +127,6 @@ func AddSharedDomainImport(filePath, domainName, moduleName string) error {
 	}
 
 	if !hasImport {
-		// Tạo import spec mới
 		newImport := &ast.ImportSpec{
 			Path: &ast.BasicLit{
 				Kind:  token.STRING,
@@ -139,14 +134,29 @@ func AddSharedDomainImport(filePath, domainName, moduleName string) error {
 			},
 		}
 
-		// Thêm vào danh sách imports
-		if node.Imports == nil {
-			node.Imports = []*ast.ImportSpec{newImport}
-		} else {
-			node.Imports = append(node.Imports, newImport)
+		//  Tìm import declaration hiện có
+		var importDecl *ast.GenDecl
+		for _, decl := range node.Decls {
+			if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.IMPORT {
+				importDecl = genDecl
+				break
+			}
 		}
 
-		// Ghi lại file
+		if importDecl == nil {
+			//  Tạo import block mới nếu chưa có
+			importDecl = &ast.GenDecl{
+				Tok: token.IMPORT,
+				Specs: []ast.Spec{
+					newImport,
+				},
+			}
+			node.Decls = append([]ast.Decl{importDecl}, node.Decls...)
+		} else {
+			//  Thêm vào import block hiện có
+			importDecl.Specs = append(importDecl.Specs, newImport)
+		}
+
 		var buf bytes.Buffer
 		if err := format.Node(&buf, fset, node); err != nil {
 			return err
@@ -157,6 +167,7 @@ func AddSharedDomainImport(filePath, domainName, moduleName string) error {
 
 	return nil
 }
+
 func AddSharedDomainImportAdvanced(filePath, domainName, moduleName string) error {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -167,6 +178,7 @@ func AddSharedDomainImportAdvanced(filePath, domainName, moduleName string) erro
 	if err != nil {
 		return err
 	}
+
 	importPath := fmt.Sprintf("%s/shared/domain", moduleName)
 	hasImport := false
 	for _, imp := range node.Imports {
@@ -178,17 +190,33 @@ func AddSharedDomainImportAdvanced(filePath, domainName, moduleName string) erro
 	if hasImport {
 		return nil
 	}
+
 	newImport := &ast.ImportSpec{
 		Path: &ast.BasicLit{
 			Kind:  token.STRING,
 			Value: fmt.Sprintf(`"%s"`, importPath),
 		},
 	}
-	if len(node.Imports) == 0 {
-		node.Imports = []*ast.ImportSpec{newImport}
-	} else {
 
-		node.Imports = append(node.Imports, newImport)
+	//  Tìm import declaration hiện có
+	var importDecl *ast.GenDecl
+	for _, decl := range node.Decls {
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.IMPORT {
+			importDecl = genDecl
+			break
+		}
+	}
+
+	if importDecl == nil {
+		importDecl = &ast.GenDecl{
+			Tok: token.IMPORT,
+			Specs: []ast.Spec{
+				newImport,
+			},
+		}
+		node.Decls = append([]ast.Decl{importDecl}, node.Decls...)
+	} else {
+		importDecl.Specs = append(importDecl.Specs, newImport)
 	}
 
 	var buf bytes.Buffer
