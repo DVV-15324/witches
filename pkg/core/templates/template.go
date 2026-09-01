@@ -29,7 +29,7 @@ func (p TemplateConfig) GetProjectName() string {
 	return p.ProjectName
 }
 
-func CreateTemplateGoArc(projectName string, typeDb string) {
+func CreateTemplateGoArc(projectName string, typeDb string) error {
 	config := TemplateConfig{
 		ProjectName: projectName,
 	}
@@ -37,14 +37,14 @@ func CreateTemplateGoArc(projectName string, typeDb string) {
 	fmt.Println("Creating structure...")
 
 	if err := createTemplateProjectStructure(config, typeDb); err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("create template structure: %w", err)
 	}
 
 	fmt.Println("Project created successfully!")
 	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("  witches install\n")
 	fmt.Printf("  witches run\n")
+	return nil
 }
 
 func createTemplateProjectStructure(config TemplateConfig, typeDb string) error {
