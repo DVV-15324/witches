@@ -1,0 +1,7 @@
+package routers
+
+func initModule(modules *Modules) {
+	gen.AddTag("book", "Book endpoints")
+	modules.Book.RegisterPublicRoutes(gen)
+	modules.Book.RegisterProtectedRoutes(gen)
+}

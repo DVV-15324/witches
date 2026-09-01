@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"context"
-	"github.com/example/project/cmd/server/config"
-	routes "github.com/example/project/cmd/server/routers"
 	"fmt"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	"testproject/cmd/server/config"
+	routes "testproject/cmd/server/routers"
 )
 
 var root = &cobra.Command{

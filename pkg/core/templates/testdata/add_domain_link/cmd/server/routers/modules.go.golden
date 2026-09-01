@@ -1,0 +1,15 @@
+package routers
+
+import "github.com/example/project/internal/book"
+
+type Modules struct {
+	User *user.UserModule
+	Book *book.BookModule
+}
+
+func InitModules() *Modules {
+	bookModule := book.NewBookModule(core)
+	return &Modules{
+		User: &user.UserModule{}, Book: bookModule,
+	}
+}
