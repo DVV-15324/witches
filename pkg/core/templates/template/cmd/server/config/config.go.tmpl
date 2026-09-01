@@ -5,7 +5,6 @@ import (
 )
 
 func Load() *wcmd_utils.Config {
-	cfg := wcmd_utils.PreloadNotDBURL()
-	wcmd_utils.LoadDbUrl(cfg)
+	cfg := wcmd_utils.Load()
 	return cfg
 }
