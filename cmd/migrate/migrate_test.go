@@ -19,6 +19,14 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+func TestMain(m *testing.M) {
+	// Tắt Ryuk để tránh lỗi
+	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+	os.Setenv("TESTCONTAINERS_REUSE_ENABLE", "true")
+	code := m.Run()
+	os.Exit(code)
+}
+
 func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cleanup func()) {
 	ctx := context.Background()
 	tmpDir := t.TempDir()
@@ -26,20 +34,18 @@ func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cl
 	migrationsDir = filepath.ToSlash(migrationsDir)
 	err := os.MkdirAll(migrationsDir, 0755)
 	require.NoError(t, err)
+
 	upFile := filepath.Join(migrationsDir, "000001_test_migration.up.sql")
 	downFile := filepath.Join(migrationsDir, "000001_test_migration.down.sql")
 
 	upContent := `
 CREATE TABLE IF NOT EXISTS users (
-	id SERIAL PRIMARY KEY,
-	name TEXT NOT NULL,
-	email TEXT UNIQUE NOT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-`
-	downContent := `
-DROP TABLE IF EXISTS users;
-`
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+	downContent := `DROP TABLE IF EXISTS users;`
 
 	err = os.WriteFile(upFile, []byte(upContent), 0644)
 	require.NoError(t, err)
@@ -47,8 +53,7 @@ DROP TABLE IF EXISTS users;
 	require.NoError(t, err)
 
 	postgresContainer, err := postgres.Run(ctx,
-		"postgres:15",
-		testcontainers.WithImage("postgres:16-alpine"),
+		"postgres:16-alpine",
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),
 		postgres.WithPassword("testpass"),
@@ -80,7 +85,10 @@ func TestWitchesMigrateUp(t *testing.T) {
 
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
-	WitchesMigrateUp(dbURL, "postgres", migrationPath)
+
+	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
+
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
 	db, err := sql.Open("postgres", connStr)
@@ -109,9 +117,11 @@ func TestWitchesMigrateVersion(t *testing.T) {
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
 
-	WitchesMigrateVersion(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateVersion(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
@@ -138,8 +148,11 @@ func TestWitchesMigrateDown(t *testing.T) {
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	WitchesMigrateUp(dbURL, "postgres", migrationPath)
-	WitchesMigrateDown(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
+
+	err = WitchesMigrateDown(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
@@ -169,8 +182,11 @@ func TestWitchesMigrateDrop(t *testing.T) {
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	WitchesMigrateUp(dbURL, "postgres", migrationPath)
-	WitchesMigrateDrop(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
+
+	err = WitchesMigrateDrop(dbURL, "postgres", migrationPath)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
@@ -198,7 +214,8 @@ func TestWitchesMigrateForce(t *testing.T) {
 	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	WitchesMigrateForce(dbURL, "postgres", migrationPath, "1")
+	err = WitchesMigrateForce(dbURL, "postgres", migrationPath, "1")
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	connStr := utils.BuildDatabaseURL("postgres", dbURL)
@@ -214,4 +231,113 @@ func TestWitchesMigrateForce(t *testing.T) {
 	`).Scan(&version)
 	require.NoError(t, err)
 	assert.Equal(t, 1, version, "Migration version should be forced to 1")
+}
+
+func TestWitchesMigrateUp_InvalidPath(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	// Test với path không tồn tại
+	err = WitchesMigrateUp("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate up failed")
+}
+
+func TestWitchesMigrateUp_InvalidDBURL(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	tmpDir := t.TempDir()
+	err = WitchesMigrateUp("invalid_url", "postgres", tmpDir)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate up failed")
+}
+
+func TestWitchesMigrateDown_InvalidPath(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	err = WitchesMigrateDown("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate down failed")
+}
+
+func TestWitchesMigrateDrop_InvalidPath(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	err = WitchesMigrateDrop("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate drop failed")
+}
+
+func TestWitchesMigrateForce_InvalidPath(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	err = WitchesMigrateForce("user:pass@localhost:5432/db", "postgres", "/invalid/path", "1")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate force failed")
+}
+
+func TestWitchesMigrateVersion_InvalidPath(t *testing.T) {
+	_, err := exec.LookPath("migrate")
+	if err != nil {
+		t.Skip("Skipping test: 'migrate' binary not found in PATH")
+	}
+
+	err = WitchesMigrateVersion("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "migrate version failed")
+}
+
+func TestBuildDatabaseURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		driver   string
+		dbURL    string
+		expected string
+	}{
+		{
+			name:     "PostgreSQL",
+			driver:   "postgres",
+			dbURL:    "user:pass@localhost:5432/db",
+			expected: "postgres://user:pass@localhost:5432/db",
+		},
+		{
+			name:     "MySQL",
+			driver:   "mysql",
+			dbURL:    "user:pass@tcp(localhost:3306)/db",
+			expected: "mysql://user:pass@tcp(localhost:3306)/db",
+		},
+		{
+			name:     "PostgreSQL with sslmode",
+			driver:   "postgres",
+			dbURL:    "user:pass@localhost:5432/db?sslmode=disable",
+			expected: "postgres://user:pass@localhost:5432/db?sslmode=disable",
+		},
+		{
+			name:     "Empty driver",
+			driver:   "",
+			dbURL:    "user:pass@localhost:5432/db",
+			expected: "user:pass@localhost:5432/db",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.BuildDatabaseURL(tt.driver, tt.dbURL)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
