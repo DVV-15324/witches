@@ -35,16 +35,21 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 
 	// Chỉ update DB_URL trong content (giữ nguyên comment và key khác)
 	lines := strings.Split(string(content), "\n")
+	found := false
 	for i, line := range lines {
+		// Chỉ update dòng KHÔNG comment và bắt đầu bằng DB_URL=
 		if strings.HasPrefix(line, "DB_URL=") {
 			lines[i] = "DB_URL=" + DB_URL
+			found = true
 			break
 		}
 	}
-	// Nếu chưa có DB_URL, thêm vào cuối
-	if !strings.Contains(strings.Join(lines, "\n"), "DB_URL=") {
+
+	// Nếu chưa có DB_URL (không comment), thêm vào cuối
+	if !found {
 		lines = append(lines, "DB_URL="+DB_URL)
 	}
+
 	newContent := strings.Join(lines, "\n")
 
 	// Ghi lại file
@@ -76,7 +81,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL, nil
 	case "postgresql", "postgres":
 		DB_URL := fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			"%s:%s@%s:%d/%s?sslmode=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
@@ -86,7 +91,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL, nil
 	case "mssql", "sqlserver":
 		DB_URL := fmt.Sprintf(
-			"sqlserver://%s:%s@%s:%d?database=%s&encrypt=disable",
+			"%s:%s@%s:%d?database=%s&encrypt=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
