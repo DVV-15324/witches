@@ -10,7 +10,7 @@ import (
 func TestRootCmd(t *testing.T) {
 	cmd := rootCmd
 	assert.Equal(t, "witches", cmd.Use)
-	assert.Contains(t, cmd.Version, "v1.0.")
+	assert.Contains(t, cmd.Version, "v1.1.1")
 	assert.NotNil(t, cmd.Run)
 }
 
