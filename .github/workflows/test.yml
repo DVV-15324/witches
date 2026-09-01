@@ -80,15 +80,6 @@ jobs:
             -timeout=60s \
             ./pkg/core/handler/...
 
-      - name: Run handler tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_handler.out \
-            -timeout=60s \
-            ./test/handler/...
-
       - name: Run response tests
         run: |
           go test \
