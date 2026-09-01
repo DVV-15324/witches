@@ -20,11 +20,10 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	domainNameCap := cases.Title(language.English).String(domainName)
 	domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
 
-	config := DomainConfig{
-		NameCap:    domainNameCap,
-		Name:       domainName,
-		FolderName: domainName,
-		ModuleName: moduleName,
+	config := ModuleConfig{
+		NameCap:     domainNameCap,
+		Name:        domainName,
+		ProjectName: moduleName,
 	}
 
 	sourceModule := GetModuleNameFromRepo(repoURL)
@@ -55,7 +54,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	fmt.Println("Validation passed")
 	fmt.Println("Writing files to disk...")
 
-	baseDir := filepath.Join(project, "internal", config.FolderName)
+	baseDir := filepath.Join(project, "internal", config.Name)
 
 	const prefix = "internal/"
 	sharedDomainDir := filepath.Join(project, "internal", "shared", "domain")
@@ -199,7 +198,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	} else {
 		fmt.Println("Fixed all imports in project")
 	}
-	fmt.Printf("\nDomain '%s' generated successfully from external repo!\n", config.FolderName)
+	fmt.Printf("\nDomain '%s' generated successfully from external repo!\n", config.Name)
 	fmt.Println("\nNext steps:")
 	fmt.Printf("1. Check generated files in internal/%s/\n", domainName)
 	fmt.Printf("2. Check migration files in internal/%s/migrate/migrations/\n", domainName)
