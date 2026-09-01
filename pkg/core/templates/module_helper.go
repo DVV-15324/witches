@@ -55,22 +55,25 @@ func updateKeyObject(projectPath string, config ModuleConfig) error {
 	var targetDecl *ast.GenDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		decl, ok := n.(*ast.GenDecl)
-		if !ok || decl.Tok != token.VAR {
+		if !ok || decl.Tok != token.CONST {
 			return true
 		}
 		for _, spec := range decl.Specs {
 			vs, ok := spec.(*ast.ValueSpec)
-			if !ok || len(vs.Names) != 1 || !strings.HasPrefix(vs.Names[0].Name, "Object") {
+			if !ok || len(vs.Names) != 1 {
 				continue
 			}
-			if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
-				id, err := strconv.Atoi(lit.Value)
-				if err != nil {
-					continue
-				}
-				if id > maxID || targetDecl == nil {
-					maxID = id
-					targetDecl = decl
+			//  Kiểm tra tất cả các constant bắt đầu bằng "Object"
+			if strings.HasPrefix(vs.Names[0].Name, "Object") {
+				if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
+					id, err := strconv.Atoi(lit.Value)
+					if err != nil {
+						continue
+					}
+					if id > maxID || targetDecl == nil {
+						maxID = id
+						targetDecl = decl
+					}
 				}
 			}
 		}
@@ -80,9 +83,10 @@ func updateKeyObject(projectPath string, config ModuleConfig) error {
 		return fmt.Errorf("no Object constant found")
 	}
 
+	//  Tạo constant mới với giá trị tăng thêm 1
 	newSpec := &ast.ValueSpec{
 		Names:  []*ast.Ident{ast.NewIdent("Object" + config.NameCap)},
-		Type:   &ast.Ident{Name: "int64"},
+		Type:   &ast.Ident{Name: "KeyObject"},
 		Values: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", maxID+1)}},
 	}
 	targetDecl.Specs = append(targetDecl.Specs, newSpec)
