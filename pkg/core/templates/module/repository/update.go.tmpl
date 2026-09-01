@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
-	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
+	"{{.ProjectName}}/internal/{{.Name}}/mapping"
+	domain{{.NameCap}} "{{.ProjectName}}/internal/shared/domain"
 )
 
 func (r *{{.NameCap}}Repository) Update(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}, id int) error {

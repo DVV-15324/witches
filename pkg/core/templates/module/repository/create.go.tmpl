@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
-	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
+	domain{{.NameCap}} "{{.ProjectName}}/internal/shared/domain"
+	"{{.ProjectName}}/internal/{{.Name}}/mapping"
 )
 
 func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}) (error) {

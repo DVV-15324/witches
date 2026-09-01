@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"{{.ModuleName}}/internal/{{.FolderName}}/mapping"
+	"{{.ProjectName}}/internal/{{.Name}}/mapping"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	domain{{.NameCap}} "{{.ModuleName}}/internal/shared/domain"
-	model{{.NameCap}} "{{.ModuleName}}/internal/{{.FolderName}}/model"
+	domain{{.NameCap}} "{{.ProjectName}}/internal/shared/domain"
+	model{{.NameCap}} "{{.ProjectName}}/internal/{{.Name}}/model"
 )
 
 func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id int) (*domain{{.NameCap}}.{{.NameCap}}, error) {
