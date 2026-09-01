@@ -11,53 +11,52 @@ import (
 	"strings"
 )
 
-//go:embed domain/dto/request/*.tmpl
-//go:embed domain/dto/response/*.tmpl
-//go:embed domain/model/*.tmpl
-//go:embed domain/handler/*.tmpl
-//go:embed domain/mapping/*.tmpl
-//go:embed domain/repository/*.tmpl
-//go:embed domain/usecase/*.tmpl
-//go:embed domain/shared/domain/domain.go.tmpl
-//go:embed domain/module.go.tmpl
-//go:embed domain/migrate/mssql/*.tmpl
-//go:embed domain/migrate/mysql/*.tmpl
-//go:embed domain/migrate/postgresql/*.tmpl
-var templateDomainFS embed.FS
+//go:embed module/dto/request/*.tmpl
+//go:embed module/dto/response/*.tmpl
+//go:embed module/model/*.tmpl
+//go:embed module/handler/*.tmpl
+//go:embed module/mapping/*.tmpl
+//go:embed module/repository/*.tmpl
+//go:embed module/usecase/*.tmpl
+//go:embed module/shared/domain/domain.go.tmpl
+//go:embed module/module.go.tmpl
+//go:embed module/module.env.tmpl
+//go:embed module/migrate/mssql/*.tmpl
+//go:embed module/migrate/mysql/*.tmpl
+//go:embed module/migrate/postgresql/*.tmpl
+var templateModuleFS embed.FS
 
-type DomainConfig struct {
-	NameCap    string
-	Name       string
-	FolderName string
-	ModuleName string
+type ModuleConfig struct {
+	NameCap     string
+	Name        string
+	ProjectName string
 }
 
-func (p DomainConfig) GetModuleName() string {
-	return p.ModuleName
+func (p ModuleConfig) GetProjectName() string {
+	return p.ProjectName
 }
 
-func AddDomain(project string, moduleName string, domainName string, typeDb string) {
-	domainName = strings.TrimSpace(domainName)
-	domainName = strings.ReplaceAll(domainName, " ", "")
-	domainName = strings.ToLower(domainName)
-	domainNameCap := cases.Title(language.English).String(domainName)
-	domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
-	config := DomainConfig{
-		NameCap:    domainNameCap,
-		Name:       domainName,
-		FolderName: domainName,
-		ModuleName: moduleName,
+func AddModule(projectPath string, projectName string, moduleName string, typeDb string) {
+	moduleName = strings.TrimSpace(moduleName)
+	moduleName = strings.ReplaceAll(moduleName, " ", "")
+	moduleName = strings.ToLower(moduleName)
+	moduleNameCap := cases.Title(language.English).String(moduleName)
+	moduleNameCap = strings.ReplaceAll(moduleNameCap, " ", "")
+	config := ModuleConfig{
+		NameCap:     moduleNameCap,
+		Name:        moduleName,
+		ProjectName: projectName,
 	}
 
-	fmt.Printf("Generating domain '%s' ...\n", config.FolderName)
+	fmt.Printf("Generating module '%s' ...\n", config.Name)
 
-	if err := generateDomain(project, config, typeDb); err != nil {
+	if err := generateModule(projectPath, config, typeDb); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
-	if err := AddModuleField(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
+	modulesPath := filepath.Join(projectPath, "cmd", "server", "routers", "modules.go")
+	if err := AddModuleField(modulesPath, config.Name, config.NameCap, projectName); err != nil {
 		fmt.Printf("Warning: failed to add module field: %v\n", err)
 	} else {
 		fmt.Println("Updated modules.go: added import and field")
@@ -68,17 +67,17 @@ func AddDomain(project string, moduleName string, domainName string, typeDb stri
 	} else {
 		fmt.Println("Updated modules.go: added initialization")
 	}
-	routersPath := filepath.Join(project, "cmd", "server", "routers", "routers.go")
+	routersPath := filepath.Join(projectPath, "cmd", "server", "routers", "routers.go")
 	if err := AddRouteRegistration(routersPath, config.Name, config.NameCap); err != nil {
 		fmt.Printf("Warning: failed to add route registration: %v\n", err)
 	} else {
 		fmt.Println("Updated routers.go: added route registration for", config.Name)
 	}
-	fmt.Printf("domain '%s' generated successfully!\n", config.FolderName)
+	fmt.Printf("module '%s' generated successfully!\n", config.Name)
 }
 
-func generateDomain(project string, config DomainConfig, typeDb string) error {
-	baseDir := filepath.Join(project, "internal", config.FolderName)
+func generateModule(projectPath string, config ModuleConfig, typeDb string) error {
+	baseDir := filepath.Join(projectPath, "internal", config.Name)
 
 	dirs := []string{
 		"dto/request",
@@ -100,54 +99,55 @@ func generateDomain(project string, config DomainConfig, typeDb string) error {
 	var migraDown string
 	switch typeDb {
 	case "mysql":
-		migraUp = "domain/migrate/mysql/1_create_table.up.sql.tmpl"
-		migraDown = "domain/migrate/mysql/1_drop_table.down.sql.tmpl"
+		migraUp = "module/migrate/mysql/1_create_table.up.sql.tmpl"
+		migraDown = "module/migrate/mysql/1_drop_table.down.sql.tmpl"
 	case "postgres", "postgresql":
-		migraUp = "domain/migrate/postgresql/1_create_table.up.sql.tmpl"
-		migraDown = "domain/migrate/postgresql/1_drop_table.down.sql.tmpl"
+		migraUp = "module/migrate/postgresql/1_create_table.up.sql.tmpl"
+		migraDown = "module/migrate/postgresql/1_drop_table.down.sql.tmpl"
 	case "sqlserver", "mssql":
-		migraUp = "domain/migrate/mssql/1_create_table.up.sql.tmpl"
-		migraDown = "domain/migrate/mssql/1_drop_table.down.sql.tmpl"
+		migraUp = "module/migrate/mssql/1_create_table.up.sql.tmpl"
+		migraDown = "module/migrate/mssql/1_drop_table.down.sql.tmpl"
 	default:
 		return fmt.Errorf("error: unsupported database: %s. supported : mysql, postgresql, postgres, mssql, sqlserver", typeDb)
 	}
 	files := map[string]string{
-		"domain/dto/request/request.go.tmpl":   "dto/request/request.go",
-		"domain/dto/request/validate.go.tmpl":  "dto/request/validate.go",
-		"domain/dto/request/errors.go.tmpl":    "dto/request/errors.go",
-		"domain/dto/response/response.go.tmpl": "dto/response/response.go",
-		"domain/model/model.go.tmpl":           "model/model.go",
-		"domain/handler/handler.go.tmpl":       "handler/handler.go",
-		"domain/handler/create.go.tmpl":        "handler/create.go",
-		"domain/handler/get.go.tmpl":           "handler/get.go",
-		"domain/handler/update.go.tmpl":        "handler/update.go",
-		"domain/handler/delete.go.tmpl":        "handler/delete.go",
-		"domain/mapping/mapping.go.tmpl":       "mapping/mapping.go",
-		"domain/repository/repository.go.tmpl": "repository/repository.go",
-		"domain/repository/create.go.tmpl":     "repository/create.go",
-		"domain/repository/get.go.tmpl":        "repository/get.go",
-		"domain/repository/update.go.tmpl":     "repository/update.go",
-		"domain/repository/delete.go.tmpl":     "repository/delete.go",
-		"domain/usecase/usecase.go.tmpl":       "usecase/usecase.go",
-		"domain/usecase/create.go.tmpl":        "usecase/create.go",
-		"domain/usecase/get.go.tmpl":           "usecase/get.go",
-		"domain/usecase/update.go.tmpl":        "usecase/update.go",
-		"domain/usecase/delete.go.tmpl":        "usecase/delete.go",
-		"domain/module.go.tmpl":                "module.go",
+		"module/dto/request/request.go.tmpl":   "dto/request/request.go",
+		"module/dto/request/validate.go.tmpl":  "dto/request/validate.go",
+		"module/dto/request/errors.go.tmpl":    "dto/request/errors.go",
+		"module/dto/response/response.go.tmpl": "dto/response/response.go",
+		"module/model/model.go.tmpl":           "model/model.go",
+		"module/handler/handler.go.tmpl":       "handler/handler.go",
+		"module/handler/create.go.tmpl":        "handler/create.go",
+		"module/handler/get.go.tmpl":           "handler/get.go",
+		"module/handler/update.go.tmpl":        "handler/update.go",
+		"module/handler/delete.go.tmpl":        "handler/delete.go",
+		"module/mapping/mapping.go.tmpl":       "mapping/mapping.go",
+		"module/repository/repository.go.tmpl": "repository/repository.go",
+		"module/repository/create.go.tmpl":     "repository/create.go",
+		"module/repository/get.go.tmpl":        "repository/get.go",
+		"module/repository/update.go.tmpl":     "repository/update.go",
+		"module/repository/delete.go.tmpl":     "repository/delete.go",
+		"module/usecase/usecase.go.tmpl":       "usecase/usecase.go",
+		"module/usecase/create.go.tmpl":        "usecase/create.go",
+		"module/usecase/get.go.tmpl":           "usecase/get.go",
+		"module/usecase/update.go.tmpl":        "usecase/update.go",
+		"module/usecase/delete.go.tmpl":        "usecase/delete.go",
+		"module/module.go.tmpl":                "module.go",
+		"module/module.env.tmpl":               "module.env",
 		// MIGRATIONS
 		migraUp:   "migrate/migrations/1_create_table.up.sql",
 		migraDown: "migrate/migrations/1_drop_table.down.sql",
 	}
 
 	for tmpl, dest := range files {
-		utils.RenderTemplate(templateDomainFS, baseDir, dest, tmpl, config)
+		utils.RenderTemplate(templateModuleFS, baseDir, dest, tmpl, config)
 	}
 
-	if err := generateSharedDomain(project, config, templateDomainFS); err != nil {
+	if err := generateSharedDomain(projectPath, config, templateModuleFS); err != nil {
 		fmt.Printf("Warning: failed to generate shared domain: %v\n", err)
 	}
 
-	if err := updateKeyObject(project, config); err != nil {
+	if err := updateKeyObject(projectPath, config); err != nil {
 		fmt.Printf("Warning: failed to update key_object.go: %v\n", err)
 	}
 
