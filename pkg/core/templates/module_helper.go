@@ -15,13 +15,13 @@ import (
 	"text/template"
 )
 
-func generateSharedDomain(projectRoot string, config DomainConfig, templateFs embed.FS) error {
-	sharedDomainDir := filepath.Join(projectRoot, "internal", "shared", "domain")
+func generateSharedDomain(projectPath string, config ModuleConfig, templateFs embed.FS) error {
+	sharedDomainDir := filepath.Join(projectPath, "internal", "shared", "domain")
 	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
 		return err
 	}
 	destFile := filepath.Join(sharedDomainDir, config.Name+".go")
-	tmplFile := "domain/shared/domain/domain.go.tmpl"
+	tmplFile := "module/shared/domain/domain.go.tmpl"
 	tmplContent, err := templateFs.ReadFile(tmplFile)
 	if err != nil {
 		return fmt.Errorf("template %s not found", tmplFile)
@@ -40,8 +40,8 @@ func generateSharedDomain(projectRoot string, config DomainConfig, templateFs em
 	return tmpl.Execute(file, config)
 }
 
-func updateKeyObject(projectRoot string, config DomainConfig) error {
-	keyFile := filepath.Join(projectRoot, "internal", "shared", "utils", "key_object.go")
+func updateKeyObject(projectPath string, config ModuleConfig) error {
+	keyFile := filepath.Join(projectPath, "internal", "shared", "utils", "key_object.go")
 	src, err := os.ReadFile(keyFile)
 	if err != nil {
 		return err
@@ -93,13 +93,13 @@ func updateKeyObject(projectRoot string, config DomainConfig) error {
 	return os.WriteFile(keyFile, buf.Bytes(), 0644)
 }
 
-func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
+func AddModuleField(filePath, module, moduleCamel, projectName string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
-	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
+	importPath := fmt.Sprintf("%s/internal/%s", projectName, module)
 	newImport := &ast.ImportSpec{
 		Path: &ast.BasicLit{
 			Kind:  token.STRING,
@@ -153,16 +153,16 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 		return fmt.Errorf("struct Modules not found in %s", filePath)
 	}
 	for _, field := range targetStruct.Fields.List {
-		if len(field.Names) > 0 && field.Names[0].Name == domainCamel {
-			return fmt.Errorf("field %s already exists", domainCamel)
+		if len(field.Names) > 0 && field.Names[0].Name == moduleCamel {
+			return fmt.Errorf("field %s already exists", moduleCamel)
 		}
 	}
 	newField := &ast.Field{
-		Names: []*ast.Ident{ast.NewIdent(domainCamel)},
+		Names: []*ast.Ident{ast.NewIdent(moduleCamel)},
 		Type: &ast.StarExpr{
 			X: &ast.SelectorExpr{
-				X:   ast.NewIdent(domain),
-				Sel: ast.NewIdent(domainCamel + "Module"),
+				X:   ast.NewIdent(module),
+				Sel: ast.NewIdent(moduleCamel + "Module"),
 			},
 		},
 	}
@@ -175,7 +175,7 @@ func AddModuleField(filePath, domain, domainCamel, moduleName string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-func AddModuleInit(filePath, domain, domainCamel string) error {
+func AddModuleInit(filePath, module, moduleCamel string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -251,19 +251,19 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 
 	for _, elt := range compLit.Elts {
 		if kv, ok := elt.(*ast.KeyValueExpr); ok {
-			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCamel {
-				return fmt.Errorf("field %s already exists in return statement", domainCamel)
+			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == moduleCamel {
+				return fmt.Errorf("field %s already exists in return statement", moduleCamel)
 			}
 		}
 	}
 
 	assignStmt := &ast.AssignStmt{
-		Lhs: []ast.Expr{ast.NewIdent(domain + "Module")},
+		Lhs: []ast.Expr{ast.NewIdent(module + "Module")},
 		Tok: token.DEFINE,
 		Rhs: []ast.Expr{&ast.CallExpr{
 			Fun: &ast.SelectorExpr{
-				X:   ast.NewIdent(domain),
-				Sel: ast.NewIdent("New" + domainCamel + "Module"),
+				X:   ast.NewIdent(module),
+				Sel: ast.NewIdent("New" + moduleCamel + "Module"),
 			},
 			Args: []ast.Expr{ast.NewIdent("core")},
 		}},
@@ -279,8 +279,8 @@ func AddModuleInit(filePath, domain, domainCamel string) error {
 	targetFunc.Body.List = newBody
 
 	newField := &ast.KeyValueExpr{
-		Key:   ast.NewIdent(domainCamel),
-		Value: ast.NewIdent(domain + "Module"),
+		Key:   ast.NewIdent(moduleCamel),
+		Value: ast.NewIdent(module + "Module"),
 	}
 	compLit.Elts = append(compLit.Elts, newField)
 
