@@ -135,9 +135,9 @@ ANOTHER_KEY=another_value`
 	cfg := &Config{}
 	LoadModule(modulePath, cfg)
 
-	assert.NotNil(t, cfg.Domains)
-	assert.Equal(t, "module_value", cfg.Domains[modulePath]["MODULE_KEY"])
-	assert.Equal(t, "another_value", cfg.Domains[modulePath]["ANOTHER_KEY"])
+	assert.NotNil(t, cfg.Modules)
+	assert.Equal(t, "module_value", cfg.Modules[modulePath]["MODULE_KEY"])
+	assert.Equal(t, "another_value", cfg.Modules[modulePath]["ANOTHER_KEY"])
 }
 
 func TestLoadModule_NoEnvFile(t *testing.T) {
@@ -150,7 +150,7 @@ func TestLoadModule_NoEnvFile(t *testing.T) {
 	LoadModule(modulePath, cfg)
 
 	// Không panic, Domains vẫn nil
-	assert.Nil(t, cfg.Domains)
+	assert.Nil(t, cfg.Modules)
 }
 
 func TestLoad(t *testing.T) {
@@ -183,14 +183,14 @@ DB_URL=postgres://user:pass@localhost:5432/db`
 
 	assert.Equal(t, int64(9090), cfg.Port)
 	assert.Equal(t, "postgres://user:pass@localhost:5432/db", cfg.DBUrl)
-	assert.NotNil(t, cfg.Domains)
+	assert.NotNil(t, cfg.Modules)
 
 	// Debug: in ra tất cả keys
-	t.Logf("Domains keys: %v", getKeys(cfg.Domains))
+	t.Logf("Domains keys: %v", getKeys(cfg.Modules))
 
 	// Tìm key chứa "book" trong path
 	var foundKey string
-	for k := range cfg.Domains {
+	for k := range cfg.Modules {
 		if strings.Contains(k, "book") {
 			foundKey = k
 			break
@@ -198,10 +198,10 @@ DB_URL=postgres://user:pass@localhost:5432/db`
 	}
 
 	if foundKey != "" {
-		assert.Equal(t, "book_value", cfg.Domains[foundKey]["BOOK_KEY"])
+		assert.Equal(t, "book_value", cfg.Modules[foundKey]["BOOK_KEY"])
 	} else {
 		// Nếu không tìm thấy, dùng bookDir làm key
-		assert.Equal(t, "book_value", cfg.Domains[bookDir]["BOOK_KEY"])
+		assert.Equal(t, "book_value", cfg.Modules[bookDir]["BOOK_KEY"])
 	}
 }
 

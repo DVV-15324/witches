@@ -42,7 +42,7 @@ type Config struct {
 	RateLimitPeriod    int64
 	RateLimitMax       int64
 	Others             map[string]string            // cfg.Others["CUSTOM_KEY"] in witches expan
-	Domains            map[string]map[string]string // cfg.Domains["book"]["KEY"] in domain.env
+	Modules            map[string]map[string]string // cfg.Modules["book"]["KEY"] in module.env
 }
 
 func LoadDbUrl(cfg *Config) {
@@ -51,10 +51,10 @@ func LoadDbUrl(cfg *Config) {
 func LoadModule(modulePath string, cfg *Config) {
 	envPath := filepath.Join(modulePath, "module.env")
 	if m, err := godotenv.Read(envPath); err == nil {
-		if cfg.Domains == nil {
-			cfg.Domains = make(map[string]map[string]string)
+		if cfg.Modules == nil {
+			cfg.Modules = make(map[string]map[string]string)
 		}
-		cfg.Domains[modulePath] = m
+		cfg.Modules[modulePath] = m
 	}
 }
 
