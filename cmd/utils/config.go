@@ -48,7 +48,6 @@ type Config struct {
 func LoadDbUrl(cfg *Config) {
 	cfg.DBUrl = os.Getenv("DB_URL")
 }
-
 func LoadModule(modulePath string, cfg *Config) {
 	envPath := filepath.Join(modulePath, "module.env")
 	if m, err := godotenv.Read(envPath); err == nil {
@@ -57,6 +56,21 @@ func LoadModule(modulePath string, cfg *Config) {
 		}
 		cfg.Domains[modulePath] = m
 	}
+}
+
+func Load() *Config {
+	cfg := PreloadNotDBURL()
+	LoadDbUrl(cfg)
+
+	// Đọc tất cả folder trong internal/
+	entries, _ := os.ReadDir("internal")
+	for _, entry := range entries {
+		if entry.IsDir() {
+			modulePath := filepath.Join("internal", entry.Name())
+			LoadModule(modulePath, cfg)
+		}
+	}
+	return cfg
 }
 
 func PreloadNotDBURL() *Config {
