@@ -396,3 +396,24 @@ func BenchmarkRouteBuilder_Build(b *testing.B) {
 		builder.Build()
 	}
 }
+func TestRouteBuilder_NilChecks(t *testing.T) {
+	// Test khi RouteBuilder nil
+	var builder *RouteBuilder
+
+	// Các method trên nil builder không panic
+	builder = builder.Summary("test")
+	builder = builder.Description("test")
+	builder = builder.Tags("test")
+	builder = builder.RateLimit(limiter.Rate{Period: 1 * time.Second, Limit: 1})
+
+	// Không panic
+	assert.Nil(t, builder)
+}
+
+func TestSwaggerGenerator_Save_Error(t *testing.T) {
+	gen, _ := setupTestGenerator()
+
+	// Tạo file với path không hợp lệ
+	err := gen.Save("/invalid/path/swagger.json")
+	assert.Error(t, err)
+}
