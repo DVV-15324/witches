@@ -69,34 +69,6 @@ func TestModelParser_Register_WithTags(t *testing.T) {
 	assert.Equal(t, "User ID", schema.Properties["id"].Description)
 }
 
-func TestModelParser_Register_NestedStruct(t *testing.T) {
-	parser := NewModelParser()
-
-	type Address struct {
-		Street string `json:"street"`
-		City   string `json:"city"`
-	}
-
-	type User struct {
-		ID      int     `json:"id"`
-		Name    string  `json:"name"`
-		Address Address `json:"address"`
-	}
-
-	parser.Register(User{})
-
-	userSchema, ok := parser.schemas["User"]
-	assert.True(t, ok)
-	assert.Contains(t, userSchema.Properties, "address")
-
-	if _, ok := parser.schemas["Address"]; !ok {
-		addrProp := userSchema.Properties["address"]
-		assert.NotEmpty(t, addrProp.Type, "Address property should have type")
-		t.Log("Address schema is inlined, not registered separately")
-	} else {
-		t.Log("Address schema registered separately")
-	}
-}
 func TestModelParser_Register_Array(t *testing.T) {
 	parser := NewModelParser()
 
@@ -154,4 +126,130 @@ func TestModelParser_GetSchemas(t *testing.T) {
 	schemas := parser.GetSchemas()
 	assert.Contains(t, schemas, "User")
 	assert.Len(t, schemas, 1)
+}
+func TestModelParser_Register_NestedPointer(t *testing.T) {
+	parser := NewModelParser()
+
+	type Address struct {
+		Street string `json:"street"`
+		City   string `json:"city"`
+	}
+
+	type User struct {
+		ID      int      `json:"id"`
+		Name    string   `json:"name"`
+		Address *Address `json:"address"`
+	}
+
+	name := parser.Register(User{})
+	assert.Equal(t, "User", name)
+
+	//  Address schema được register
+	_, ok := parser.schemas["Address"]
+	assert.True(t, ok, "Address schema should be registered")
+
+	//  Kiểm tra User schema
+	userSchema, ok := parser.schemas["User"]
+	assert.True(t, ok)
+
+	//  Kiểm tra address property có ref đúng
+	addrProp, ok := userSchema.Properties["address"]
+	assert.True(t, ok)
+	assert.Equal(t, "object", addrProp.Type)
+	assert.Equal(t, "#/definitions/Address", addrProp.Ref)
+}
+
+func TestModelParser_Register_NestedStruct(t *testing.T) {
+	parser := NewModelParser()
+
+	type Address struct {
+		Street string `json:"street"`
+		City   string `json:"city"`
+	}
+
+	type User struct {
+		ID      int     `json:"id"`
+		Name    string  `json:"name"`
+		Address Address `json:"address"` // Không phải pointer
+	}
+
+	name := parser.Register(User{})
+	assert.Equal(t, "User", name)
+
+	// Address schema được register
+	_, ok := parser.schemas["Address"]
+	assert.True(t, ok, "Address schema should be registered")
+
+	userSchema, ok := parser.schemas["User"]
+	assert.True(t, ok)
+
+	addrProp, ok := userSchema.Properties["address"]
+	assert.True(t, ok)
+	assert.Equal(t, "object", addrProp.Type)
+	assert.Equal(t, "#/definitions/Address", addrProp.Ref)
+}
+
+func TestModelParser_Register_SliceOfPointers(t *testing.T) {
+	parser := NewModelParser()
+
+	type Item struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	type Order struct {
+		Items []*Item `json:"items"`
+	}
+
+	name := parser.Register(Order{})
+	assert.Equal(t, "Order", name)
+
+	// Item schema được register
+	_, ok := parser.schemas["Item"]
+	assert.True(t, ok)
+
+	orderSchema, ok := parser.schemas["Order"]
+	assert.True(t, ok)
+
+	itemsProp, ok := orderSchema.Properties["items"]
+	assert.True(t, ok)
+	assert.Equal(t, "array", itemsProp.Type)
+	assert.Equal(t, "#/definitions/Item", itemsProp.Items.Ref)
+}
+
+func TestModelParser_Register_SliceOfStructs(t *testing.T) {
+	parser := NewModelParser()
+
+	type Product struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	type Category struct {
+		Products []Product `json:"products"`
+	}
+
+	name := parser.Register(Category{})
+	assert.Equal(t, "Category", name)
+
+	_, ok := parser.schemas["Product"]
+	assert.True(t, ok)
+}
+
+func TestModelParser_Register_PointerToSlice(t *testing.T) {
+	parser := NewModelParser()
+
+	type Tag struct {
+		Name string `json:"name"`
+	}
+
+	type Article struct {
+		Tags *[]Tag `json:"tags"`
+	}
+
+	name := parser.Register(Article{})
+	assert.Equal(t, "Article", name)
+
+	_, ok := parser.schemas["Tag"]
+	assert.True(t, ok)
 }
