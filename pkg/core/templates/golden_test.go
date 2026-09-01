@@ -87,31 +87,17 @@ func TestRemoveGoDomain_Golden(t *testing.T) {
 
 import (
 	"github.com/example/project/cmd/server/core"
-	"github.com/example/project/internal/auth"
 	"github.com/example/project/internal/book"
-	"github.com/example/project/internal/refresh"
-	"github.com/example/project/internal/user"
 )
 
 type Modules struct {
-	Auth    *auth.AuthModule
-	User    *user.UserModule
-	Refresh *refresh.RefreshModule
 	Book    *book.BookModule
 }
 
 func InitModules(core *core.CoreServices) *Modules {
-	userModule := user.NewUserModule(core)
-	refreshModule := refresh.NewRefreshModule(core, userModule.Usecase)
-	authModule := auth.NewAuthModule(core, userModule.Usecase, refreshModule.Usecase)
-	refreshModule.SetAuthUseCase(authModule.Usecase)
-
 	bookModule := book.NewBookModule(core)
 
 	return &Modules{
-		Auth:    authModule,
-		User:    userModule,
-		Refresh: refreshModule,
 		Book:    bookModule,
 	}
 }
@@ -131,39 +117,22 @@ func InitModules(core *core.CoreServices) *Modules {
 
 import (
 	"fmt"
-	"log"
-
-	"github.com/example/project/cmd/server/core"
-	"github.com/example/project/internal/shared/middleware"
-
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/ulule/limiter/v3"
+	"log"
+	"new_example/cmd/server/core"
+	"new_example/internal/shared/middleware"
 )
 
 func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	// Middleware CORS
 	r.Use(w_utils.Cors(core.Config))
-
 	// Rate limit middleware
 	rateLimitMiddleware := &middleware.LimitMiddleWare{}
-
-	// Auth middleware
-	authMiddleware := middleware.AuthMiddleware(
-		modules.Refresh.Usecase,
-		core,
-	)
-
-	// Rate limit config
-	rateLimit := limiter.Rate{
-		Period: core.Limiter.Rate.Period,
-		Limit:  core.Limiter.Rate.Limit,
-	}
-
 	// Khởi tạo Swagger
 	gen := initSwagger(r, core, rateLimitMiddleware)
-	initModule(modules, gen, rateLimit, authMiddleware)
+	initModule(modules, gen)
 	if err := gen.Save("swagger.json"); err != nil {
 		log.Printf("Error saving swagger.json: %v", err)
 	} else {
@@ -178,30 +147,23 @@ func RegisterRoutes(r *gin.Engine, core *core.CoreServices, modules *Modules) {
 	})
 }
 
-func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware w_handl.IRateLimitMiddleware) *w_handl.SwaggerGenerator {
+func initSwagger(r *gin.Engine, core *core.CoreServices, rateLimitMiddleware *middleware.LimitMiddleWare) *w_handl.SwaggerGenerator {
 	address := fmt.Sprintf("%s:%d", core.Config.Host, core.Config.Port)
-	gen := w_handl.NewSwaggerGenerator("example API", "1.0", address, "/")
+	gen := w_handl.NewSwaggerGenerator("new_example API", "1.0", address, "/")
 	gen.SetEngine(r)
-	gen.SetRedisClient(core.Redis.GetClient())
 	gen.SetRateLimitMiddleware(rateLimitMiddleware)
+	gen.SetRedisClient(core.Redis.GetClient())
 	return gen
 }
 
-func initModule(modules *Modules, gen *w_handl.SwaggerGenerator, rateLimit limiter.Rate, authMiddleware gin.HandlerFunc) {
+func initModule(modules *Modules, gen *w_handl.SwaggerGenerator) {
 	gen.AddTag("v1", "API Version 1")
-	gen.AddTag("auth", "Auth endpoints")
-	modules.Auth.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
-	modules.Auth.RegisterPublicRoutes(gen, &rateLimit)
-	gen.AddTag("user", "User endpoints")
-	modules.User.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
-	modules.User.RegisterPublicRoutes(gen, &rateLimit)
-	gen.AddTag("refresh", "Refresh endpoints")
-	modules.Refresh.RegisterPublicRoutes(gen, &rateLimit)
-	modules.Refresh.RegisterProtectedRoutes(gen, &rateLimit, authMiddleware)
 	gen.AddTag("book", "Book endpoints")
-	modules.Book.RegisterPublicRoutes(gen,&rateLimit)
-	modules.Book.RegisterProtectedRoutes(gen,&rateLimit,authMiddleware)
+	modules.Book.RegisterPublicRoutes(gen)
+	modules.Book.RegisterProtectedRoutes(gen)
+
 }
+
 
 `
 
