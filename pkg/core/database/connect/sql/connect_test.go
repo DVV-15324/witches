@@ -17,6 +17,13 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+func TestMain(m *testing.M) {
+	// Tắt Ryuk để tránh lỗi
+	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+	os.Setenv("TESTCONTAINERS_REUSE_ENABLE", "true")
+	code := m.Run()
+	os.Exit(code)
+}
 func setupPostgresContainer(tb testing.TB) (string, func()) {
 	ctx := context.Background()
 
@@ -53,6 +60,10 @@ func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 	require.NoError(tb, err)
 
 	cleanup := func() {
+		if logg != nil {
+			_ = logg.Sync()
+		}
+		time.Sleep(50 * time.Millisecond)
 		if err := os.RemoveAll(tmpDir); err != nil {
 			tb.Logf("Failed to remove temp dir: %v", err)
 		}
@@ -60,7 +71,6 @@ func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 
 	return logg, cleanup
 }
-
 func makeTestConfig(driver, dsn string) *utils.Config {
 	cfg := utils.DefaultConfig()
 	cfg.DBDriver = driver
@@ -256,4 +266,69 @@ func BenchmarkDatabaseInstance_Ping(b *testing.B) {
 	for b.Loop() {
 		_ = sqlDB.Ping()
 	}
+}
+func TestNewDatabaseInstance_WithMySQL(t *testing.T) {
+	// MySQL không có container sẵn trong test, skip
+	t.Skip("Skipping MySQL test - requires MySQL container")
+}
+
+func TestNewDatabaseInstance_WithSQLServer(t *testing.T) {
+	// SQL Server không có container sẵn trong test, skip
+	t.Skip("Skipping SQL Server test - requires SQL Server container")
+}
+
+func TestNewDatabaseInstance_DefaultDriver(t *testing.T) {
+	connStr, cleanupContainer := setupPostgresContainer(t)
+	defer cleanupContainer()
+
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("unknown_driver", connStr)
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	// unknown_driver sẽ fallback về mysql, nhưng dsn là postgres
+	// Nên sẽ fail
+	assert.Error(t, err)
+	assert.Nil(t, instance)
+}
+
+func TestDatabaseInstance_Close_Twice(t *testing.T) {
+	connStr, cleanupContainer := setupPostgresContainer(t)
+	defer cleanupContainer()
+
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("postgres", connStr)
+	instance, err := NewDatabaseInstance(cfg, logg)
+	require.NoError(t, err)
+
+	// Close lần 1
+	err = instance.Close()
+	assert.NoError(t, err)
+
+	// Close lần 2 - sẽ lỗi vì DB đã đóng
+	err = instance.Close()
+	assert.Error(t, err)
+}
+
+func TestNewDatabaseInstance_NilLogger(t *testing.T) {
+	connStr, cleanupContainer := setupPostgresContainer(t)
+	defer cleanupContainer()
+
+	cfg := makeTestConfig("postgres", connStr)
+	instance, err := NewDatabaseInstance(cfg, nil)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, instance)
+	assert.Nil(t, instance.Log) // Logger nil
+
+	sqlDB, err := instance.DB.DB()
+	require.NoError(t, err)
+	err = sqlDB.Ping()
+	assert.NoError(t, err)
+
+	err = instance.Close()
+	assert.NoError(t, err)
 }

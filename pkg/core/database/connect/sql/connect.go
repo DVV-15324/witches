@@ -88,12 +88,21 @@ func NewDatabaseInstance(
 }
 
 func (d *DatabaseInstance) Close() error {
-	if d == nil || d.DB == nil {
+	if d == nil {
+		return fmt.Errorf("database instance is nil")
+	}
+	if d.DB == nil {
 		return fmt.Errorf("database instance is nil")
 	}
 	sqlDB, err := d.DB.DB()
 	if err != nil {
 		return err
 	}
-	return sqlDB.Close()
+	err = sqlDB.Close()
+	if err != nil {
+		return err
+	}
+	// Đặt DB về nil sau khi close để có thể detect close lần 2
+	d.DB = nil
+	return nil
 }
