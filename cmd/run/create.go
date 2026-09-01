@@ -29,7 +29,7 @@ func WitchesCreate(project string) {
 		log.Fatalf("Error: %v", err)
 	}
 	defer func() { _ = file.Close() }()
-	contentData := content.CreateContentRefresh()
+	contentData := content.CreateContent()
 	_, err = file.WriteString(contentData)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
