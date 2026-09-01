@@ -17,7 +17,6 @@ type Config struct {
 	Env                string
 	MetrictPort        int64
 	UIDBits            int64
-	HashLen            int64
 	RequestKey         contextKey
 	LogPath            string
 	CorsAllowOrigins   string
@@ -25,7 +24,6 @@ type Config struct {
 	CorsAllowHeaders   string
 	Timezone           string
 	SupportedLanguages []string
-	JWTSecret          string
 	DBDriver           string
 	DBHost             string
 	DBPort             int64
@@ -41,16 +39,28 @@ type Config struct {
 	RedisHost          string
 	RedisPort          int64
 	RedisPassword      string
-	AccessTokenTTL     int64
-	RefreshTokenTTL    int64
-	RevokedTTL         int64
-	IdleTimeout        int64
 	RateLimitPeriod    int64
 	RateLimitMax       int64
+	Others             map[string]string            // cfg.Others["CUSTOM_KEY"] in witches expan
+	Domains            map[string]map[string]string // cfg.Domains["book"]["KEY"] in domain.env
 }
 
 func LoadDbUrl(cfg *Config) *Config {
 	cfg.DBUrl = os.Getenv("DB_URL")
+	return cfg
+}
+
+func LoadModule(modulePath string) *Config {
+	cfg := PreloadNotDBURL()
+	cfg = LoadDbUrl(cfg)
+
+	envPath := filepath.Join(modulePath, "module.env")
+	if m, err := godotenv.Read(envPath); err == nil {
+		if cfg.Domains == nil {
+			cfg.Domains = make(map[string]map[string]string)
+		}
+		cfg.Domains[modulePath] = m
+	}
 	return cfg
 }
 
@@ -62,6 +72,7 @@ func PreloadNotDBURL() *Config {
 	}
 
 	cfg := DefaultConfig()
+	cfg.Others = make(map[string]string)
 
 	if val := os.Getenv("APP_PORT"); val != "" {
 		cfg.Port = getEnvAsInt64("APP_PORT")
@@ -80,9 +91,6 @@ func PreloadNotDBURL() *Config {
 	}
 	if val := os.Getenv("UID_BITS"); val != "" {
 		cfg.UIDBits = int64(getEnvAsInt64("UID_BITS"))
-	}
-	if val := os.Getenv("HASH_LEN"); val != "" {
-		cfg.HashLen = int64(getEnvAsInt64("HASH_LEN"))
 	}
 	if val := os.Getenv("REQUEST_KEY"); val != "" {
 		cfg.RequestKey = contextKey(os.Getenv("REQUEST_KEY"))
@@ -104,9 +112,6 @@ func PreloadNotDBURL() *Config {
 	}
 	if val := os.Getenv("SUPPORTED_LANGUAGES"); val != "" {
 		cfg.SupportedLanguages = splitAndTrim(os.Getenv("SUPPORTED_LANGUAGES"), ",")
-	}
-	if val := os.Getenv("JWT_SECRET"); val != "" {
-		cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	}
 	if val := os.Getenv("DB_DRIVER"); val != "" {
 		cfg.DBDriver = os.Getenv("DB_DRIVER")
@@ -150,28 +155,40 @@ func PreloadNotDBURL() *Config {
 	if val := os.Getenv("REDIS_PASSWORD"); val != "" {
 		cfg.RedisPassword = os.Getenv("REDIS_PASSWORD")
 	}
-	if val := os.Getenv("ACCESS_TOKEN_TTL"); val != "" {
-		cfg.AccessTokenTTL = getEnvAsInt64("ACCESS_TOKEN_TTL")
-	}
-	if val := os.Getenv("REFRESH_TOKEN_TTL"); val != "" {
-		cfg.RefreshTokenTTL = getEnvAsInt64("REFRESH_TOKEN_TTL")
-	}
-	if val := os.Getenv("IDLE_TIMEOUT"); val != "" {
-		cfg.IdleTimeout = getEnvAsInt64("IDLE_TIMEOUT")
-	}
-	if val := os.Getenv("REVOKED_TTL"); val != "" {
-		cfg.RevokedTTL = getEnvAsInt64("REVOKED_TTL")
-	}
 	if val := os.Getenv("RATE_LIMIT_PERIOD"); val != "" {
 		cfg.RateLimitPeriod = getEnvAsInt64("RATE_LIMIT_PERIOD")
 	}
 	if val := os.Getenv("RATE_LIMIT_MAX"); val != "" {
 		cfg.RateLimitMax = getEnvAsInt64("RATE_LIMIT_MAX")
 	}
-
+	// Đọc tất cả biến trong witches.env vào Others
+	if m, err := godotenv.Read(envPath); err == nil {
+		for k, v := range m {
+			// Chỉ lưu những key không có trong struct field
+			if !isKnownKey(k) {
+				cfg.Others[k] = v
+			}
+		}
+	}
 	return cfg
 }
-
+func isKnownKey(key string) bool {
+	knownKeys := map[string]bool{
+		"APP_PORT": true, "APP_HOST": true, "ENV": true,
+		"METRIC_PORT": true, "UID_BITS": true, "REQUEST_KEY": true,
+		"LOG_PATH": true, "CORS_ALLOW_ORIGINS": true,
+		"CORS_ALLOW_METHODS": true, "CORS_ALLOW_HEADERS": true,
+		"TIMEZONE": true, "SUPPORTED_LANGUAGES": true,
+		"DB_DRIVER": true, "DB_USER": true, "DB_HOST": true,
+		"DB_PORT": true, "DB_NAME": true, "DB_PASSWORD": true,
+		"DB_MAX_OPEN_CONNS": true, "DB_MAX_IDLE_CONNS": true,
+		"DB_CONN_MAX_LIFETIME": true, "DB_CONN_MAX_IDLE_TIME": true,
+		"SLOW_THRESHOLD": true,
+		"REDIS_HOST":     true, "REDIS_PORT": true, "REDIS_PASSWORD": true,
+		"RATE_LIMIT_PERIOD": true, "RATE_LIMIT_MAX": true,
+	}
+	return knownKeys[key]
+}
 func getEnvAsInt64(key string) int64 {
 	strValue := os.Getenv(key)
 	if strValue == "" {
@@ -192,7 +209,6 @@ func DefaultConfig() *Config {
 		Env:                "development",
 		MetrictPort:        8088,
 		UIDBits:            26,
-		HashLen:            16,
 		RequestKey:         "request_context",
 		LogPath:            "./logs",
 		CorsAllowOrigins:   "*",
@@ -200,7 +216,6 @@ func DefaultConfig() *Config {
 		CorsAllowHeaders:   "Content-Type,Authorization",
 		Timezone:           "UTC",
 		SupportedLanguages: []string{"en-US", "vi-VN"},
-		JWTSecret:          "your_secret_key",
 		DBDriver:           "mysql",
 		DBUser:             "root",
 		DBHost:             "localhost",
@@ -215,10 +230,6 @@ func DefaultConfig() *Config {
 		RedisHost:          "localhost",
 		RedisPort:          6379,
 		RedisPassword:      "",
-		AccessTokenTTL:     900,
-		RefreshTokenTTL:    604800,
-		IdleTimeout:        1800,
-		RevokedTTL:         300,
 		RateLimitPeriod:    60,
 		RateLimitMax:       100,
 	}
