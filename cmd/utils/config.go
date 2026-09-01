@@ -45,15 +45,11 @@ type Config struct {
 	Domains            map[string]map[string]string // cfg.Domains["book"]["KEY"] in domain.env
 }
 
-func LoadDbUrl(cfg *Config) *Config {
+func LoadDbUrl(cfg *Config) {
 	cfg.DBUrl = os.Getenv("DB_URL")
-	return cfg
 }
 
-func LoadModule(modulePath string) *Config {
-	cfg := PreloadNotDBURL()
-	cfg = LoadDbUrl(cfg)
-
+func LoadModule(modulePath string, cfg *Config) {
 	envPath := filepath.Join(modulePath, "module.env")
 	if m, err := godotenv.Read(envPath); err == nil {
 		if cfg.Domains == nil {
@@ -61,7 +57,6 @@ func LoadModule(modulePath string) *Config {
 		}
 		cfg.Domains[modulePath] = m
 	}
-	return cfg
 }
 
 func PreloadNotDBURL() *Config {
