@@ -36,7 +36,7 @@ func (p ModuleConfig) GetProjectName() string {
 	return p.ProjectName
 }
 
-func AddModule(projectPath string, projectName string, moduleName string, typeDb string) {
+func AddModule(projectPath string, projectName string, moduleName string, typeDb string) error {
 	moduleName = strings.TrimSpace(moduleName)
 	moduleName = strings.ReplaceAll(moduleName, " ", "")
 	moduleName = strings.ToLower(moduleName)
@@ -51,8 +51,7 @@ func AddModule(projectPath string, projectName string, moduleName string, typeDb
 	fmt.Printf("Generating module '%s' ...\n", config.Name)
 
 	if err := generateModule(projectPath, config, typeDb); err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+		return err
 	}
 
 	modulesPath := filepath.Join(projectPath, "cmd", "server", "routers", "modules.go")
@@ -74,6 +73,7 @@ func AddModule(projectPath string, projectName string, moduleName string, typeDb
 		fmt.Println("Updated routers.go: added route registration for", config.Name)
 	}
 	fmt.Printf("module '%s' generated successfully!\n", config.Name)
+	return nil
 }
 
 func generateModule(projectPath string, config ModuleConfig, typeDb string) error {
