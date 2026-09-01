@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"go/token"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,22 +10,25 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/easyjson"
 )
 
-func WitchesRun() {
-	generateEasyJSONForAllDTOs()
+func WitchesRun() error {
+	if err := generateEasyJSONForAllDTOs(); err != nil {
+		return fmt.Errorf("generate easyjson: %w", err)
+	}
+
 	cmd := exec.Command("go", "run", ".")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Error: %v", err)
+		return fmt.Errorf("run project: %w", err)
 	}
+	return nil
 }
 
-func generateEasyJSONForAllDTOs() {
+func generateEasyJSONForAllDTOs() error {
 	rootDir := findProjectRoot()
 	if rootDir == "" {
-		log.Fatalf("Error: Cannot find project %s", rootDir)
-		return
+		return fmt.Errorf("cannot find project root")
 	}
 	var dtoDirs []string
 	err := filepath.Walk(filepath.Join(rootDir, "internal"), func(path string, info os.FileInfo, err error) error {
@@ -39,57 +41,58 @@ func generateEasyJSONForAllDTOs() {
 		return nil
 	})
 	if err != nil {
-		log.Fatalf("Error: walking %v", rootDir)
-		return
+		return fmt.Errorf("walk internal: %w", err)
 	}
+
 	if len(dtoDirs) == 0 {
-		return
+		return nil
 	}
+
 	for _, dtoDir := range dtoDirs {
 		requestDir := filepath.Join(dtoDir, "request")
 		responseDir := filepath.Join(dtoDir, "response")
 
 		if _, err := os.Stat(requestDir); err == nil {
-			generateEasyJSONForDir(requestDir, "request")
+			if err := generateEasyJSONForDir(requestDir, "request"); err != nil {
+				return err
+			}
 		}
 		if _, err := os.Stat(responseDir); err == nil {
-			generateEasyJSONForDir(responseDir, "response")
+			if err := generateEasyJSONForDir(responseDir, "response"); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func generateEasyJSONForDir(dir, name string) {
+func generateEasyJSONForDir(dir, name string) error {
 	removeEasyJSONFiles(dir)
 	fset := token.NewFileSet()
 	err := easyjson.GeneratorEasyJson(fset, dir, dir)
 	if err != nil {
-		log.Fatalf("Error: %s error: %v\n", name, err)
+		return fmt.Errorf("%s error: %w", name, err)
 	}
 	files, _ := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
 	if len(files) > 0 {
 		fmt.Printf("Generated %s easyjson: %d file(s)\n", name, len(files))
 	}
+	return nil
 }
 
 func findProjectRoot() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Printf("Error: Cannot get current directory: %v\n", err)
 		return ""
 	}
 
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			fmt.Println("Error: Cannot find project root (go.mod not found)")
-			return ""
-		}
-		dir = parent
+	// Chỉ kiểm tra thư mục hiện tại, không tìm lên cha
+	if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+		return dir
 	}
+	return ""
 }
+
 func removeEasyJSONFiles(dir string) {
 	files, err := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
 	if err != nil {
