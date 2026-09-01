@@ -1,10 +1,10 @@
 package {{.Name}}
 
 import (
-	core "{{.ModuleName}}/cmd/server/core"
-	handler "{{.ModuleName}}/internal/{{.Name}}/handler"
-	"{{.ModuleName}}/internal/{{.Name}}/repository"
-	usecase_{{.Name}} "{{.ModuleName}}/internal/{{.Name}}/usecase"
+	core "{{.ProjectName}}/cmd/server/core"
+	handler "{{.ProjectName}}/internal/{{.Name}}/handler"
+	"{{.ProjectName}}/internal/{{.Name}}/repository"
+	usecase_{{.Name}} "{{.ProjectName}}/internal/{{.Name}}/usecase"
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	"github.com/ulule/limiter/v3"
@@ -45,8 +45,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "DPoP access token for authentication", false).
-		HeaderParam("DPoP", "DPoP proof JWT", false).
+		HeaderParam("Authorization", "Authentication", false).
 		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		Body(map[string]interface{}{}, "Request body").
 		Response(200, w_resp.AppResponse{}, "Created successfully").
@@ -63,8 +62,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "DPoP access token for authentication", false).
-		HeaderParam("DPoP", "DPoP proof JWT", false).
+		HeaderParam("Authorization", "Authentication", false).
 		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		Body(map[string]int{"id": 0}, "{{.NameCap}} ID").
 		Response(200, w_resp.AppResponse{}, "{{.NameCap}} found").
@@ -81,8 +79,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "DPoP access token for authentication", false).
-		HeaderParam("DPoP", "DPoP proof JWT", false).
+		HeaderParam("Authorization", "Authentication", false).
 		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		QueryParam("page", "Page number", false).
 		QueryParam("limit", "Items per page", false).
@@ -102,8 +99,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "DPoP access token for authentication", false).
-		HeaderParam("DPoP", "DPoP proof JWT", false).
+		HeaderParam("Authorization", "Authentication", false).
 		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		PathParam("id", "{{.NameCap}} ID", false).
 		Body(map[string]interface{}{}, "Update data").
@@ -122,8 +118,7 @@ func (m *{{.NameCap}}Module) RegisterProtectedRoutes(gen *w_handl.SwaggerGenerat
 		HeaderParam("User-Agent", "User-Agent", false).
 		HeaderParam("Accept-Language", "Preferred language (e.g., vi-VN, en-US)", false).
 		HeaderParam("X-Timezone", "Timezone (e.g., Asia/Ho_Chi_Minh)", false).
-		HeaderParam("Authorization", "DPoP access token for authentication", false).
-		HeaderParam("DPoP", "DPoP proof JWT", false).
+		HeaderParam("Authorization", "Authentication", false).
 		RateLimit(limiter.Rate{Period: m.Core.Limiter.Rate.Period, Limit: m.Core.Limiter.Rate.Limit}).
 		PathParam("id", "{{.NameCap}} ID", false).
 		Response(200, w_resp.AppResponse{}, "Deleted successfully").
