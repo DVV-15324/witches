@@ -6,17 +6,20 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	currentPath := utils.GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
-	file, err := os.OpenFile(envPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return fmt.Errorf("update witches.env: %v", err)
-	}
-	defer func() { _ = file.Close() }()
 
+	// Đọc file env hiện tại
+	content, err := os.ReadFile(envPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("read witches.env: %v", err)
+	}
+
+	// Tạo DB_URL mới
 	DB_URL, err := GenerateDBURL(DB_DRIVER,
 		config.DBUser, config.DBPassword,
 		config.DBHost, config.DBName, config.DBPort)
@@ -24,14 +27,34 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 		return err
 	}
 	config.DBUrl = DB_URL
-	content := utils.CreateContentRefreshUsed(DB_URL, config)
 
-	if _, err := file.WriteString(content); err != nil {
-		return fmt.Errorf("write to witches.env: %v", err)
+	// Nếu file chưa tồn tại, tạo mới từ CreateContent()
+	if len(content) == 0 {
+		content = []byte(utils.CreateContent())
 	}
-	log.Printf("Info: successfully updated witches.env")
+
+	// Chỉ update DB_URL trong content (giữ nguyên comment và key khác)
+	lines := strings.Split(string(content), "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "DB_URL=") {
+			lines[i] = "DB_URL=" + DB_URL
+			break
+		}
+	}
+	// Nếu chưa có DB_URL, thêm vào cuối
+	if !strings.Contains(strings.Join(lines, "\n"), "DB_URL=") {
+		lines = append(lines, "DB_URL="+DB_URL)
+	}
+	newContent := strings.Join(lines, "\n")
+
+	// Ghi lại file
+	if err := os.WriteFile(envPath, []byte(newContent), 0644); err != nil {
+		return fmt.Errorf("write witches.env: %v", err)
+	}
+
+	log.Printf("Info: successfully updated DB_URL in witches.env")
 	fmt.Printf("\nNext steps:\n")
-	fmt.Print("  witches init captain or witches init member\n")
+	fmt.Print("  witches init\n")
 	return nil
 }
 
@@ -53,7 +76,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL, nil
 	case "postgresql", "postgres":
 		DB_URL := fmt.Sprintf(
-			"%s:%s@%s:%d/%s?sslmode=disable",
+			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
@@ -63,7 +86,7 @@ func GenerateDBURL(DB_DRIVER string,
 		return DB_URL, nil
 	case "mssql", "sqlserver":
 		DB_URL := fmt.Sprintf(
-			"%s:%s@%s:%d?database=%s&encrypt=disable",
+			"sqlserver://%s:%s@%s:%d?database=%s&encrypt=disable",
 			DB_USER,
 			DB_PASSWORD,
 			DB_HOST,
