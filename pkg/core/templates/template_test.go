@@ -2,7 +2,7 @@ package template
 
 import (
 	"os"
-	"os/exec"
+
 	"path/filepath"
 	"testing"
 
@@ -20,7 +20,8 @@ func TestCreateCaptainGoArc_Golden(t *testing.T) {
 	require.NoError(t, err)
 
 	projectName := "testproject"
-	CreateCaptainGoArc(projectName, "postgres")
+	err = CreateTemplateGoArc(projectName, "postgres")
+	assert.NoError(t, err)
 
 	// Kiểm tra các file đã được tạo
 	expectedFiles := []string{
@@ -47,11 +48,11 @@ func TestCreateCaptainGoArc_Golden(t *testing.T) {
 		actualPath := filepath.Join(tmpDir, relPath)
 		actual, err := os.ReadFile(actualPath)
 		require.NoError(t, err, "file should exist: %s", relPath)
-		assertGolden(t, "captain_init", string(actual), relPath)
+		assertGolden(t, "create_project", string(actual), relPath)
 	}
 }
 
-func TestCreateCaptainGoArc_InvalidDriver(t *testing.T) {
+func TestCreateGoArc_InvalidDriver(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
@@ -60,15 +61,40 @@ func TestCreateCaptainGoArc_InvalidDriver(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	//BẮT LỖI: Sử dụng recover để bắt panic hoặc chạy trong subprocess
-	if os.Getenv("TEST_SUBPROCESS_INVALID_DRIVER") == "1" {
-		CreateCaptainGoArc("testproject", "invalid")
-		return
-	}
+	// CreateTemplateGoArc trả về error, test trực tiếp
+	err = CreateTemplateGoArc("testproject", "invalid")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported database")
+}
+func TestCreateTemplateGoArc_MySQL_Golden(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalWd)
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestCreateCaptainGoArc_InvalidDriver")
-	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS_INVALID_DRIVER=1")
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
 
-	err = cmd.Run()
-	assert.Error(t, err, "Should exit with error for invalid driver")
+	err = CreateTemplateGoArc("testproject", "mysql")
+	assert.NoError(t, err)
+
+	// Kiểm tra migration files với MySQL
+	_, err = os.Stat("migrate/migrations/1_create_table.up.sql")
+	assert.NoError(t, err)
+}
+
+func TestCreateTemplateGoArc_MSSQL_Golden(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalWd)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	err = CreateTemplateGoArc("testproject", "mssql")
+	assert.NoError(t, err)
+
+	_, err = os.Stat("migrate/migrations/1_create_table.up.sql")
+	assert.NoError(t, err)
 }
