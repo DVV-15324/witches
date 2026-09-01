@@ -35,8 +35,6 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(linkCmd)
-	initCmd.AddCommand(initCaptainCmd)
-	initCmd.AddCommand(initMemberCmd)
 
 	rootCmd.AddCommand(migrateCmd)
 	migrateCmd.AddCommand(migrateDropCmd)
