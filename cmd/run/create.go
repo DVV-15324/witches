@@ -2,41 +2,42 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
 	content "github.com/DVV-15324/witches/cmd/utils"
 )
 
-func WitchesCreate(project string) {
+func WitchesCreate(project string) error {
 	projectPath := filepath.Join(".", project)
 	if _, err := os.Stat(projectPath); !os.IsNotExist(err) {
-		log.Fatalf("Error: Project '%s' already exists!", project)
-		return
+		return fmt.Errorf("project '%s' already exists", project)
 	}
-	err := os.MkdirAll(projectPath, os.ModePerm)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
+
+	if err := os.MkdirAll(projectPath, os.ModePerm); err != nil {
+		return fmt.Errorf("create project directory: %w", err)
 	}
+
 	envPath := filepath.Join(projectPath, "witches.env")
 	if _, err := os.Stat(envPath); err == nil {
-		log.Fatalf("Error: File 'witches.env' already exists in '%s'", projectPath)
-		return
+		return fmt.Errorf("file 'witches.env' already exists in '%s'", projectPath)
 	}
+
 	file, err := os.OpenFile(envPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		return fmt.Errorf("create witches.env: %w", err)
 	}
-	defer func() { _ = file.Close() }()
+	defer file.Close()
+
 	contentData := content.CreateContent()
-	_, err = file.WriteString(contentData)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
+	if _, err := file.WriteString(contentData); err != nil {
+		return fmt.Errorf("write witches.env: %w", err)
 	}
+
 	fmt.Printf("Project '%s' created successfully!\n", project)
 	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("  cd %s\n", project)
 	fmt.Printf("  Edit witches.env\n")
 	fmt.Printf("  witches database generate\n")
+	return nil
 }
