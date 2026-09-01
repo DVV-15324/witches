@@ -1,13 +1,13 @@
 package cmd_migrate
 
 import (
+	"fmt"
 	utils "github.com/DVV-15324/witches/cmd/utils"
-	"log"
 	"os"
 	"os/exec"
 )
 
-func WitchesMigrateDrop(DB_URL string, DB_DRIVER string, migrationPath string) {
+func WitchesMigrateDrop(DB_URL string, DB_DRIVER string, migrationPath string) error {
 	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
 	cmd := exec.Command(
 		"migrate",
@@ -19,6 +19,7 @@ func WitchesMigrateDrop(DB_URL string, DB_DRIVER string, migrationPath string) {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		return fmt.Errorf("migrate drop failed: %w", err)
 	}
+	return nil
 }
