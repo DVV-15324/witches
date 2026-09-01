@@ -23,6 +23,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 
 	var workDir string
 	var isFile bool
+	var absInput string
 
 	if info.IsDir() {
 		workDir = input
@@ -32,20 +33,32 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		isFile = true
 	}
 
+	//  Xác định output đúng
 	outputDir := output
 	if outputDir == "" {
 		outputDir = workDir
 	}
 
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	//  Nếu input là file và output là directory, output là file trong directory đó
+	var basePath string
+	if isFile {
+		// output là file path, không phải directory
+		basePath = filepath.Join(outputDir, filepath.Base(input))
+	} else {
+		basePath = outputDir
+	}
+
+	//  Tạo output directory cho file output
+	if err := os.MkdirAll(filepath.Dir(basePath), 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
-	absInput, err := filepath.Abs(input)
+	absInput, err = filepath.Abs(input)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path: %v", err)
 	}
-	absOutput, err := filepath.Abs(outputDir)
+
+	absOutput, err := filepath.Abs(basePath)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute output path: %v", err)
 	}
@@ -104,11 +117,17 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 	var generatedFiles []string
 
 	for _, path := range targetFiles {
-		relPath, err := filepath.Rel(absInput, path)
-		if err != nil {
-			relPath = filepath.Base(path)
+		var outputPath string
+		if isFile {
+			//  Nếu input là file, output path là file output
+			outputPath = absOutput
+		} else {
+			relPath, err := filepath.Rel(absInput, path)
+			if err != nil {
+				relPath = filepath.Base(path)
+			}
+			outputPath = filepath.Join(absOutput, relPath)
 		}
-		outputPath := filepath.Join(absOutput, relPath)
 
 		outputDirPath := filepath.Dir(outputPath)
 		if err := os.MkdirAll(outputDirPath, 0755); err != nil {
@@ -116,6 +135,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 			continue
 		}
 
+		//  Chỉ copy file nếu outputPath khác input
 		if outputPath != path {
 			content, err := os.ReadFile(path)
 			if err != nil {
