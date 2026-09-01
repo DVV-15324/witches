@@ -1,9 +1,0 @@
-package main
-
-import (
-	server "testmember/cmd"
-)
-
-func main() {
-	server.GetExcute().Execute()
-}
