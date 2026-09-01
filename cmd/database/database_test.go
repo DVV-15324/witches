@@ -122,6 +122,42 @@ func TestWitchesDBURL(t *testing.T) {
 		checkEnv func(t *testing.T, content string)
 	}{
 		{
+			name:   "PostgreSQL (postgresql) - valid",
+			driver: "postgresql",
+			config: &utils.Config{
+				DBUser:     "admin",
+				DBPassword: "123",
+				DBHost:     "127.0.0.1",
+				DBName:     "db",
+				DBPort:     5432,
+			},
+			wantErr: false,
+		},
+		{
+			name:   "SQL Server (mssql) - valid",
+			driver: "mssql",
+			config: &utils.Config{
+				DBUser:     "sa",
+				DBPassword: "Pass@word",
+				DBHost:     "localhost",
+				DBName:     "master",
+				DBPort:     1433,
+			},
+			wantErr: false,
+		},
+		{
+			name:   "SQL Server (sqlserver) - valid",
+			driver: "sqlserver",
+			config: &utils.Config{
+				DBUser:     "sa",
+				DBPassword: "Pass@word",
+				DBHost:     "localhost",
+				DBName:     "master",
+				DBPort:     1433,
+			},
+			wantErr: false,
+		},
+		{
 			name:   "MySQL - valid",
 			driver: "mysql",
 			config: &utils.Config{
@@ -167,11 +203,9 @@ func TestWitchesDBURL(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-
 			envPath := filepath.Join(tmpDir, "witches.env")
 			_, err = os.Stat(envPath)
 			assert.NoError(t, err, "witches.env should exist")
-
 			content, err := os.ReadFile(envPath)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, content)
@@ -179,4 +213,88 @@ func TestWitchesDBURL(t *testing.T) {
 			assert.Contains(t, string(content), tt.config.DBUrl)
 		})
 	}
+}
+
+func TestWitchesDBURL_EdgeCases(t *testing.T) {
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(origDir)
+	}()
+
+	tmpDir := t.TempDir()
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	config := &utils.Config{
+		DBUser:     "test",
+		DBPassword: "pass",
+		DBHost:     "localhost",
+		DBName:     "testdb",
+		DBPort:     3306,
+	}
+
+	t.Run("File không tồn tại - tạo mới", func(t *testing.T) {
+		os.Remove("witches.env")
+
+		err := WitchesDBURL("mysql", config)
+		assert.NoError(t, err)
+
+		content, err := os.ReadFile("witches.env")
+		assert.NoError(t, err)
+		assert.Contains(t, string(content), "DB_URL=")
+		assert.Contains(t, string(content), "test:pass@tcp(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local")
+	})
+
+	t.Run("File tồn tại nhưng không có DB_URL", func(t *testing.T) {
+		envContent := `APP_NAME=test
+APP_PORT=8080
+# DB_URL=some_old_url`
+		err := os.WriteFile("witches.env", []byte(envContent), 0644)
+		require.NoError(t, err)
+
+		err = WitchesDBURL("mysql", config)
+		assert.NoError(t, err)
+
+		content, err := os.ReadFile("witches.env")
+		assert.NoError(t, err)
+
+		assert.Contains(t, string(content), "DB_URL=test:pass@tcp(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local")
+		assert.Contains(t, string(content), "APP_NAME=test")
+		assert.Contains(t, string(content), "APP_PORT=8080")
+		assert.Contains(t, string(content), "# DB_URL=some_old_url")
+	})
+}
+
+func TestWitchesDBURL_ReadFileError(t *testing.T) {
+	// Test lỗi đọc file (khi file tồn tại nhưng không có quyền đọc)
+	// Trên Windows, cách đơn giản là tạo file trong thư mục không có quyền
+	t.Skip("Skipping read error test - requires mocking or special permissions")
+}
+
+func TestWitchesDBURL_WriteFileError(t *testing.T) {
+	// Tạo thư mục tạm và set quyền read-only
+	tmpDir := t.TempDir()
+
+	// Trên Windows: tạo file và set read-only
+	envPath := filepath.Join(tmpDir, "witches.env")
+	err := os.WriteFile(envPath, []byte("DB_URL=old"), 0444) // read-only
+	require.NoError(t, err)
+
+	// Chuyển vào thư mục này
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+	os.Chdir(tmpDir)
+
+	config := &utils.Config{
+		DBUser:     "test",
+		DBPassword: "pass",
+		DBHost:     "localhost",
+		DBName:     "testdb",
+		DBPort:     3306,
+	}
+	// Gọi hàm, sẽ fail vì không ghi được file
+	err = WitchesDBURL("mysql", config)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "write witches.env")
 }
