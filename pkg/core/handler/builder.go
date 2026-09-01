@@ -152,8 +152,14 @@ func (b *RouteBuilder) Build() {
 		handlers = append(handlers, b.gen.globalMiddlewares...)
 	}
 	if b.rateLimit != nil {
-		rateLimitHandler := b.gen.rateLimitMiddleware.CreateRateLimitMiddleware(b.rateLimit)
-		handlers = append(handlers, rateLimitHandler)
+		// Kiểm tra rateLimitMiddleware không nil
+		if b.gen.rateLimitMiddleware != nil {
+			rateLimitHandler := b.gen.rateLimitMiddleware.CreateRateLimitMiddleware(b.rateLimit)
+			handlers = append(handlers, rateLimitHandler)
+		} else {
+			// Log warning và skip rate limit
+			fmt.Printf("Warning: rateLimitMiddleware is nil, skipping rate limit\n")
+		}
 	}
 	if len(b.middlewares) > 0 {
 		handlers = append(handlers, b.middlewares...)
