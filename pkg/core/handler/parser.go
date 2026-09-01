@@ -23,8 +23,16 @@ func (p *ModelParser) Register(model interface{}) string {
 
 	t := reflect.TypeOf(model)
 
+	//  Xử lý map
+	if t.Kind() == reflect.Map {
+		return "map"
+	}
+
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		elemType := t.Elem()
+		if elemType.Kind() == reflect.Ptr {
+			elemType = elemType.Elem()
+		}
 		elemName := p.registerType(elemType)
 		sliceName := "[]" + elemName
 		if _, exists := p.schemas[sliceName]; !exists {
@@ -40,14 +48,28 @@ func (p *ModelParser) Register(model interface{}) string {
 
 	return p.registerType(t)
 }
-
 func (p *ModelParser) registerType(t reflect.Type) string {
-	if t.Kind() == reflect.Ptr { //nolint:govet
+	// Xử lý pointer
+	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 
+	// Xử lý map
+	if t.Kind() == reflect.Map {
+		return "map"
+	}
+
+	// Xử lý interface
+	if t.Kind() == reflect.Interface {
+		return "object"
+	}
+
 	if t.Kind() != reflect.Struct {
-		return t.Name()
+		name := t.Name()
+		if name != "" {
+			return name
+		}
+		return p.getType(t)
 	}
 
 	name := t.Name()
@@ -63,6 +85,12 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
+		fieldType := field.Type
+
+		// Xử lý pointer field
+		if fieldType.Kind() == reflect.Ptr {
+			fieldType = fieldType.Elem()
+		}
 
 		jsonTag := field.Tag.Get("json")
 		if jsonTag == "" || jsonTag == "-" {
@@ -110,8 +138,14 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 		if enum := field.Tag.Get("enum"); enum != "" {
 			prop.Enum = strings.Split(enum, ",")
 		}
-		if field.Type.Kind() == reflect.Slice || field.Type.Kind() == reflect.Array {
-			elemType := field.Type.Elem()
+
+		//  Xử lý slice với element là struct
+		if fieldType.Kind() == reflect.Slice || fieldType.Kind() == reflect.Array {
+			elemType := fieldType.Elem()
+			if elemType.Kind() == reflect.Ptr {
+				elemType = elemType.Elem()
+			}
+			//  Register element type nếu là struct
 			if elemType.Kind() == reflect.Struct {
 				elemName := p.registerType(elemType)
 				prop.Type = "array"
@@ -119,6 +153,14 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 					Ref: "#/definitions/" + elemName,
 				}
 			}
+		}
+
+		//  Xử lý field là struct (không phải slice)
+		if fieldType.Kind() == reflect.Struct {
+			// Register nested struct
+			nestedName := p.registerType(fieldType)
+			prop.Type = "object"
+			prop.Ref = "#/definitions/" + nestedName
 		}
 
 		schema.Properties[jsonName] = prop
@@ -129,6 +171,11 @@ func (p *ModelParser) registerType(t reflect.Type) string {
 }
 
 func (p *ModelParser) getType(t reflect.Type) string {
+	// Xử lý pointer trước
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		return "array"
 	}
