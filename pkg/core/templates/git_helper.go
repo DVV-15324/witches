@@ -56,18 +56,36 @@ func parseGitHubRepo(repoURL string) (owner, repo string, err error) {
 	if err != nil {
 		return "", "", fmt.Errorf("invalid repository URL: %w", err)
 	}
+
+	if u.Host == "" || u.Host == ":" || u.Host == "://" {
+		return "", "", fmt.Errorf("invalid repository URL: host is empty or malformed")
+	}
 	if u.Host != "github.com" {
-		return "", "", fmt.Errorf("repository must be hosted on github.com")
+		return "", "", fmt.Errorf("repository must be hosted on github.com, got: %s", u.Host)
 	}
-	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+
+	path := strings.TrimPrefix(u.Path, "/")
+
+	parts := strings.Split(path, "/")
+
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid GitHub URL: expected https://github.com/{owner}/{repo}")
+		return "", "", fmt.Errorf(
+			"invalid GitHub URL: expected https://github.com/{owner}/{repo}, got: %s",
+			repoURL,
+		)
 	}
+
 	owner = parts[0]
 	repo = strings.TrimSuffix(parts[1], ".git")
-	if owner == "" || repo == "" {
-		return "", "", fmt.Errorf("invalid GitHub repository")
+
+	if owner == "" {
+		return "", "", fmt.Errorf("invalid GitHub repository: owner is empty")
 	}
+
+	if repo == "" {
+		return "", "", fmt.Errorf("invalid GitHub repository: repo is empty")
+	}
+
 	return owner, repo, nil
 }
 
