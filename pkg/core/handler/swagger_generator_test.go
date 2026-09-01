@@ -5,10 +5,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/ulule/limiter/v3"
 )
 
 func setupTestGenerator() (*SwaggerGenerator, *gin.Engine) {
@@ -48,6 +51,13 @@ func TestSwaggerGenerator_SetRedisClient(t *testing.T) {
 	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
 	assert.Nil(t, gen.storeFactory)
 
+	// Test với nil client
+	gen.SetRedisClient(nil)
+
+	// Test với mock client (không cần redis thật)
+	mockClient := &redis.Client{}
+	gen.SetRedisClient(mockClient)
+	assert.NotNil(t, gen.storeFactory)
 }
 
 func TestSwaggerGenerator_Use(t *testing.T) {
@@ -229,4 +239,23 @@ func BenchmarkSwaggerGenerator_GenerateJSON(b *testing.B) {
 	for b.Loop() {
 		gen.GenerateJSON()
 	}
+}
+func TestSwaggerGenerator_RateLimitMiddlewareNil(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api/v1")
+	gen.SetEngine(engine)
+	gen.storeFactory = mockStoreFactory
+	// Không set rateLimitMiddleware
+
+	builder := gen.GET("/test").
+		RateLimit(limiter.Rate{Period: 1 * time.Second, Limit: 1}).
+		Handler(func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"ok": true})
+		})
+
+	// Không panic
+	assert.NotPanics(t, func() {
+		builder.Build()
+	})
 }
