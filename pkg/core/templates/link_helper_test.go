@@ -111,12 +111,12 @@ func TestRewriteModuleImports_FileNotExist(t *testing.T) {
 	err := RewriteModuleImports("/nonexistent/file.go", "old", "new")
 	assert.Error(t, err)
 }
-
 func TestFixAllImports_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Tạo file Go
+	// Tạo file Go có import từ source module
 	filePath := filepath.Join(tmpDir, "test.go")
+
 	content := `package test
 
 import (
@@ -127,15 +127,35 @@ type Test struct {
 	Book *book.Book
 }
 `
+
 	err := os.WriteFile(filePath, []byte(content), 0644)
 	require.NoError(t, err)
 
-	err = FixAllImports(tmpDir, "new_example/old-module", "github.com/new-module")
-	assert.NoError(t, err)
+	// Replace source module -> target module
+	err = FixAllImports(
+		tmpDir,
+		"new_example/old-module",
+		"github.com/new-module",
+	)
+	require.NoError(t, err)
 
+	// Đọc lại file sau khi rewrite
 	newContent, err := os.ReadFile(filePath)
 	require.NoError(t, err)
-	assert.Contains(t, string(newContent), `"github.com/new-module/internal/book"`)
+
+	// Import cũ phải biến mất
+	assert.NotContains(
+		t,
+		string(newContent),
+		`"new_example/old-module/internal/book"`,
+	)
+
+	// Import mới phải tồn tại
+	assert.Contains(
+		t,
+		string(newContent),
+		`"github.com/new-module/internal/book"`,
+	)
 }
 
 func TestFixAllImports_SkipGitDir(t *testing.T) {
