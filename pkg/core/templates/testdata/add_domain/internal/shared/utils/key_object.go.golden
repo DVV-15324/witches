@@ -2,4 +2,5 @@ package utils
 
 var (
 	ObjectUser int64 = 1
+	ObjectBook int64 = 2
 )

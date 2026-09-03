@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-	"github.com/example/project/internal/shared/domain"
 	domainBook "github.com/example/project/internal/shared/domain"
 )
 

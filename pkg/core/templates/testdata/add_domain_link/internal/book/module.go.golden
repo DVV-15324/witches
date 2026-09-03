@@ -1,13 +1,13 @@
 package book
 
 import (
+	pkg "github.com/DVV-15324/witches-book/pkg"
 	w_handl "github.com/DVV-15324/witches/pkg/core/handler"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	core "github.com/example/project/cmd/server/core"
 	handler "github.com/example/project/internal/book/handler"
 	"github.com/example/project/internal/book/repository"
 	usecase_book "github.com/example/project/internal/book/usecase"
-	"github.com/example/project/internal/shared/domain"
 	"github.com/ulule/limiter/v3"
 )
 
@@ -21,9 +21,10 @@ type BookModule struct {
 func NewBookModule(
 	core *core.CoreServices,
 ) *BookModule {
-	repo := repository.NewBookRepository(core.DB, core.TxManager, core.Redis.GetClient())
+	pkg.HelloIamDinhVietVu{}.Say()
+	repo := repository.NewBookRepository(core)
 	usecase := usecase_book.NewBookUsecase(repo)
-	handler := handler.NewBookHandler(usecase, core.Logger, core.Config)
+	handler := handler.NewBookHandler(core, usecase)
 	return &BookModule{
 		Core:    core,
 		Handler: handler,
