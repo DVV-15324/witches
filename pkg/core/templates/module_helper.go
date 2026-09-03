@@ -55,7 +55,7 @@ func updateKeyObject(projectPath string, config ModuleConfig) error {
 	var targetDecl *ast.GenDecl
 	ast.Inspect(node, func(n ast.Node) bool {
 		decl, ok := n.(*ast.GenDecl)
-		if !ok || decl.Tok != token.CONST {
+		if !ok || decl.Tok != token.VAR {
 			return true
 		}
 		for _, spec := range decl.Specs {
@@ -63,7 +63,7 @@ func updateKeyObject(projectPath string, config ModuleConfig) error {
 			if !ok || len(vs.Names) != 1 {
 				continue
 			}
-			//  Kiểm tra tất cả các constant bắt đầu bằng "Object"
+			//  Kiểm tra tất cả các var bắt đầu bằng "Object"
 			if strings.HasPrefix(vs.Names[0].Name, "Object") {
 				if lit, ok := vs.Values[0].(*ast.BasicLit); ok && lit.Kind == token.INT {
 					id, err := strconv.Atoi(lit.Value)
@@ -80,13 +80,13 @@ func updateKeyObject(projectPath string, config ModuleConfig) error {
 		return true
 	})
 	if targetDecl == nil {
-		return fmt.Errorf("no Object constant found")
+		return fmt.Errorf("no Object var found")
 	}
 
-	//  Tạo constant mới với giá trị tăng thêm 1
+	//  Tạo var mới với giá trị tăng thêm 1
 	newSpec := &ast.ValueSpec{
 		Names:  []*ast.Ident{ast.NewIdent("Object" + config.NameCap)},
-		Type:   &ast.Ident{Name: "KeyObject"},
+		Type:   &ast.Ident{Name: "int64"},
 		Values: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", maxID+1)}},
 	}
 	targetDecl.Specs = append(targetDecl.Specs, newSpec)
