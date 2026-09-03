@@ -16,61 +16,45 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	domainName = strings.TrimSpace(domainName)
 	domainName = strings.ReplaceAll(domainName, " ", "")
 	domainName = strings.ToLower(domainName)
-
 	domainNameCap := cases.Title(language.English).String(domainName)
 	domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
-
 	config := ModuleConfig{
 		NameCap:     domainNameCap,
 		Name:        domainName,
 		ProjectName: moduleName,
 	}
-
 	sourceModule := GetModuleNameFromRepo(repoURL)
-
 	targetModule, err := GetCurrentModule(project)
 	if err != nil {
 		return fmt.Errorf("failed to get target module: %w", err)
 	}
-
 	fmt.Printf("  Source module: %s\n", sourceModule)
 	fmt.Printf("  Target module: %s\n", targetModule)
-
 	templateFiles, err := fetchTemplateFilesFromGit(repoURL, domainName)
 	if err != nil {
 		return fmt.Errorf("fetch templates: %w", err)
 	}
-
 	if len(templateFiles) == 0 {
 		return fmt.Errorf("no files found in internal/%s/ or internal/shared/domain/", domainName)
 	}
-
 	fmt.Printf("Found %d template files\n", len(templateFiles))
-
 	if err := ValidateModuleStructure(templateFiles, config); err != nil {
 		return fmt.Errorf("invalid module structure: %w", err)
 	}
-
 	fmt.Println("Validation passed")
 	fmt.Println("Writing files to disk...")
-
 	baseDir := filepath.Join(project, "internal", config.Name)
-
 	const prefix = "internal/"
 	sharedDomainDir := filepath.Join(project, "internal", "shared", "domain")
-
 	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
 		return fmt.Errorf("failed to create shared domain directory: %w", err)
 	}
-
 	for tmplPath, content := range templateFiles {
 		var destPath string
 		var relPath string
 		var isSharedDomain bool
 		var isMigration bool
-
 		fmt.Printf("  Processing: %s\n", tmplPath)
-
 		if strings.HasPrefix(tmplPath, "internal/shared/domain/") {
 			isSharedDomain = true
 			fileName := filepath.Base(tmplPath)
@@ -132,11 +116,6 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	}
 
 	fmt.Println("\nRewriting imports...")
-	if err := RewriteAllImportsInDomain(project, domainName, sourceModule, targetModule); err != nil {
-		fmt.Printf("Warning: failed to rewrite imports: %v\n", err)
-	} else {
-		fmt.Println("  Rewritten all imports from source to target module")
-	}
 
 	fmt.Println("\nAdding shared domain imports...")
 	filesToUpdate := []string{
@@ -152,12 +131,6 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			fmt.Printf("File not found: %s\n", filepath.Base(file))
 			continue
-		}
-
-		if err := AddSharedDomainImport(file, domainName, targetModule); err != nil {
-			fmt.Printf("Warning: failed to add shared domain import to %s: %v\n", filepath.Base(file), err)
-		} else {
-			fmt.Printf("  Updated import in: %s\n", filepath.Base(file))
 		}
 	}
 
