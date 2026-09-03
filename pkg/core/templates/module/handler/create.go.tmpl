@@ -13,7 +13,7 @@ func (h *{{.NameCap}}Handler) Create() func(*gin.Context) {
 		var req request.Create{{.NameCap}}Request
 		if err := ctx.ShouldBindJSON(&req); err != nil {
 			resp := w_resp.NewAppError(400, err, time.Now())
-			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			w_resp.WriteErrorWithLog(ctx, h.core.Logger, h.core.Config, resp)
 			return
 		}
 		domain := &domain{{.NameCap}}.{{.NameCap}}{
@@ -21,7 +21,7 @@ func (h *{{.NameCap}}Handler) Create() func(*gin.Context) {
 		}
 		resp := h.usecase.Create(ctx.Request.Context(), domain)
 		if resp != nil {
-			w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+			w_resp.WriteErrorWithLog(ctx, h.core.Logger, h.core.Config, resp)
 			return
 		}
 		w_resp.WriteSuccess(ctx, "tao thang cong")

@@ -2,12 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/DVV-15324/witches/pkg/core/response/logger"
+	"{{.ProjectName}}/cmd/server/core"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	domain{{.NameCap}} "{{.ProjectName}}/internal/shared/domain"
-	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
-
 )
 type I{{.NameCap}}Usecase interface {
 	Create(ctx context.Context, req *domain{{.NameCap}}.{{.NameCap}}) (*w_resp.AppError)
@@ -17,16 +15,14 @@ type I{{.NameCap}}Usecase interface {
 	Delete(ctx context.Context, id int) *w_resp.AppError
 }
 type {{.NameCap}}Handler struct {
-	Log         *logger.ModelLogger
-	usecase I{{.NameCap}}Usecase
-	Cfg     *wcmd_utils.Config
+	core    *core.CoreServices
+	usecase IBookUsecase
 }
 
 // New{{.NameCap}}Handler - Constructor
-func New{{.NameCap}}Handler(usecase I{{.NameCap}}Usecase, log *logger.ModelLogger, Cfg *wcmd_utils.Config) *{{.NameCap}}Handler {
+func New{{.NameCap}}Handler(core *core.CoreServices, usecase I{{.NameCap}}Usecase) *{{.NameCap}}Handler {
 	return &{{.NameCap}}Handler{
-	usecase: usecase,
-	Log:         log,
-	Cfg         :Cfg,
+		usecase: usecase,
+		core:    core,
 	}
 }

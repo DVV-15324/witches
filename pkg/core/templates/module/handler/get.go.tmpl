@@ -14,13 +14,13 @@ func (h *{{.NameCap}}Handler) GetByID() func(*gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		resp := w_resp.NewAppError(400, err, time.Now())
-		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, resp)
+		w_resp.WriteErrorWithLog(ctx, h.core.Logger, h.core.Config, resp)
 		return
 	}
 
 	data, err_get := h.usecase.GetByID(ctx.Request.Context(), id)
 	if err_get != nil {
-		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err_get)
+		w_resp.WriteErrorWithLog(ctx, h.core.Logger, h.core.Config, err_get)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}(data)
@@ -34,7 +34,7 @@ func (h *{{.NameCap}}Handler) GetAll() func(*gin.Context) {
 	req := w_utils.PaginationRequest{}
 	data, total, err := h.usecase.GetAll(ctx.Request.Context(), &req)
 	if err != nil {
-		w_resp.WriteErrorWithLog(ctx, h.Log, h.Cfg, err)
+		w_resp.WriteErrorWithLog(ctx, h.core.Logger, h.core.Config, err)
 		return
 	}
 	dto := mapping.FromDomainToDto{{.NameCap}}List(data)
