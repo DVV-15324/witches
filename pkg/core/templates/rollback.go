@@ -106,7 +106,7 @@ func rollbackKeyObject(filePath, domainCap string) error {
 	})
 
 	if targetDecl == nil {
-		return fmt.Errorf("object%s not found", domainCap)
+		return fmt.Errorf("Object%s not found", domainCap)
 	}
 
 	targetDecl.Specs = append(targetDecl.Specs[:targetIndex], targetDecl.Specs[targetIndex+1:]...)
