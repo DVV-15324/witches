@@ -20,9 +20,9 @@ type {{.NameCap}}Module struct {
 func New{{.NameCap}}Module(
 	core *core.CoreServices,
 ) *{{.NameCap}}Module {
-	repo := repository.New{{.NameCap}}Repository(core.DB, core.TxManager, core.Redis.GetClient())
+	repo := repository.New{{.NameCap}}Repository(core)
 	usecase := usecase_{{.Name}}.New{{.NameCap}}Usecase(repo)
-	handler := handler.New{{.NameCap}}Handler(usecase, core.Logger, core.Config)
+	handler := handler.New{{.NameCap}}Handler(core, usecase)
 	return &{{.NameCap}}Module{
 		Core:    core,
 		Handler: handler,
