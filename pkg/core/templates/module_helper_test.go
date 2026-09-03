@@ -59,11 +59,9 @@ func TestUpdateKeyObject_Success(t *testing.T) {
 	keyFile := filepath.Join(utilsDir, "key_object.go")
 	content := `package utils
 
-type KeyObject int64
-
-const (
-	ObjectUser KeyObject = 1
-	ObjectPost KeyObject = 2
+var (
+	ObjectUser int64 = 1
+	ObjectPost int64 = 2
 )
 `
 	err = os.WriteFile(keyFile, []byte(content), 0644)
@@ -79,10 +77,10 @@ const (
 
 	newContent, err := os.ReadFile(keyFile)
 	require.NoError(t, err)
-	assert.Contains(t, string(newContent), "ObjectBook KeyObject = 3")
+	assert.Contains(t, string(newContent), "ObjectBook int64 = 3")
 }
 
-func TestUpdateKeyObject_NoObjectConstant(t *testing.T) {
+func TestUpdateKeyObject_NoObjectVar(t *testing.T) {
 	tmpDir := t.TempDir()
 	utilsDir := filepath.Join(tmpDir, "internal", "shared", "utils")
 	err := os.MkdirAll(utilsDir, 0755)
@@ -90,8 +88,9 @@ func TestUpdateKeyObject_NoObjectConstant(t *testing.T) {
 
 	keyFile := filepath.Join(utilsDir, "key_object.go")
 	content := `package utils
-
-type KeyObject int64
+var (
+    ObjectBook int64 = 2
+)
 `
 	err = os.WriteFile(keyFile, []byte(content), 0644)
 	require.NoError(t, err)
@@ -100,10 +99,11 @@ type KeyObject int64
 		Name:    "book",
 		NameCap: "Book",
 	}
-
 	err = updateKeyObject(tmpDir, config)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "no Object constant found")
+	assert.NoError(t, err)
+	newContent, err := os.ReadFile(keyFile)
+	require.NoError(t, err)
+	assert.Contains(t, string(newContent), "ObjectBook")
 }
 
 func TestUpdateKeyObject_FileNotExist(t *testing.T) {
