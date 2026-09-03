@@ -118,71 +118,99 @@ func RewriteModuleImports(filePath, sourceModule, targetModule string) error {
 	}
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
-
 func FixAllImports(projectDir, sourceModule, targetModule string) error {
-	// Nếu targetModule rỗng, lấy từ go.mod
 	if targetModule == "" {
 		var err error
 		targetModule, err = GetCurrentModule(projectDir)
 		if err != nil {
 			return fmt.Errorf("failed to get target module: %w", err)
 		}
+
 		fmt.Printf("  Using target module from go.mod: %s\n", targetModule)
 	}
+
 	fmt.Printf("Fixing all imports from '%s' to '%s'...\n", sourceModule, targetModule)
-	var filesProcessed int
+
+	var filesFixed int
+
 	err := filepath.Walk(projectDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
-			// Skip các thư mục không cần thiết
-			skipDirs := []string{".git", "logs", "swagger", "vendor", "node_modules", "tmp"}
-			for _, skip := range skipDirs {
-				if strings.Contains(path, skip) {
-					return filepath.SkipDir
-				}
-			}
+
+		if info == nil {
 			return nil
 		}
+
+		if info.IsDir() {
+			switch info.Name() {
+			case ".git", "logs", "swagger", "vendor", "node_modules", "tmp":
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
 		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
+
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		// Kiểm tra nếu file chứa sourceModule cần sửa
-		if sourceModule != "" && !strings.Contains(string(content), sourceModule) {
+
+		fmt.Printf("  Checking: %s\n", path)
+
+		if sourceModule != "" &&
+			!strings.Contains(string(content), sourceModule) {
+			fmt.Printf("    Skip: source module not found\n")
 			return nil
 		}
-		filesProcessed++
-		fmt.Printf("  Fixing: %s\n", filepath.Base(path))
+
 		fset := token.NewFileSet()
+
 		node, err := parser.ParseFile(fset, path, content, parser.ParseComments)
 		if err != nil {
 			return err
 		}
+
 		changed := false
+
 		for _, imp := range node.Imports {
 			oldPath := strings.Trim(imp.Path.Value, `"`)
 			newPath := NormalizeImportPath(oldPath, sourceModule, targetModule)
-			if newPath != oldPath {
-				imp.Path.Value = fmt.Sprintf(`"%s"`, newPath)
-				changed = true
-				fmt.Printf("    %s → %s\n", oldPath, newPath)
+
+			if newPath == oldPath {
+				continue
 			}
+
+			imp.Path.Value = fmt.Sprintf(`"%s"`, newPath)
+			changed = true
+
+			fmt.Printf("    %s → %s\n", oldPath, newPath)
 		}
-		if changed {
-			var buf bytes.Buffer
-			if err := format.Node(&buf, fset, node); err != nil {
-				return err
-			}
-			return os.WriteFile(path, buf.Bytes(), 0644)
+
+		if !changed {
+			return nil
 		}
+
+		var buf bytes.Buffer
+
+		if err := format.Node(&buf, fset, node); err != nil {
+			return err
+		}
+
+		if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
+			return err
+		}
+
+		filesFixed++
+
 		return nil
 	})
-	fmt.Printf("  Fixed %d files\n", filesProcessed)
+	fmt.Printf("  Fixed %d files\n", filesFixed)
+
 	return err
 }
 
