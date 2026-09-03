@@ -6,5 +6,5 @@ import (
 )
 
 func (r *{{.NameCap}}Repository) Delete(ctx context.Context, id int) error {
-	return r.db.WithContext(ctx).Delete(&model{{.NameCap}}.{{.NameCap}}{}, id).Error
+	return r.core.DB.WithContext(ctx).Delete(&model{{.NameCap}}.{{.NameCap}}{}, id).Error
 }

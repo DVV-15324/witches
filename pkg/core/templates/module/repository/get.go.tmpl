@@ -10,7 +10,7 @@ import (
 
 func (r *{{.NameCap}}Repository) GetByID(ctx context.Context, id int) (*domain{{.NameCap}}.{{.NameCap}}, error) {
 	var e model{{.NameCap}}.{{.NameCap}}
-	err := r.db.WithContext(ctx).First(&e, id).Error
+	err := r.core.DB.WithContext(ctx).First(&e, id).Error
 	domain := mapping.FromModelToDomain{{.NameCap}}(&e)
 	return domain, err
 }
@@ -19,7 +19,7 @@ func (r *{{.NameCap}}Repository) GetAll(ctx context.Context, req *w_utils.Pagina
 	var list []*model{{.NameCap}}.{{.NameCap}}
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&model{{.NameCap}}.{{.NameCap}}{})
+	query := r.core.DB.WithContext(ctx).Model(&model{{.NameCap}}.{{.NameCap}}{})
 
 	// Search filter
 	if req.Search != "" {

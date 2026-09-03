@@ -8,6 +8,6 @@ import (
 
 func (r *{{.NameCap}}Repository) Create(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}) (error) {
 	model := mapping.FromDomainToModel{{.NameCap}}(e)
-	err := r.db.WithContext(ctx).Create(model).Error
+	err := r.core.DB.WithContext(ctx).Create(model).Error
 	return err
 }

@@ -8,5 +8,5 @@ import (
 
 func (r *{{.NameCap}}Repository) Update(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}, id int) error {
 	model := mapping.FromDomainToModel{{.NameCap}}(e)
-	return r.db.WithContext(ctx).Save(model).Error
+	return r.core.DB.WithContext(ctx).Save(model).Error
 }
