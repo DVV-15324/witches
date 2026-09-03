@@ -54,168 +54,8 @@ func TestValidateModuleStructure_Empty(t *testing.T) {
 
 	err := ValidateModuleStructure(templateFiles, config)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "no domain files")
+	assert.Contains(t, err.Error(), "no module files")
 }
-
-// ==================== TEST AddSharedDomainImport ====================
-
-func TestAddSharedDomainImport_Success(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	//  Thêm import block để có thể thêm import mới
-	content := `package test
-
-import (
-	"fmt"
-)
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImport(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(newContent), `"github.com/example/project/internal/shared/domain"`)
-}
-
-func TestAddSharedDomainImport_NoImportBlock(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	content := `package test
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImport(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	// Kiểm tra import đã được thêm (hoặc không tùy logic)
-	// Hiện tại code thêm import, nên kiểm tra có chứa
-	assert.Contains(t, string(newContent), `"github.com/example/project/internal/shared/domain"`)
-}
-
-func TestAddSharedDomainImport_FileNotExist(t *testing.T) {
-	err := AddSharedDomainImport("/nonexistent/file.go", "book", "github.com/example/project")
-	assert.NoError(t, err) // File không tồn tại, bỏ qua
-}
-
-func TestAddSharedDomainImport_AlreadyExists(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	content := `package test
-
-import (
-	"github.com/example/project/internal/shared/domain"
-)
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImport(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	// Kiểm tra không có duplicate import
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-
-	// Kiểm tra không duplicate
-	assert.Contains(t, string(newContent), `"github.com/example/project/internal/shared/domain"`)
-}
-
-// ==================== TEST AddSharedDomainImportAdvanced ====================
-
-func TestAddSharedDomainImportAdvanced_Success(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	content := `package test
-
-import (
-	"fmt"
-)
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImportAdvanced(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(newContent), `"github.com/example/project/shared/domain"`)
-}
-
-func TestAddSharedDomainImportAdvanced_NoImportBlock(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	content := `package test
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImportAdvanced(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	// Hàm đã thêm import, nên kiểm tra có chứa
-	assert.Contains(t, string(newContent), `"github.com/example/project/shared/domain"`)
-}
-
-func TestAddSharedDomainImportAdvanced_AlreadyExists(t *testing.T) {
-	tmpDir := t.TempDir()
-	filePath := filepath.Join(tmpDir, "test.go")
-
-	content := `package test
-
-import (
-	"github.com/example/project/shared/domain"
-)
-
-type Test struct {
-	ID int
-}
-`
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = AddSharedDomainImportAdvanced(filePath, "book", "github.com/example/project")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(newContent), `"github.com/example/project/shared/domain"`)
-}
-
-// ==================== TEST RewriteModuleImports ====================
 
 func TestRewriteModuleImports_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -224,12 +64,12 @@ func TestRewriteModuleImports_Success(t *testing.T) {
 	content := `package test
 
 import (
-	"github.com/old-module/internal/book"
-	"github.com/old-module/shared/domain"
+    "github.com/old-module/internal/book"
+    "github.com/old-module/internal/shared/domain"
 )
 
 type Test struct {
-	Book *book.Book
+    Book *book.Book
 }
 `
 	err := os.WriteFile(filePath, []byte(content), 0644)
@@ -241,7 +81,7 @@ type Test struct {
 	newContent, err := os.ReadFile(filePath)
 	require.NoError(t, err)
 	assert.Contains(t, string(newContent), `"github.com/new-module/internal/book"`)
-	assert.Contains(t, string(newContent), `"github.com/new-module/shared/domain"`)
+	assert.Contains(t, string(newContent), `"github.com/new-module/internal/shared/domain"`)
 }
 
 func TestRewriteModuleImports_NoChange(t *testing.T) {
@@ -271,47 +111,6 @@ func TestRewriteModuleImports_FileNotExist(t *testing.T) {
 	err := RewriteModuleImports("/nonexistent/file.go", "old", "new")
 	assert.Error(t, err)
 }
-
-// ==================== TEST RewriteAllImportsInDomain ====================
-
-func TestRewriteAllImportsInDomain_Success(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	// Tạo cấu trúc domain
-	domainPath := filepath.Join(tmpDir, "internal", "book")
-	err := os.MkdirAll(domainPath, 0755)
-	require.NoError(t, err)
-
-	// Tạo file Go
-	filePath := filepath.Join(domainPath, "module.go")
-	content := `package book
-
-import (
-	"github.com/old-module/internal/book/model"
-)
-
-type Module struct {
-	Model *model.Model
-}
-`
-	err = os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(t, err)
-
-	err = RewriteAllImportsInDomain(tmpDir, "book", "github.com/old-module", "github.com/new-module")
-	assert.NoError(t, err)
-
-	newContent, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	assert.Contains(t, string(newContent), `"github.com/new-module/internal/book/model"`)
-}
-
-func TestRewriteAllImportsInDomain_DomainNotExist(t *testing.T) {
-	tmpDir := t.TempDir()
-	err := RewriteAllImportsInDomain(tmpDir, "book", "old", "new")
-	assert.Error(t, err)
-}
-
-// ==================== TEST FixAllImports ====================
 
 func TestFixAllImports_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -460,5 +259,178 @@ type Test struct {
 	b.ResetTimer()
 	for b.Loop() {
 		_ = RewriteModuleImports(filePath, "github.com/old-module", "github.com/new-module")
+	}
+}
+func TestNormalizeImportPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		oldPath      string
+		sourceModule string
+		targetModule string
+		want         string
+	}{
+		// ==================== TRƯỜNG HỢP GIỮ NGUYÊN ====================
+		{
+			name:         "skip external pkg from source module",
+			oldPath:      "github.com/DVV-15324/witches-book/pkg/redis",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/DVV-15324/witches-book/pkg/redis",
+		},
+		{
+			name:         "skip external pkg from source module with nested path",
+			oldPath:      "github.com/DVV-15324/witches-book/pkg/redis/client",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/DVV-15324/witches-book/pkg/redis/client",
+		},
+		{
+			name:         "skip external library github.com",
+			oldPath:      "github.com/gin-gonic/gin",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/gin-gonic/gin",
+		},
+		{
+			name:         "skip external library gitlab.com",
+			oldPath:      "gitlab.com/some/project",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "gitlab.com/some/project",
+		},
+		{
+			name:         "skip external library golang.org",
+			oldPath:      "golang.org/x/text/cases",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "golang.org/x/text/cases",
+		},
+		{
+			name:         "skip external library go.uber.org",
+			oldPath:      "go.uber.org/zap",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "go.uber.org/zap",
+		},
+		{
+			name:         "skip external library google.golang.org",
+			oldPath:      "google.golang.org/grpc",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "google.golang.org/grpc",
+		},
+		{
+			name:         "skip external library gopkg.in",
+			oldPath:      "gopkg.in/yaml.v3",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "gopkg.in/yaml.v3",
+		},
+		{
+			name:         "skip when oldPath is empty",
+			oldPath:      "",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "",
+		},
+		{
+			name:         "skip when targetModule is empty",
+			oldPath:      "internal/book/handler",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "",
+			want:         "internal/book/handler",
+		},
+
+		// ==================== TRƯỜNG HỢP SỬA (internal/) ====================
+		{
+			name:         "replace internal import from source module",
+			oldPath:      "github.com/DVV-15324/witches-book/internal/book/handler",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/book/handler",
+		},
+		{
+			name:         "replace internal import with nested path",
+			oldPath:      "github.com/DVV-15324/witches-book/internal/book/repository",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/book/repository",
+		},
+		{
+			name:         "replace internal import with usecase alias",
+			oldPath:      "github.com/DVV-15324/witches-book/internal/book/usecase",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/book/usecase",
+		},
+		{
+			name:         "replace internal import with shared domain",
+			oldPath:      "github.com/DVV-15324/witches-book/internal/shared/domain",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/shared/domain",
+		},
+		{
+			name:         "replace internal import with utils",
+			oldPath:      "github.com/DVV-15324/witches-book/internal/shared/utils",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/shared/utils",
+		},
+
+		// ==================== TRƯỜNG HỢP SỬA (cmd/) ====================
+		{
+			name:         "replace cmd import from source module",
+			oldPath:      "github.com/DVV-15324/witches-book/cmd/server/config",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/cmd/server/config",
+		},
+		{
+			name:         "replace cmd import with routers",
+			oldPath:      "github.com/DVV-15324/witches-book/cmd/server/routers",
+			sourceModule: "github.com/DVV-15324/witches-book",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/cmd/server/routers",
+		},
+
+		// ==================== TRƯỜNG HỢP SỬA (import tương đối) ====================
+		{
+			name:         "add target module to internal relative import",
+			oldPath:      "internal/book/handler",
+			sourceModule: "",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/book/handler",
+		},
+		{
+			name:         "add target module to cmd relative import",
+			oldPath:      "cmd/server/config",
+			sourceModule: "",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/cmd/server/config",
+		},
+		{
+			name:         "add target module to pkg relative import",
+			oldPath:      "pkg/utils",
+			sourceModule: "",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/pkg/utils",
+		},
+		{
+			name:         "add target module to internal with nested path",
+			oldPath:      "internal/shared/domain",
+			sourceModule: "",
+			targetModule: "github.com/myapp/backend",
+			want:         "github.com/myapp/backend/internal/shared/domain",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NormalizeImportPath(tt.oldPath, tt.sourceModule, tt.targetModule)
+			if got != tt.want {
+				t.Errorf("NormalizeImportPath() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
