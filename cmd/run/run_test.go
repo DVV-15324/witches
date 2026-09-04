@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,6 +37,58 @@ func TestWitchesCreate_ProjectExists(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists")
 }
+func TestWitchesCreate_OpenFileFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	originalOpenFile := openFileWitchesCreate
+	defer func() {
+		openFileWitchesCreate = originalOpenFile
+	}()
+
+	openFileWitchesCreate = func(
+		name string,
+		flag int,
+		perm os.FileMode,
+	) (*os.File, error) {
+		return nil, errors.New("mock open file error")
+	}
+
+	err = WitchesCreate("test-project")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"create witches.env: mock open file error",
+	)
+}
+func TestWitchesCreate_MkdirAllFail(t *testing.T) {
+	originalMkdirAll := mkdirAllWitchesCreate
+	defer func() {
+		mkdirAllWitchesCreate = originalMkdirAll
+	}()
+
+	mkdirAllWitchesCreate = func(path string, perm os.FileMode) error {
+		return errors.New("mock mkdir error")
+	}
+
+	err := WitchesCreate("test-project")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"create project directory: mock mkdir error",
+	)
+}
 
 func TestWitchesInit_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -64,6 +117,99 @@ func TestWitchesInit_NoEnvFile(t *testing.T) {
 	err := WitchesInit("postgres")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "witches.env not found")
+}
+
+func TestWitchesInit_EnvExists(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile("witches.env", []byte("test"), 0644)
+	assert.NoError(t, err)
+
+	err = WitchesInit("postgres")
+
+	assert.NoError(t, err)
+}
+
+func TestWitchesInit_GetWorkingDirectoryFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"witches.env",
+		[]byte("DB_DRIVER=postgres"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalGetwd := getwdWitchesInit
+	defer func() {
+		getwdWitchesInit = originalGetwd
+	}()
+
+	getwdWitchesInit = func() (string, error) {
+		return "", errors.New("mock getwd error")
+	}
+
+	err = WitchesInit("postgres")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"get working directory: mock getwd error",
+	)
+}
+
+func TestWitchesInit_CreateTemplateFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"witches.env",
+		[]byte("DB_DRIVER=postgres"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalInit := initWitchesInit
+	defer func() {
+		initWitchesInit = originalInit
+	}()
+
+	initWitchesInit = func(
+		moduleName string,
+		DBdriver string,
+	) error {
+		return errors.New("mock create template error")
+	}
+
+	err = WitchesInit("postgres")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"create template: mock create template error",
+	)
 }
 
 func TestWitchesAdd_Success(t *testing.T) {
@@ -255,8 +401,7 @@ func (m *Modules) Init() *Modules { return &Modules{} }`), 0644)
 func SetupRoutes() error { return nil }`), 0644)
 
 	os.WriteFile("internal/shared/utils/key_object.go", []byte(`package utils
-type KeyObject string
-const (User KeyObject = "user")`), 0644)
+var (ObjectDefault int64 = 0)`), 0644)
 
 	err := WitchesLink("book", "https://github.com/DVV-15324/witches-book.git")
 	assert.NoError(t, err)
@@ -274,6 +419,144 @@ func TestWitchesLink_NoGoMod(t *testing.T) {
 	err := WitchesLink("book", "https://github.com/DVV-15324/witches-book.git")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "go.mod not found")
+}
+
+func TestWitchesLink_GetWorkingDirectoryFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"go.mod",
+		[]byte("module captain"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalGetwd := getwdWitchesLink
+	defer func() {
+		getwdWitchesLink = originalGetwd
+	}()
+
+	getwdWitchesLink = func() (string, error) {
+		return "", errors.New("mock getwd error")
+	}
+
+	err = WitchesLink(
+		"book",
+		"https://github.com/DVV-15324/witches-book.git",
+	)
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"get working directory: mock getwd error",
+	)
+}
+
+func TestWitchesLink_LinkDomainFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"go.mod",
+		[]byte("module captain"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalLink := linkWitchesLink
+	defer func() {
+		linkWitchesLink = originalLink
+	}()
+
+	linkWitchesLink = func(
+		projectPath string,
+		moduleName string,
+		domainName string,
+		repoURL string,
+	) error {
+		return errors.New("mock link domain error")
+	}
+
+	err = WitchesLink(
+		"book",
+		"https://github.com/DVV-15324/witches-book.git",
+	)
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"link domain: mock link domain error",
+	)
+}
+
+func TestWitchesLink_StatGoModFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	// go.mod không tồn tại ở đây.
+	// os.Stat sẽ trả os.ErrNotExist, nên branch
+	// "go.mod not found" sẽ chạy.
+	err = WitchesLink(
+		"book",
+		"https://github.com/DVV-15324/witches-book.git",
+	)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "go.mod not found")
+}
+
+func TestWitchesInstall(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test")
+	}
+
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+
+	for _, driver := range []string{"mysql", "postgres", "mssql"} {
+		t.Run(driver, func(t *testing.T) {
+			WitchesInstall(driver)
+		})
+	}
+}
+
+func TestWitchesInstall_UnsupportedDriver(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test")
+	}
+
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+	WitchesInstall("unsupported")
 }
 
 func TestFindProjectRoot(t *testing.T) {
@@ -351,39 +634,6 @@ func TestRunCmd(t *testing.T) {
 	runCmd("nonexistent", "arg")
 }
 
-func TestWitchesInstall(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test")
-	}
-
-	tmpDir := t.TempDir()
-	origWd, _ := os.Getwd()
-	defer os.Chdir(origWd)
-	os.Chdir(tmpDir)
-
-	os.WriteFile("go.mod", []byte("module test"), 0644)
-
-	for _, driver := range []string{"mysql", "postgres", "mssql"} {
-		t.Run(driver, func(t *testing.T) {
-			WitchesInstall(driver)
-		})
-	}
-}
-
-func TestWitchesInstall_UnsupportedDriver(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test")
-	}
-
-	tmpDir := t.TempDir()
-	origWd, _ := os.Getwd()
-	defer os.Chdir(origWd)
-	os.Chdir(tmpDir)
-
-	os.WriteFile("go.mod", []byte("module test"), 0644)
-	WitchesInstall("unsupported")
-}
-
 func TestRemoveEasyJSONFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -427,13 +677,21 @@ type UserRequest struct {
 
 func TestGenerateEasyJSONForAllDTOs_NoDTO(t *testing.T) {
 	tmpDir := t.TempDir()
-	origWd, _ := os.Getwd()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
 	defer os.Chdir(origWd)
-	os.Chdir(tmpDir)
 
-	os.WriteFile("go.mod", []byte("module test"), 0644)
+	assert.NoError(t, os.Chdir(tmpDir))
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+	assert.NoError(t, os.MkdirAll("internal", 0755))
 
-	err := generateEasyJSONForAllDTOs()
+	err = generateEasyJSONForAllDTOs()
+
 	assert.NoError(t, err)
 }
 
@@ -599,11 +857,9 @@ func SetupRoutes() error {
 	// Tạo key_object.go đầy đủ
 	keyObjectContent := `package utils
 
-type KeyObject string
-
-const (
-    User   KeyObject = "user"
-    Object KeyObject = "object"
+var (
+	ObjectDefault int64 = 0
+    ObjectUser   int64 = 1
 )
 `
 	os.WriteFile("internal/shared/utils/key_object.go", []byte(keyObjectContent), 0644)
@@ -635,8 +891,7 @@ func initModule(interface{}) error { return nil }
 func SetupRoutes() error { return nil }`), 0644)
 
 	os.WriteFile("internal/shared/utils/key_object.go", []byte(`package utils
-type KeyObject string
-const (Object KeyObject = "object")`), 0644)
+var (ObjectDefault int64 = 0)`), 0644)
 
 	err := WitchesAdd("user", "postgres")
 	assert.NoError(t, err)
@@ -655,7 +910,7 @@ func TestWitchesRollback_FullStructure(t *testing.T) {
 	os.MkdirAll("cmd/server/routers", 0755)
 	os.MkdirAll("internal/shared/utils", 0755)
 
-	// ✅ Tạo các file cần thiết
+	// Tạo các file cần thiết
 	os.WriteFile("cmd/server/routers/modules.go", []byte(`package routers
 type Modules struct {
     Book *book.Module
@@ -667,8 +922,7 @@ func initModule(interface{}) error { return nil }
 func SetupRoutes() error { return nil }`), 0644)
 
 	os.WriteFile("internal/shared/utils/key_object.go", []byte(`package utils
-type KeyObject string
-const (Object KeyObject = "object")`), 0644)
+var (ObjectDefault int64 = 0)`), 0644)
 
 	err := WitchesRollback("book")
 	assert.NoError(t, err)
@@ -692,4 +946,152 @@ func TestRemoveEasyJSONFiles_WithError(t *testing.T) {
 
 	removeEasyJSONFiles(tmpDir)
 	// Không panic, chỉ log error
+}
+
+func TestWitchesRun_GenerateEasyJSONFail(t *testing.T) {
+	originalGenerate := generateAllDTOs
+	defer func() {
+		generateAllDTOs = originalGenerate
+	}()
+
+	generateAllDTOs = func() error {
+		return errors.New("mock easyjson error")
+	}
+
+	err := WitchesRun()
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"generate easyjson: mock easyjson error",
+	)
+}
+
+func TestWitchesRun_RunProjectFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"main.go",
+		[]byte(`package main
+
+func main() {
+	panic("mock run error")
+}`),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	err = WitchesRun()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "run project:")
+}
+func TestGenerateEasyJSONForAllDTOs_NoProjectRoot(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	err = generateEasyJSONForAllDTOs()
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "cannot find project root")
+}
+func TestGenerateEasyJSONForAllDTOs_RequestResponse(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	requestDir := filepath.Join(
+		tmpDir,
+		"internal", "user", "dto", "request",
+	)
+
+	responseDir := filepath.Join(
+		tmpDir,
+		"internal", "user", "dto", "response",
+	)
+
+	assert.NoError(t, os.MkdirAll(requestDir, 0755))
+	assert.NoError(t, os.MkdirAll(responseDir, 0755))
+
+	assert.NoError(t, os.WriteFile(
+		filepath.Join(requestDir, "create.go"),
+		[]byte(`package request
+
+type CreateRequest struct {
+	Name string `+"`json:\"name\"`"+`
+}
+`),
+		0644,
+	))
+
+	assert.NoError(t, os.WriteFile(
+		filepath.Join(responseDir, "user.go"),
+		[]byte(`package response
+
+type UserResponse struct {
+	ID   int    `+"`json:\"id\"`"+`
+	Name string `+"`json:\"name\"`"+`
+}
+`),
+		0644,
+	))
+
+	err = generateEasyJSONForAllDTOs()
+
+	assert.NoError(t, err)
+}
+func TestGenerateEasyJSONForDir_Error(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGenerate := generateEasyJSON
+	defer func() {
+		generateEasyJSON = originalGenerate
+	}()
+
+	generateEasyJSON = func(
+		fset *token.FileSet,
+		inputDir string,
+		outputDir string,
+	) error {
+		return errors.New("mock generator error")
+	}
+
+	err := generateEasyJSONForDir(tmpDir, "request")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"request error: mock generator error",
+	)
 }

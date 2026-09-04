@@ -10,8 +10,12 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/easyjson"
 )
 
+var getwdProjectRoot = os.Getwd
+var generateEasyJSON = easyjson.GeneratorEasyJson
+var generateAllDTOs = generateEasyJSONForAllDTOs
+
 func WitchesRun() error {
-	if err := generateEasyJSONForAllDTOs(); err != nil {
+	if err := generateAllDTOs(); err != nil {
 		return fmt.Errorf("generate easyjson: %w", err)
 	}
 
@@ -69,7 +73,7 @@ func generateEasyJSONForAllDTOs() error {
 func generateEasyJSONForDir(dir, name string) error {
 	removeEasyJSONFiles(dir)
 	fset := token.NewFileSet()
-	err := easyjson.GeneratorEasyJson(fset, dir, dir)
+	err := generateEasyJSON(fset, dir, dir)
 	if err != nil {
 		return fmt.Errorf("%s error: %w", name, err)
 	}
@@ -81,7 +85,7 @@ func generateEasyJSONForDir(dir, name string) error {
 }
 
 func findProjectRoot() string {
-	dir, err := os.Getwd()
+	dir, err := getwdProjectRoot()
 	if err != nil {
 		return ""
 	}
