@@ -3,13 +3,6 @@ package cmd_migrate
 import (
 	"context"
 	"database/sql"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"testing"
-	"time"
-
 	"github.com/DVV-15324/witches/cmd/utils"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
@@ -17,6 +10,12 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
@@ -31,10 +30,9 @@ func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cl
 	ctx := context.Background()
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrate", "migrations")
-	migrationsDir = filepath.ToSlash(migrationsDir)
 	err := os.MkdirAll(migrationsDir, 0755)
+	migrationsDir = filepath.ToSlash(migrationsDir)
 	require.NoError(t, err)
-
 	upFile := filepath.Join(migrationsDir, "000001_test_migration.up.sql")
 	downFile := filepath.Join(migrationsDir, "000001_test_migration.down.sql")
 
@@ -250,7 +248,6 @@ func TestWitchesMigrateUp_InvalidDBURL(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-
 	tmpDir := t.TempDir()
 	err = WitchesMigrateUp("invalid_url", "postgres", tmpDir)
 	assert.Error(t, err)
@@ -262,7 +259,6 @@ func TestWitchesMigrateDown_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-
 	err = WitchesMigrateDown("user:pass@localhost:5432/db", "postgres", "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate down failed")
@@ -273,7 +269,6 @@ func TestWitchesMigrateDrop_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-
 	err = WitchesMigrateDrop("user:pass@localhost:5432/db", "postgres", "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate drop failed")
@@ -284,7 +279,6 @@ func TestWitchesMigrateForce_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-
 	err = WitchesMigrateForce("user:pass@localhost:5432/db", "postgres", "/invalid/path", "1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate force failed")
