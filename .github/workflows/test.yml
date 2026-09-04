@@ -132,7 +132,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_cmd_run.out \
             -timeout=60s \
-            ./cmd/run || true
+            ./cmd/run
 
       - name: Run cmd database tests
         run: |
@@ -192,12 +192,14 @@ jobs:
               echo "Found: $f"
               files="$files $f"
             else
-              echo "Skipping: $f (empty or not found)"
+              echo " Skipping: $f (empty or not found)"
             fi
           done
 
           if [ -z "$files" ]; then
             echo "ERROR: No coverage files found."
+            echo "Listing files:"
+            ls -la coverage*.out || echo "No coverage files"
             exit 1
           fi
 
@@ -205,24 +207,13 @@ jobs:
           echo "Merging files: $files"
           "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
 
-      - name: Debug merged coverage
-        run: |
-          echo "========================================"
-          echo "CMD/RUN COVERAGE"
-          echo "========================================"
-          go tool cover -func=coverage_cmd_run.out
+          echo ""
+          echo "Coverage file generated:"
+          wc -l coverage_all.out
 
           echo ""
-          echo "========================================"
-          echo "MERGED COVERAGE"
-          echo "========================================"
-          go tool cover -func=coverage_all.out
-
-          echo ""
-          echo "========================================"
-          echo "CMD/RUN FILES IN MERGED PROFILE"
-          echo "========================================"
-          grep "github.com/DVV-15324/witches/cmd/run/" coverage_all.out
+          echo "First lines:"
+          head -5 coverage_all.out
 
       - name: Validate coverage
         run: |
