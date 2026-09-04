@@ -180,6 +180,31 @@ jobs:
             -timeout=60s \
             ./pkg/core/utils
 
+      - name: Merge coverage reports
+        run: |
+          echo "========================================"
+          echo "Merging coverage reports..."
+          echo "========================================"
+
+          files=""
+          for f in coverage_*.out; do
+            if [ -f "$f" ] && [ -s "$f" ]; then
+              echo "Found: $f"
+              files="$files $f"
+            else
+              echo "Skipping: $f (empty or not found)"
+            fi
+          done
+
+          if [ -z "$files" ]; then
+            echo "ERROR: No coverage files found."
+            exit 1
+          fi
+
+          echo ""
+          echo "Merging files: $files"
+          "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
+
       - name: Debug merged coverage
         run: |
           echo "========================================"
@@ -198,41 +223,6 @@ jobs:
           echo "CMD/RUN FILES IN MERGED PROFILE"
           echo "========================================"
           grep "github.com/DVV-15324/witches/cmd/run/" coverage_all.out
-
-      - name: Merge coverage reports
-        run: |
-          echo "========================================"
-          echo "Merging coverage reports..."
-          echo "========================================"
-
-          files=""
-          for f in coverage_*.out; do
-            if [ -f "$f" ] && [ -s "$f" ]; then
-              echo "Found: $f"
-              files="$files $f"
-            else
-              echo " Skipping: $f (empty or not found)"
-            fi
-          done
-
-          if [ -z "$files" ]; then
-            echo "ERROR: No coverage files found."
-            echo "Listing files:"
-            ls -la coverage*.out || echo "No coverage files"
-            exit 1
-          fi
-
-          echo ""
-          echo "Merging files: $files"
-          "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
-
-          echo ""
-          echo "Coverage file generated:"
-          wc -l coverage_all.out
-
-          echo ""
-          echo "First lines:"
-          head -5 coverage_all.out
 
       - name: Validate coverage
         run: |
