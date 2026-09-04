@@ -7,8 +7,11 @@ import (
 	"strings"
 )
 
+var executableUtils = os.Executable
+var getwdUtils = os.Getwd
+
 func GetCurrentPath() string {
-	path, err := os.Getwd()
+	path, err := getwdUtils()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -16,7 +19,7 @@ func GetCurrentPath() string {
 }
 
 func GetMigrationsPath() string {
-	pwd, err := os.Getwd()
+	pwd, err := getwdUtils()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -24,7 +27,7 @@ func GetMigrationsPath() string {
 }
 
 func GetFrameworkPath() string {
-	exe, err := os.Executable()
+	exe, err := executableUtils()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -32,7 +35,7 @@ func GetFrameworkPath() string {
 }
 
 func GetMigrationsURL(pathM string) string {
-	pwd, _ := os.Getwd()
+	pwd, _ := getwdUtils()
 
 	// Xử lý các trường hợp
 	switch {
