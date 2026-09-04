@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+var readFileWitchesDBURL = os.ReadFile
+
 func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	currentPath := utils.GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
 
 	// Đọc file env hiện tại
-	content, err := os.ReadFile(envPath)
+	content, err := readFileWitchesDBURL(envPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("read witches.env: %v", err)
 	}
