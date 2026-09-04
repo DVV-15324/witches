@@ -8,9 +8,17 @@ import (
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
+var statWitchesRollback = os.Stat
+var getwdWitchesRollback = os.Getwd
+var linkWitchesRollback = templates.RollbackDomain
+
 func WitchesRollback(domainName string) error {
-	if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
+	_, err := statWitchesRollback("go.mod")
+	if os.IsNotExist(err) {
 		return fmt.Errorf("go.mod not found")
+	}
+	if err != nil {
+		return fmt.Errorf("stat go.mod: %w", err)
 	}
 
 	domainPath := filepath.Join("internal", domainName)
@@ -18,13 +26,13 @@ func WitchesRollback(domainName string) error {
 		return fmt.Errorf("domain '%s' not found", domainName)
 	}
 
-	projectPath, err := os.Getwd()
+	projectPath, err := getwdWitchesRollback()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
 	}
 
 	moduleName := filepath.Base(projectPath)
-	if err := templates.RollbackDomain(projectPath, moduleName, domainName); err != nil {
+	if err := linkWitchesRollback(projectPath, moduleName, domainName); err != nil {
 		return fmt.Errorf("rollback domain: %w", err)
 	}
 	return nil

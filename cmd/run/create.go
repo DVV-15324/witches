@@ -8,12 +8,25 @@ import (
 	content "github.com/DVV-15324/witches/cmd/utils"
 )
 
+type fileWriter interface {
+	WriteString(string) (int, error)
+	Close() error
+}
+
+var openFileWitchesCreate = func(
+	name string,
+	flag int,
+	perm os.FileMode,
+) (fileWriter, error) {
+	return os.OpenFile(name, flag, perm)
+}
+var statWitchesCreate = os.Stat
 var mkdirAllWitchesCreate = os.MkdirAll
-var openFileWitchesCreate = os.OpenFile
 
 func WitchesCreate(project string) error {
 	projectPath := filepath.Join(".", project)
-	if _, err := os.Stat(projectPath); !os.IsNotExist(err) {
+
+	if _, err := statWitchesCreate(projectPath); !os.IsNotExist(err) {
 		return fmt.Errorf("project '%s' already exists", project)
 	}
 
@@ -22,20 +35,32 @@ func WitchesCreate(project string) error {
 	}
 
 	envPath := filepath.Join(projectPath, "witches.env")
-	_, err := os.Stat(envPath)
+
+	_, err := statWitchesCreate(envPath)
 	if err == nil {
-		return fmt.Errorf("file 'witches.env' already exists in '%s'", projectPath)
+		return fmt.Errorf(
+			"file 'witches.env' already exists in '%s'",
+			projectPath,
+		)
 	}
+
 	if !os.IsNotExist(err) {
 		return fmt.Errorf("stat witches.env: %w", err)
 	}
-	file, err := openFileWitchesCreate(envPath, os.O_CREATE|os.O_WRONLY, 0644)
+
+	file, err := openFileWitchesCreate(
+		envPath,
+		os.O_CREATE|os.O_WRONLY,
+		0644,
+	)
 	if err != nil {
 		return fmt.Errorf("create witches.env: %w", err)
 	}
+
 	defer file.Close()
 
 	contentData := content.CreateContent()
+
 	if _, err := file.WriteString(contentData); err != nil {
 		return fmt.Errorf("write witches.env: %w", err)
 	}

@@ -8,11 +8,12 @@ import (
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
+var statWitchesInit = os.Stat
 var getwdWitchesInit = os.Getwd
 var initWitchesInit = templates.CreateTemplateGoArc
 
 func WitchesInit(DBdriver string) error {
-	_, err := os.Stat("witches.env")
+	_, err := statWitchesInit("witches.env")
 
 	if os.IsNotExist(err) {
 		return fmt.Errorf("witches.env not found")

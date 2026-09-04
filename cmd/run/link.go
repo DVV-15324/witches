@@ -8,11 +8,12 @@ import (
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
+var statWitchesLink = os.Stat
 var getwdWitchesLink = os.Getwd
 var linkWitchesLink = templates.AddGoDomainFromLink
 
 func WitchesLink(domainName, repoURL string) error {
-	_, err := os.Stat("go.mod")
+	_, err := statWitchesLink("go.mod")
 	if os.IsNotExist(err) {
 		return fmt.Errorf("go.mod not found")
 	}

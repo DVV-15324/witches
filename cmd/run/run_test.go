@@ -13,6 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type mockFileWriter struct{}
+
+func (m *mockFileWriter) WriteString(string) (int, error) {
+	return 0, errors.New("mock write error")
+}
+
+func (m *mockFileWriter) Close() error {
+	return nil
+}
+
 func TestWitchesCreate_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
@@ -37,16 +47,44 @@ func TestWitchesCreate_ProjectExists(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists")
 }
+
+func TestWitchesCreate_EnvExists(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	projectPath := filepath.Join(tmpDir, "test-project")
+
+	assert.NoError(t, os.MkdirAll(projectPath, 0755))
+
+	assert.NoError(t, os.WriteFile(
+		filepath.Join(projectPath, "witches.env"),
+		[]byte("DB_DRIVER=postgres"),
+		0644,
+	))
+
+	err = WitchesCreate("test-project")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"project 'test-project' already exists",
+	)
+}
+
 func TestWitchesCreate_OpenFileFail(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	origWd, err := os.Getwd()
 	assert.NoError(t, err)
-
 	defer os.Chdir(origWd)
 
-	err = os.Chdir(tmpDir)
-	assert.NoError(t, err)
+	assert.NoError(t, os.Chdir(tmpDir))
 
 	originalOpenFile := openFileWitchesCreate
 	defer func() {
@@ -57,7 +95,7 @@ func TestWitchesCreate_OpenFileFail(t *testing.T) {
 		name string,
 		flag int,
 		perm os.FileMode,
-	) (*os.File, error) {
+	) (fileWriter, error) {
 		return nil, errors.New("mock open file error")
 	}
 
@@ -68,6 +106,37 @@ func TestWitchesCreate_OpenFileFail(t *testing.T) {
 		t,
 		err,
 		"create witches.env: mock open file error",
+	)
+}
+func TestWitchesCreate_WriteStringFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	originalOpenFile := openFileWitchesCreate
+	defer func() {
+		openFileWitchesCreate = originalOpenFile
+	}()
+
+	openFileWitchesCreate = func(
+		name string,
+		flag int,
+		perm os.FileMode,
+	) (fileWriter, error) {
+		return &mockFileWriter{}, nil
+	}
+
+	err = WitchesCreate("test-project")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"write witches.env: mock write error",
 	)
 }
 func TestWitchesCreate_MkdirAllFail(t *testing.T) {
@@ -211,7 +280,75 @@ func TestWitchesInit_CreateTemplateFail(t *testing.T) {
 		"create template: mock create template error",
 	)
 }
+func TestWitchesInit_StatEnvFail(t *testing.T) {
+	tmpDir := t.TempDir()
 
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	originalStat := statWitchesInit
+	defer func() {
+		statWitchesInit = originalStat
+	}()
+
+	statWitchesInit = func(path string) (os.FileInfo, error) {
+		return nil, errors.New("mock stat error")
+	}
+
+	err = WitchesInit("postgres")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"stat witches.env: mock stat error",
+	)
+}
+
+func TestWitchesInit_PassCorrectArguments(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		"witches.env",
+		[]byte("DB_DRIVER=postgres"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalInit := initWitchesInit
+	defer func() {
+		initWitchesInit = originalInit
+	}()
+
+	var gotModuleName string
+	var gotDBDriver string
+
+	initWitchesInit = func(
+		moduleName string,
+		DBdriver string,
+	) error {
+		gotModuleName = moduleName
+		gotDBDriver = DBdriver
+		return nil
+	}
+
+	err = WitchesInit("postgres")
+
+	assert.NoError(t, err)
+	assert.Equal(t, filepath.Base(tmpDir), gotModuleName)
+	assert.Equal(t, "postgres", gotDBDriver)
+}
 func TestWitchesAdd_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
@@ -377,7 +514,113 @@ func TestWitchesRollback_DomainNotExists(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
+func TestWitchesRollback_StatGoModFail(t *testing.T) {
+	tmpDir := t.TempDir()
 
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	originalStat := statWitchesRollback
+	defer func() {
+		statWitchesRollback = originalStat
+	}()
+
+	statWitchesRollback = func(path string) (os.FileInfo, error) {
+		return nil, errors.New("mock stat error")
+	}
+
+	err = WitchesRollback("book")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"stat go.mod: mock stat error",
+	)
+}
+func TestWitchesRollback_GetWorkingDirectoryFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	assert.NoError(t, os.MkdirAll(
+		filepath.Join("internal", "book"),
+		0755,
+	))
+
+	originalGetwd := getwdWitchesRollback
+	defer func() {
+		getwdWitchesRollback = originalGetwd
+	}()
+
+	getwdWitchesRollback = func() (string, error) {
+		return "", errors.New("mock getwd error")
+	}
+
+	err = WitchesRollback("book")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"get working directory: mock getwd error",
+	)
+}
+func TestWitchesRollback_RollbackDomainFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	assert.NoError(t, os.MkdirAll(
+		filepath.Join("internal", "book"),
+		0755,
+	))
+
+	originalLink := linkWitchesRollback
+	defer func() {
+		linkWitchesRollback = originalLink
+	}()
+
+	linkWitchesRollback = func(
+		projectPath string,
+		moduleName string,
+		domainName string,
+	) error {
+		return errors.New("mock rollback error")
+	}
+
+	err = WitchesRollback("book")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"rollback domain: mock rollback error",
+	)
+}
 func TestWitchesLink_Success(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
@@ -514,16 +757,23 @@ func TestWitchesLink_StatGoModFail(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	assert.NoError(t, err)
 
-	// go.mod không tồn tại ở đây.
-	// os.Stat sẽ trả os.ErrNotExist, nên branch
-	// "go.mod not found" sẽ chạy.
-	err = WitchesLink(
-		"book",
-		"https://github.com/DVV-15324/witches-book.git",
-	)
+	originalStat := statWitchesLink
+	defer func() {
+		statWitchesLink = originalStat
+	}()
+
+	statWitchesLink = func(path string) (os.FileInfo, error) {
+		return nil, errors.New("mock stat error")
+	}
+
+	err = WitchesLink("user", "https://github.com/example/user")
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "go.mod not found")
+	assert.EqualError(
+		t,
+		err,
+		"stat go.mod: mock stat error",
+	)
 }
 
 func TestWitchesInstall(t *testing.T) {
