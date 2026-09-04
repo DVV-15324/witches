@@ -180,6 +180,25 @@ jobs:
             -timeout=60s \
             ./pkg/core/utils
 
+      - name: Debug merged coverage
+        run: |
+          echo "========================================"
+          echo "CMD/RUN COVERAGE"
+          echo "========================================"
+          go tool cover -func=coverage_cmd_run.out
+
+          echo ""
+          echo "========================================"
+          echo "MERGED COVERAGE"
+          echo "========================================"
+          go tool cover -func=coverage_all.out
+
+          echo ""
+          echo "========================================"
+          echo "CMD/RUN FILES IN MERGED PROFILE"
+          echo "========================================"
+          grep "github.com/DVV-15324/witches/cmd/run/" coverage_all.out
+
       - name: Merge coverage reports
         run: |
           echo "========================================"
