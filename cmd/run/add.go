@@ -9,6 +9,7 @@ import (
 )
 
 var getwdWitchesAdd = os.Getwd
+var addModule = templates.AddModule
 
 func WitchesAdd(moduleName string, DBdriver string) error {
 	if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
@@ -26,7 +27,7 @@ func WitchesAdd(moduleName string, DBdriver string) error {
 	}
 
 	projectName := filepath.Base(projectPath)
-	if err := templates.AddModule(projectPath, projectName, moduleName, DBdriver); err != nil {
+	if err := addModule(projectPath, projectName, moduleName, DBdriver); err != nil {
 		return fmt.Errorf("add module: %w", err)
 	}
 	return nil

@@ -149,6 +149,48 @@ func TestWitchesAdd_GetWorkingDirectoryFail(t *testing.T) {
 	)
 }
 
+func TestWitchesAdd_AddModuleFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module test"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	originalAddModule := addModule
+	defer func() {
+		addModule = originalAddModule
+	}()
+
+	addModule = func(
+		projectPath string,
+		projectName string,
+		moduleName string,
+		DBdriver string,
+	) error {
+		return errors.New("mock add module error")
+	}
+
+	err = WitchesAdd("user", "postgres")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"add module: mock add module error",
+	)
+}
+
 func TestWitchesRollback_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
