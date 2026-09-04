@@ -20,12 +20,12 @@ func WitchesAdd(moduleName string, DBdriver string) error {
 
 	projectPath, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("get working directory: %w", err)
+		return fmt.Errorf("get working directory: %e", err)
 	}
 
 	projectName := filepath.Base(projectPath)
 	if err := templates.AddModule(projectPath, projectName, moduleName, DBdriver); err != nil {
-		return fmt.Errorf("add module: %w", err)
+		return fmt.Errorf("add module: %e", err)
 	}
 	return nil
 }
