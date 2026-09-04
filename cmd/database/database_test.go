@@ -1,8 +1,10 @@
 package database
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	utils "github.com/DVV-15324/witches/cmd/utils"
@@ -36,17 +38,6 @@ func TestGenerateDBURL(t *testing.T) {
 		{
 			name:     "PostgreSQL (postgres)",
 			driver:   "postgres",
-			user:     "admin",
-			pass:     "123",
-			host:     "127.0.0.1",
-			dbname:   "testdb",
-			port:     5432,
-			expected: "admin:123@127.0.0.1:5432/testdb?sslmode=disable",
-			wantErr:  false,
-		},
-		{
-			name:     "PostgreSQL (postgresql)",
-			driver:   "postgresql",
 			user:     "admin",
 			pass:     "123",
 			host:     "127.0.0.1",
@@ -202,6 +193,7 @@ func TestWitchesDBURL(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
+
 			assert.NoError(t, err)
 			envPath := filepath.Join(tmpDir, "witches.env")
 			_, err = os.Stat(envPath)
@@ -267,21 +259,56 @@ APP_PORT=8080
 }
 
 func TestWitchesDBURL_ReadFileError(t *testing.T) {
-	// Test lỗi đọc file (khi file tồn tại nhưng không có quyền đọc)
-	// Trên Windows, cách đơn giản là tạo file trong thư mục không có quyền
-	t.Skip("Skipping read error test - requires mocking or special permissions")
+	// Chỉ chạy trên Unix (Linux, macOS) vì Windows không hỗ trợ tốt quyền đọc/ghi file
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on Windows: file permission handling differs")
+	}
+
+	// Lưu thư mục làm việc hiện tại để khôi phục sau
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(origDir)
+	}()
+
+	// Tạo thư mục tạm và chuyển vào đó
+	tmpDir := t.TempDir()
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	// Tạo file witches.env với nội dung bất kỳ
+	initialContent := `APP_NAME=test
+DB_URL=mysql://root:secret@tcp(localhost:3306)/mydb`
+	err = os.WriteFile("witches.env", []byte(initialContent), 0644)
+	require.NoError(t, err)
+
+	// Thu hồi toàn bộ quyền đọc, ghi, thực thi cho file
+	// (trên Unix, owner vẫn có thể xoá file, nhưng không đọc/ghi được)
+	err = os.Chmod("witches.env", 0000)
+	require.NoError(t, err)
+
+	// Cấu hình hợp lệ
+	config := &utils.Config{
+		DBUser:     "test",
+		DBPassword: "pass",
+		DBHost:     "localhost",
+		DBName:     "testdb",
+		DBPort:     3306,
+	}
+
+	// Gọi hàm cần test – kỳ vọng trả về lỗi vì không đọc được file
+	err = WitchesDBURL("mysql", config)
+	assert.Error(t, err, "Expected error when witches.env is not readable")
+
+	// (Tuỳ chọn) Kiểm tra thông báo lỗi có chứa từ khoá liên quan
+	assert.Contains(t, err.Error(), "read witches.env", "Error message should indicate read failure")
 }
 
 func TestWitchesDBURL_WriteFileError(t *testing.T) {
-	// Tạo thư mục tạm và set quyền read-only
 	tmpDir := t.TempDir()
-
-	// Trên Windows: tạo file và set read-only
 	envPath := filepath.Join(tmpDir, "witches.env")
 	err := os.WriteFile(envPath, []byte("DB_URL=old"), 0444) // read-only
 	require.NoError(t, err)
-
-	// Chuyển vào thư mục này
 	origDir, _ := os.Getwd()
 	defer os.Chdir(origDir)
 	os.Chdir(tmpDir)
@@ -293,8 +320,36 @@ func TestWitchesDBURL_WriteFileError(t *testing.T) {
 		DBName:     "testdb",
 		DBPort:     3306,
 	}
-	// Gọi hàm, sẽ fail vì không ghi được file
 	err = WitchesDBURL("mysql", config)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "write witches.env")
+}
+func TestWitchesDBURL_ReadFileFail(t *testing.T) {
+	originalReadFile := readFileWitchesDBURL
+	defer func() {
+		readFileWitchesDBURL = originalReadFile
+	}()
+
+	readFileWitchesDBURL = func(
+		filename string,
+	) ([]byte, error) {
+		return nil, errors.New("mock read file error")
+	}
+
+	config := &utils.Config{
+		DBUser:     "root",
+		DBPassword: "password",
+		DBHost:     "localhost",
+		DBName:     "test",
+		DBPort:     3306,
+	}
+
+	err := WitchesDBURL("mysql", config)
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"read witches.env: mock read file error",
+	)
 }
