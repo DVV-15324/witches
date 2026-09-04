@@ -47,7 +47,6 @@ func TestWitchesCreate_ProjectExists(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists")
 }
-
 func TestWitchesCreate_EnvExists(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -57,15 +56,18 @@ func TestWitchesCreate_EnvExists(t *testing.T) {
 
 	assert.NoError(t, os.Chdir(tmpDir))
 
-	projectPath := filepath.Join(tmpDir, "test-project")
+	originalStat := statWitchesCreate
+	defer func() {
+		statWitchesCreate = originalStat
+	}()
 
-	assert.NoError(t, os.MkdirAll(projectPath, 0755))
+	statWitchesCreate = func(path string) (os.FileInfo, error) {
+		if filepath.Base(path) == "test-project" {
+			return nil, os.ErrNotExist
+		}
 
-	assert.NoError(t, os.WriteFile(
-		filepath.Join(projectPath, "witches.env"),
-		[]byte("DB_DRIVER=postgres"),
-		0644,
-	))
+		return nil, nil
+	}
 
 	err = WitchesCreate("test-project")
 
@@ -73,7 +75,7 @@ func TestWitchesCreate_EnvExists(t *testing.T) {
 	assert.EqualError(
 		t,
 		err,
-		"project 'test-project' already exists",
+		"file 'witches.env' already exists in 'test-project'",
 	)
 }
 
@@ -156,6 +158,38 @@ func TestWitchesCreate_MkdirAllFail(t *testing.T) {
 		t,
 		err,
 		"create project directory: mock mkdir error",
+	)
+}
+
+func TestWitchesCreate_StatEnvFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	originalStat := statWitchesCreate
+	defer func() {
+		statWitchesCreate = originalStat
+	}()
+
+	statWitchesCreate = func(path string) (os.FileInfo, error) {
+		if filepath.Base(path) == "test-project" {
+			return nil, os.ErrNotExist
+		}
+
+		return nil, errors.New("mock stat error")
+	}
+
+	err = WitchesCreate("test-project")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"stat witches.env: mock stat error",
 	)
 }
 
@@ -839,9 +873,44 @@ func TestGenerateEasyJSONForAllDTOs_NoRoot(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	// Không có go.mod, generateEasyJSONForAllDTOs sẽ trả về error
-	err := generateEasyJSONForAllDTOs()
+	err := generateAllDTOs()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot find project root")
+}
+func TestGenerateEasyJSONForAllDTOs_WalkFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	originalWalk := walkProject
+	defer func() {
+		walkProject = originalWalk
+	}()
+
+	walkProject = func(
+		root string,
+		walkFn filepath.WalkFunc,
+	) error {
+		return errors.New("mock walk error")
+	}
+
+	err = generateAllDTOs()
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"walk internal: mock walk error",
+	)
 }
 func TestFindProjectRoot_WithNestedDir(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -921,7 +990,7 @@ type UserRequest struct {
 }`
 	os.WriteFile(filepath.Join(dtoDir, "user_request.go"), []byte(dtoContent), 0644)
 
-	err := generateEasyJSONForAllDTOs()
+	err := generateAllDTOs()
 	assert.NoError(t, err)
 }
 
@@ -940,7 +1009,7 @@ func TestGenerateEasyJSONForAllDTOs_NoDTO(t *testing.T) {
 	))
 	assert.NoError(t, os.MkdirAll("internal", 0755))
 
-	err = generateEasyJSONForAllDTOs()
+	err = generateAllDTOs()
 
 	assert.NoError(t, err)
 }
@@ -958,8 +1027,78 @@ type TestStruct struct {
 }`
 	os.WriteFile(filepath.Join(tmpDir, "test.go"), []byte(dtoContent), 0644)
 
-	err := generateEasyJSONForDir(tmpDir, "test")
+	err := generateEasyJSONDir(tmpDir, "test")
 	assert.NoError(t, err)
+}
+
+func TestGenerateEasyJSONForAllDTOs_RequestFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	assert.NoError(t, os.MkdirAll(
+		filepath.Join("internal", "user", "dto", "request"),
+		0755,
+	))
+
+	originalGenerate := generateEasyJSONDir
+	defer func() {
+		generateEasyJSONDir = originalGenerate
+	}()
+
+	generateEasyJSONDir = func(dir, name string) error {
+		return errors.New("mock request error")
+	}
+
+	err = generateAllDTOs()
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "mock request error")
+}
+
+func TestGenerateEasyJSONForAllDTOs_ResponseFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+	defer os.Chdir(origWd)
+
+	assert.NoError(t, os.Chdir(tmpDir))
+
+	assert.NoError(t, os.WriteFile(
+		"go.mod",
+		[]byte("module test"),
+		0644,
+	))
+
+	assert.NoError(t, os.MkdirAll(
+		filepath.Join("internal", "user", "dto", "response"),
+		0755,
+	))
+
+	originalGenerate := generateEasyJSONDir
+	defer func() {
+		generateEasyJSONDir = originalGenerate
+	}()
+
+	generateEasyJSONDir = func(dir, name string) error {
+		return errors.New("mock response error")
+	}
+
+	err = generateAllDTOs()
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "mock response error")
 }
 
 func TestGenerateEasyJSONForDir_InvalidDir(t *testing.T) {
@@ -970,7 +1109,7 @@ func TestGenerateEasyJSONForDir_InvalidDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	invalidDir := filepath.Join(tmpDir, "nonexistent")
 
-	err := generateEasyJSONForDir(invalidDir, "test")
+	err := generateEasyJSONDir(invalidDir, "test")
 	assert.Error(t, err)
 }
 
@@ -1217,6 +1356,35 @@ func TestWitchesRun_GenerateEasyJSONFail(t *testing.T) {
 		"generate easyjson: mock easyjson error",
 	)
 }
+func TestGenerateEasyJSONForDir_GeneratedFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalRemove := removeEasyJSON
+	originalGenerate := generateEasyJSON
+
+	defer func() {
+		removeEasyJSON = originalRemove
+		generateEasyJSON = originalGenerate
+	}()
+
+	removeEasyJSON = func(dir string) {}
+
+	generateEasyJSON = func(
+		fset *token.FileSet,
+		inputDir string,
+		outputDir string,
+	) error {
+		return os.WriteFile(
+			filepath.Join(outputDir, "user_easyjson.go"),
+			[]byte("package dto"),
+			0644,
+		)
+	}
+
+	err := generateEasyJSONDir(tmpDir, "request")
+
+	assert.NoError(t, err)
+}
 
 func TestWitchesRun_RunProjectFail(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -1260,7 +1428,7 @@ func TestGenerateEasyJSONForAllDTOs_NoProjectRoot(t *testing.T) {
 
 	assert.NoError(t, os.Chdir(tmpDir))
 
-	err = generateEasyJSONForAllDTOs()
+	err = generateAllDTOs()
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, "cannot find project root")
@@ -1316,7 +1484,7 @@ type UserResponse struct {
 		0644,
 	))
 
-	err = generateEasyJSONForAllDTOs()
+	err = generateAllDTOs()
 
 	assert.NoError(t, err)
 }
@@ -1336,7 +1504,7 @@ func TestGenerateEasyJSONForDir_Error(t *testing.T) {
 		return errors.New("mock generator error")
 	}
 
-	err := generateEasyJSONForDir(tmpDir, "request")
+	err := generateEasyJSONDir(tmpDir, "request")
 
 	assert.Error(t, err)
 	assert.EqualError(

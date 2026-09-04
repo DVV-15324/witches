@@ -10,6 +10,9 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/easyjson"
 )
 
+var removeEasyJSON = removeEasyJSONFiles
+var generateEasyJSONDir = generateEasyJSONForDir
+var walkProject = filepath.Walk
 var getwdProjectRoot = os.Getwd
 var generateEasyJSON = easyjson.GeneratorEasyJson
 var generateAllDTOs = generateEasyJSONForAllDTOs
@@ -35,15 +38,20 @@ func generateEasyJSONForAllDTOs() error {
 		return fmt.Errorf("cannot find project root")
 	}
 	var dtoDirs []string
-	err := filepath.Walk(filepath.Join(rootDir, "internal"), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
+	err := walkProject(
+		filepath.Join(rootDir, "internal"),
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return nil
+			}
+
+			if info.IsDir() && filepath.Base(path) == "dto" {
+				dtoDirs = append(dtoDirs, path)
+			}
+
 			return nil
-		}
-		if info.IsDir() && filepath.Base(path) == "dto" {
-			dtoDirs = append(dtoDirs, path)
-		}
-		return nil
-	})
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("walk internal: %w", err)
 	}
@@ -57,12 +65,12 @@ func generateEasyJSONForAllDTOs() error {
 		responseDir := filepath.Join(dtoDir, "response")
 
 		if _, err := os.Stat(requestDir); err == nil {
-			if err := generateEasyJSONForDir(requestDir, "request"); err != nil {
+			if err := generateEasyJSONDir(requestDir, "request"); err != nil {
 				return err
 			}
 		}
 		if _, err := os.Stat(responseDir); err == nil {
-			if err := generateEasyJSONForDir(responseDir, "response"); err != nil {
+			if err := generateEasyJSONDir(responseDir, "response"); err != nil {
 				return err
 			}
 		}
