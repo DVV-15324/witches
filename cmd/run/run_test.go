@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -106,6 +107,46 @@ func TestWitchesAdd_DomainExists(t *testing.T) {
 	err := WitchesAdd("user", "postgres")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists")
+}
+func TestWitchesAdd_GetWorkingDirectoryFail(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	origWd, err := os.Getwd()
+	assert.NoError(t, err)
+
+	defer os.Chdir(origWd)
+
+	err = os.Chdir(tmpDir)
+	assert.NoError(t, err)
+
+	err = os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module test"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	// Lưu function thật
+	originalGetwd := getwdWitchesAdd
+
+	// Khôi phục sau test
+	defer func() {
+		getwdWitchesAdd = originalGetwd
+	}()
+
+	// Mock function
+	getwdWitchesAdd = func() (string, error) {
+		return "", errors.New("mock getwd error")
+	}
+
+	err = WitchesAdd("user", "postgres")
+
+	assert.Error(t, err)
+	assert.EqualError(
+		t,
+		err,
+		"get working directory: mock getwd error",
+	)
 }
 
 func TestWitchesRollback_Success(t *testing.T) {
