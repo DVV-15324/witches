@@ -290,3 +290,104 @@ func TestSplitAndTrim(t *testing.T) {
 		})
 	}
 }
+func TestPreloadNotDBURL_NoWitchesEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGetwd := getwdUtils
+	defer func() {
+		getwdUtils = originalGetwd
+	}()
+
+	getwdUtils = func() (string, error) {
+		return tmpDir, nil
+	}
+
+	// Clear environment variables that can override DefaultConfig()
+	t.Setenv("APP_PORT", "")
+	t.Setenv("APP_HOST", "")
+	t.Setenv("ENV", "")
+
+	cfg := PreloadNotDBURL()
+
+	assert.NotNil(t, cfg)
+	assert.Equal(t, int64(8080), cfg.Port)
+	assert.Equal(t, "localhost", cfg.Host)
+	assert.Equal(t, "development", cfg.Env)
+}
+func TestPreloadNotDBURL_ValidEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGetwd := getwdUtils
+	defer func() {
+		getwdUtils = originalGetwd
+	}()
+
+	getwdUtils = func() (string, error) {
+		return tmpDir, nil
+	}
+
+	t.Setenv("ENV", "production")
+
+	cfg := PreloadNotDBURL()
+
+	assert.Equal(t, "production", cfg.Env)
+}
+func TestPreloadNotDBURL_InvalidEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGetwd := getwdUtils
+	defer func() {
+		getwdUtils = originalGetwd
+	}()
+
+	getwdUtils = func() (string, error) {
+		return tmpDir, nil
+	}
+
+	t.Setenv("ENV", "invalid-env")
+
+	cfg := PreloadNotDBURL()
+
+	// Không nhận ENV không hợp lệ,
+	// giữ nguyên giá trị default.
+	assert.Equal(t, "development", cfg.Env)
+}
+func TestIsValidEnv(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		want bool
+	}{
+		{
+			name: "development",
+			env:  "development",
+			want: true,
+		},
+		{
+			name: "test",
+			env:  "test",
+			want: true,
+		},
+		{
+			name: "production",
+			env:  "production",
+			want: true,
+		},
+		{
+			name: "invalid",
+			env:  "staging",
+			want: false,
+		},
+		{
+			name: "empty",
+			env:  "",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, isValidEnv(tt.env))
+		})
+	}
+}
