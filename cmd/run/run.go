@@ -10,6 +10,7 @@ import (
 	"github.com/DVV-15324/witches/pkg/core/easyjson"
 )
 
+var globEasyJSONGlob = filepath.Glob
 var removeEasyJSON = removeEasyJSONFiles
 var generateEasyJSONDir = generateEasyJSONForDir
 var walkProject = filepath.Walk
@@ -106,7 +107,7 @@ func findProjectRoot() string {
 }
 
 func removeEasyJSONFiles(dir string) {
-	files, err := filepath.Glob(filepath.Join(dir, "*_easyjson.go"))
+	files, err := globEasyJSONGlob(filepath.Join(dir, "*_easyjson.go"))
 	if err != nil {
 		return
 	}

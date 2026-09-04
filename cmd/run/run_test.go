@@ -941,6 +941,73 @@ func TestFindProjectRoot_WithNestedDir(t *testing.T) {
 	root = findProjectRoot()
 	assert.Equal(t, nestedDir, root, "Should find root with go.mod in current directory")
 }
+func TestFindProjectRoot_GetwdFail(t *testing.T) {
+	originalGetwd := getwdProjectRoot
+	defer func() {
+		getwdProjectRoot = originalGetwd
+	}()
+
+	getwdProjectRoot = func() (string, error) {
+		return "", errors.New("mock getwd error")
+	}
+
+	root := findProjectRoot()
+
+	assert.Empty(t, root)
+}
+func TestFindProjectRoot_NoGoMod(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGetwd := getwdProjectRoot
+	defer func() {
+		getwdProjectRoot = originalGetwd
+	}()
+
+	getwdProjectRoot = func() (string, error) {
+		return tmpDir, nil
+	}
+
+	root := findProjectRoot()
+
+	assert.Empty(t, root)
+}
+func TestFindProjectRoot_Success(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	originalGetwd := getwdProjectRoot
+	defer func() {
+		getwdProjectRoot = originalGetwd
+	}()
+
+	getwdProjectRoot = func() (string, error) {
+		return tmpDir, nil
+	}
+
+	err := os.WriteFile(
+		filepath.Join(tmpDir, "go.mod"),
+		[]byte("module test"),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	root := findProjectRoot()
+
+	assert.Equal(t, tmpDir, root)
+}
+func TestRemoveEasyJSONFiles_GlobFail(t *testing.T) {
+	originalGlob := globEasyJSONGlob
+	defer func() {
+		globEasyJSONGlob = originalGlob
+	}()
+
+	globEasyJSONGlob = func(pattern string) ([]string, error) {
+		return nil, errors.New("mock glob error")
+	}
+
+	assert.NotPanics(t, func() {
+		removeEasyJSONFiles(t.TempDir())
+	})
+}
 
 func TestCreateContent(t *testing.T) {
 	content := utils.CreateContent()
@@ -951,6 +1018,41 @@ func TestCreateContent(t *testing.T) {
 func TestRunCmd(t *testing.T) {
 	runCmd("go", "version")
 	runCmd("nonexistent", "arg")
+}
+
+func TestRemoveEasyJSONFiles_Success(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	easyJSONFile := filepath.Join(
+		tmpDir,
+		"user_easyjson.go",
+	)
+
+	normalFile := filepath.Join(
+		tmpDir,
+		"user.go",
+	)
+
+	assert.NoError(t, os.WriteFile(
+		easyJSONFile,
+		[]byte("package dto"),
+		0644,
+	))
+
+	assert.NoError(t, os.WriteFile(
+		normalFile,
+		[]byte("package dto"),
+		0644,
+	))
+
+	removeEasyJSONFiles(tmpDir)
+
+	_, err := os.Stat(easyJSONFile)
+	assert.True(t, os.IsNotExist(err))
+
+	// File bình thường không bị xóa
+	_, err = os.Stat(normalFile)
+	assert.NoError(t, err)
 }
 
 func TestRemoveEasyJSONFiles(t *testing.T) {
