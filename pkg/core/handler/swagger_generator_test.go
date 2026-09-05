@@ -2,8 +2,10 @@ package handle
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -258,4 +260,98 @@ func TestSwaggerGenerator_RateLimitMiddlewareNil(t *testing.T) {
 	assert.NotPanics(t, func() {
 		builder.Build()
 	})
+}
+func TestSwaggerGenerator_RateLimit_GeneratorNil(t *testing.T) {
+	var gen *SwaggerGenerator
+
+	b := &RouteBuilder{
+		gen: gen,
+	}
+
+	got := b.RateLimit(limiter.Rate{
+		Period: time.Minute,
+		Limit:  10,
+	})
+
+	assert.Same(t, b, got)
+	assert.Nil(t, b.rateLimit)
+}
+func TestSwaggerGenerator_SetRedisClient_Nil(t *testing.T) {
+	gen := NewSwaggerGenerator(
+		"test",
+		"1.0",
+		"localhost",
+		"/api",
+	)
+
+	gen.SetRedisClient(nil)
+
+	require.NotNil(t, gen.storeFactory)
+
+	store, err := gen.storeFactory()
+
+	assert.Error(t, err)
+	assert.Nil(t, store)
+	assert.Equal(t, "redis client not configured", err.Error())
+}
+func TestSwaggerGenerator_GenerateJSON_WithSchemas(t *testing.T) {
+	gen := NewSwaggerGenerator("Test API", "1.0", "localhost", "/api")
+
+	type User struct {
+		ID int `json:"id"`
+	}
+
+	gen.RegisterModel(User{})
+
+	data := gen.GenerateJSON()
+
+	var doc SwaggerDoc
+	require.NoError(t, json.Unmarshal([]byte(data), &doc))
+
+	assert.Contains(t, doc.Definitions, "User")
+}
+func TestSwaggerGenerator_GenerateJSON_EmptySchemas(t *testing.T) {
+	gen := NewSwaggerGenerator("Test API", "1.0", "localhost", "/api")
+
+	data := gen.GenerateJSON()
+
+	assert.NotEmpty(t, data)
+	assert.NotNil(t, gen.doc.Definitions)
+	assert.Empty(t, gen.doc.Definitions)
+}
+func TestSwaggerGenerator_Save_GetwdError(t *testing.T) {
+	original := getwd
+	t.Cleanup(func() { getwd = original })
+
+	getwd = func() (string, error) {
+		return "", errors.New("getwd failed")
+	}
+
+	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
+
+	err := gen.Save("swagger.json")
+
+	assert.EqualError(t, err, "getwd failed")
+}
+func TestSwaggerGenerator_Save_MkdirError(t *testing.T) {
+	originalGetwd := getwd
+	originalMkdirAll := mkdirAll
+	t.Cleanup(func() {
+		getwd = originalGetwd
+		mkdirAll = originalMkdirAll
+	})
+
+	getwd = func() (string, error) {
+		return "/tmp/test", nil
+	}
+
+	mkdirAll = func(string, os.FileMode) error {
+		return errors.New("mkdir failed")
+	}
+
+	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
+
+	err := gen.Save("swagger.json")
+
+	assert.EqualError(t, err, "mkdir failed")
 }
