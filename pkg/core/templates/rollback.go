@@ -16,6 +16,12 @@ import (
 	"golang.org/x/text/language"
 )
 
+var (
+	removeAll = os.RemoveAll
+	remove    = os.Remove
+	stat      = os.Stat
+)
+
 func RollbackDomain(project string, moduleName string, domainName string) error {
 	domainName = strings.TrimSpace(domainName)
 	domainName = strings.ReplaceAll(domainName, " ", "")
@@ -26,16 +32,16 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 	fmt.Printf("Rolling back domain '%s' ...\n", domainName)
 
 	domainDir := filepath.Join(project, "internal", domainName)
-	if err := os.RemoveAll(domainDir); err != nil {
+	if err := removeAll(domainDir); err != nil {
 		return fmt.Errorf("failed to remove domain directory: %v", err)
 	}
 	fmt.Printf("Removed directory: %s\n", domainDir)
 
 	sharedFile := filepath.Join(project, "internal", "shared", "domain", domainName+".go")
-	if err := os.Remove(sharedFile); err != nil && !os.IsNotExist(err) {
+	if err := remove(sharedFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove shared domain file: %v", err)
 	}
-	if _, err := os.Stat(sharedFile); err == nil {
+	if _, err := stat(sharedFile); err == nil {
 		fmt.Printf("Removed file: %s\n", sharedFile)
 	}
 
