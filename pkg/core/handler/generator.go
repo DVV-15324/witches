@@ -12,6 +12,10 @@ import (
 	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
+var getwd = os.Getwd
+var mkdirAll = os.MkdirAll
+var writeFile = os.WriteFile
+
 type IRateLimitMiddleware interface {
 	CreateRateLimitMiddleware(rateLimit *limiter.Limiter) gin.HandlerFunc
 }
@@ -105,20 +109,20 @@ func (g *SwaggerGenerator) GenerateJSON() string {
 }
 
 func (g *SwaggerGenerator) Save(filename string) error {
-	pwd, err := os.Getwd()
+	pwd, err := getwd()
 	if err != nil {
 		return err
 	}
 
 	swaggerDir := filepath.Join(pwd, "swagger")
 
-	if err := os.MkdirAll(swaggerDir, os.ModePerm); err != nil {
+	if err := mkdirAll(swaggerDir, os.ModePerm); err != nil {
 		return err
 	}
 
 	filePath := filepath.Join(swaggerDir, filename)
 
-	return os.WriteFile(filePath, []byte(g.GenerateJSON()), 0644)
+	return writeFile(filePath, []byte(g.GenerateJSON()), 0644)
 }
 
 func (g *SwaggerGenerator) POST(path string) *RouteBuilder {
