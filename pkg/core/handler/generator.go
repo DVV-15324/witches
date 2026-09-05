@@ -12,6 +12,8 @@ import (
 	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
+var newRedisStore = sredis.NewStore
+
 var getwd = os.Getwd
 var mkdirAll = os.MkdirAll
 var writeFile = os.WriteFile
@@ -65,7 +67,7 @@ func (g *SwaggerGenerator) SetRedisClient(redisClient *redis.Client) *SwaggerGen
 		if redisClient == nil {
 			return nil, fmt.Errorf("redis client not configured")
 		}
-		return sredis.NewStore(redisClient)
+		return newRedisStore(redisClient)
 	}
 	return g
 }
