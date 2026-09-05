@@ -2,6 +2,7 @@ package utils
 
 import (
 	"embed"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -214,58 +215,80 @@ func TestRenderTemplate_InvalidTemplate(t *testing.T) {
 	assert.Error(t, err)
 }
 func TestRenderTemplate_CreateFileError(t *testing.T) {
-	//Skip trên CI vì permission test không ổn định
-	if os.Getenv("CI") == "true" {
-		t.Skip("Skipping permission test on CI")
+	original := createFile
+	defer func() {
+		createFile = original
+	}()
+
+	createFile = func(string) (*os.File, error) {
+		return nil, errors.New("create file failed")
 	}
 
-	// Dùng đường dẫn không hợp lệ thay vì permission
 	tmpDir := t.TempDir()
-
-	// Tạo tên file không hợp lệ (chứa ký tự đặc biệt)
-	invalidFile := filepath.Join(tmpDir, "..", "invalid", "output.go")
 	config := ServiceConfig{Name: "test"}
 
 	if os.Getenv("TEST_SUBPROCESS_CREATE_FILE_ERROR") == "1" {
-		RenderTemplate(testFS, tmpDir, invalidFile, "testdata/test.tmpl", config)
+		RenderTemplate(
+			testFS,
+			tmpDir,
+			"output.go",
+			"testdata/test.tmpl",
+			config,
+		)
 		return
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestRenderTemplate_CreateFileError")
-	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS_CREATE_FILE_ERROR=1")
+	cmd := exec.Command(
+		os.Args[0],
+		"-test.run=TestRenderTemplate_CreateFileError",
+	)
+
+	cmd.Env = append(
+		os.Environ(),
+		"TEST_SUBPROCESS_CREATE_FILE_ERROR=1",
+	)
+
 	err := cmd.Run()
 	assert.Error(t, err)
 }
 
 func TestRenderTemplate_MkdirError(t *testing.T) {
-	//Skip trên CI vì permission test không ổn định
-	if os.Getenv("CI") == "true" {
-		t.Skip("Skipping permission test on CI")
-	}
+	original := mkdirAll
+	defer func() {
+		mkdirAll = original
+	}()
 
-	if os.Getenv("GOOS") == "windows" {
-		t.Skip("Skipping permission test on Windows")
+	mkdirAll = func(string, os.FileMode) error {
+		return errors.New("mkdir failed")
 	}
 
 	tmpDir := t.TempDir()
-	readOnlyDir := filepath.Join(tmpDir, "readonly")
-	err := os.MkdirAll(readOnlyDir, 0444)
-	require.NoError(t, err)
-
-	destFile := filepath.Join(readOnlyDir, "subdir", "output.go")
 	config := ServiceConfig{Name: "test"}
 
 	if os.Getenv("TEST_SUBPROCESS_MKDIR_ERROR") == "1" {
-		RenderTemplate(testFS, tmpDir, destFile, "testdata/test.tmpl", config)
+		RenderTemplate(
+			testFS,
+			tmpDir,
+			filepath.Join("subdir", "output.go"),
+			"testdata/test.tmpl",
+			config,
+		)
 		return
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestRenderTemplate_MkdirError")
-	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS_MKDIR_ERROR=1")
-	err = cmd.Run()
+	cmd := exec.Command(
+		os.Args[0],
+		"-test.run=TestRenderTemplate_MkdirError",
+	)
+
+	cmd.Env = append(
+		os.Environ(),
+		"TEST_SUBPROCESS_MKDIR_ERROR=1",
+	)
+
+	err := cmd.Run()
 	assert.Error(t, err)
 }
-
 func TestRenderTemplate_NilConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -298,4 +321,18 @@ func BenchmarkRenderTemplate(b *testing.B) {
 	for b.Loop() {
 		RenderTemplate(testFS, tmpDir, "bench_output.go", "testdata/test.tmpl", config)
 	}
+}
+func TestServiceConfig_GetProjectName(t *testing.T) {
+	config := ServiceConfig{
+		ProjectName: "github.com/example/project",
+	}
+
+	assert.Equal(t, "github.com/example/project", config.GetProjectName())
+}
+func TestProjectConfig_GetModuleName(t *testing.T) {
+	config := ProjectConfig{
+		ModuleName: "github.com/example/project",
+	}
+
+	assert.Equal(t, "github.com/example/project", config.GetModuleName())
 }
