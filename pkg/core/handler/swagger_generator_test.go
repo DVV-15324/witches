@@ -3,17 +3,17 @@ package handle
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ulule/limiter/v3"
+	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
 )
 
 func setupTestGenerator() (*SwaggerGenerator, *gin.Engine) {
@@ -47,19 +47,6 @@ func TestSwaggerGenerator_SetEngine(t *testing.T) {
 
 	gen.SetEngine(engine)
 	assert.Equal(t, engine, gen.engine)
-}
-
-func TestSwaggerGenerator_SetRedisClient(t *testing.T) {
-	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
-	assert.Nil(t, gen.storeFactory)
-
-	// Test với nil client
-	gen.SetRedisClient(nil)
-
-	// Test với mock client (không cần redis thật)
-	mockClient := &redis.Client{}
-	gen.SetRedisClient(mockClient)
-	assert.NotNil(t, gen.storeFactory)
 }
 
 func TestSwaggerGenerator_Use(t *testing.T) {
@@ -276,23 +263,21 @@ func TestSwaggerGenerator_RateLimit_GeneratorNil(t *testing.T) {
 	assert.Same(t, b, got)
 	assert.Nil(t, b.rateLimit)
 }
-func TestSwaggerGenerator_SetRedisClient_Nil(t *testing.T) {
-	gen := NewSwaggerGenerator(
-		"test",
-		"1.0",
-		"localhost",
-		"/api",
-	)
+func TestSwaggerGenerator_SetRedisClient(t *testing.T) {
+	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
 
-	gen.SetRedisClient(nil)
+	client := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	t.Cleanup(func() {
+		_ = client.Close()
+	})
 
-	require.NotNil(t, gen.storeFactory)
+	got := gen.SetRedisClient(client)
 
-	store, err := gen.storeFactory()
-
-	assert.Error(t, err)
-	assert.Nil(t, store)
-	assert.Equal(t, "redis client not configured", err.Error())
+	assert.Same(t, gen, got)
+	assert.Same(t, client, gen.redisClient)
+	assert.NotNil(t, gen.storeFactory)
 }
 func TestSwaggerGenerator_GenerateJSON_WithSchemas(t *testing.T) {
 	gen := NewSwaggerGenerator("Test API", "1.0", "localhost", "/api")
@@ -354,4 +339,24 @@ func TestSwaggerGenerator_Save_MkdirError(t *testing.T) {
 	err := gen.Save("swagger.json")
 
 	assert.EqualError(t, err, "mkdir failed")
+}
+func TestSwaggerGenerator_SetRedisClient_StoreFactory(t *testing.T) {
+	original := newRedisStore
+	t.Cleanup(func() {
+		newRedisStore = original
+	})
+
+	newRedisStore = func(client sredis.Client) (limiter.Store, error) {
+		return nil, nil
+	}
+
+	gen := NewSwaggerGenerator("Test", "1.0", "localhost", "/api")
+
+	client := redis.NewClient(&redis.Options{})
+	gen.SetRedisClient(client)
+
+	store, err := gen.storeFactory()
+
+	assert.NoError(t, err)
+	assert.Nil(t, store)
 }
