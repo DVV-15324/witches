@@ -70,9 +70,6 @@ func (p *PaginationRequest) Normalize() {
 
 func (p *PaginationRequest) TotalPages(total int64) int {
 	limit := p.GetLimit()
-	if limit <= 0 {
-		limit = 10
-	}
 	return int((total + int64(limit) - 1) / int64(limit))
 }
 
