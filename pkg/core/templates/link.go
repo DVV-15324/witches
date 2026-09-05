@@ -11,6 +11,22 @@ import (
 	"golang.org/x/text/language"
 )
 
+var (
+	fetchTemplateFilesFromGitFunc = fetchTemplateFilesFromGit
+	getCurrentModuleFunc          = GetCurrentModule
+	validateModuleStructureFunc   = ValidateModuleStructure
+
+	mkdirAllFunc  = os.MkdirAll
+	writeFileFunc = os.WriteFile
+	statFunc      = os.Stat
+
+	addModuleFieldFunc       = AddModuleField
+	addModuleInitFunc        = AddModuleInit
+	addRouteRegistrationFunc = AddRouteRegistration
+	updateKeyObjectFunc      = updateKeyObject
+	fixAllImportsFunc        = FixAllImports
+)
+
 // Public API - hỗ trợ cấu trúc thư mục hiện tại
 func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error {
 	domainName = strings.TrimSpace(domainName)
@@ -24,13 +40,13 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 		ProjectName: moduleName,
 	}
 	sourceModule := GetModuleNameFromRepo(repoURL)
-	targetModule, err := GetCurrentModule(project)
+	targetModule, err := getCurrentModuleFunc(project)
 	if err != nil {
 		return fmt.Errorf("failed to get target module: %w", err)
 	}
 	fmt.Printf("  Source module: %s\n", sourceModule)
 	fmt.Printf("  Target module: %s\n", targetModule)
-	templateFiles, err := fetchTemplateFilesFromGit(repoURL, domainName)
+	templateFiles, err := fetchTemplateFilesFromGitFunc(repoURL, domainName)
 	if err != nil {
 		return fmt.Errorf("fetch templates: %w", err)
 	}
@@ -38,7 +54,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 		return fmt.Errorf("no files found in internal/%s/ or internal/shared/domain/", domainName)
 	}
 	fmt.Printf("Found %d template files\n", len(templateFiles))
-	if err := ValidateModuleStructure(templateFiles, config); err != nil {
+	if err := validateModuleStructureFunc(templateFiles, config); err != nil {
 		return fmt.Errorf("invalid module structure: %w", err)
 	}
 	fmt.Println("Validation passed")
@@ -46,7 +62,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	baseDir := filepath.Join(project, "internal", config.Name)
 	const prefix = "internal/"
 	sharedDomainDir := filepath.Join(project, "internal", "shared", "domain")
-	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
+	if err := mkdirAllFunc(sharedDomainDir, 0755); err != nil {
 		return fmt.Errorf("failed to create shared domain directory: %w", err)
 	}
 	for tmplPath, content := range templateFiles {
@@ -101,7 +117,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
 
-		if err := os.WriteFile(destPath, []byte(buf.String()), 0644); err != nil {
+		if err := writeFileFunc(destPath, []byte(buf.String()), 0644); err != nil {
 			return fmt.Errorf("failed to write file %s: %w", destPath, err)
 		}
 
@@ -128,7 +144,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 
 	for _, file := range filesToUpdate {
 
-		if _, err := os.Stat(file); os.IsNotExist(err) {
+		if _, err := statFunc(file); os.IsNotExist(err) {
 			fmt.Printf("File not found: %s\n", filepath.Base(file))
 			continue
 		}
@@ -136,13 +152,13 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 
 	fmt.Println("\nUpdating modules.go and routers.go...")
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
-	if _, err := os.Stat(modulesPath); err == nil {
-		if err := AddModuleField(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
+	if _, err := statFunc(modulesPath); err == nil {
+		if err := addModuleFieldFunc(modulesPath, config.Name, config.NameCap, moduleName); err != nil {
 			fmt.Printf("Warning: failed to add module field: %v\n", err)
 		} else {
 			fmt.Println("Updated modules.go: added import and field")
 		}
-		if err := AddModuleInit(modulesPath, config.Name, config.NameCap); err != nil {
+		if err := addModuleInitFunc(modulesPath, config.Name, config.NameCap); err != nil {
 			fmt.Printf("Warning: failed to add module init: %v\n", err)
 		} else {
 			fmt.Println("Updated modules.go: added initialization")
@@ -152,7 +168,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	}
 	routersPath := filepath.Join(project, "cmd", "server", "routers", "routers.go")
 	if _, err := os.Stat(routersPath); err == nil {
-		if err := AddRouteRegistration(routersPath, config.Name, config.NameCap); err != nil {
+		if err := addRouteRegistrationFunc(routersPath, config.Name, config.NameCap); err != nil {
 			fmt.Printf("Warning: failed to add route registration: %v\n", err)
 		} else {
 			fmt.Println("Updated routers.go: added route registration for", config.Name)
@@ -160,13 +176,13 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	} else {
 		fmt.Printf("routers.go not found at: %s\n", routersPath)
 	}
-	if err := updateKeyObject(project, config); err != nil {
+	if err := updateKeyObjectFunc(project, config); err != nil {
 		fmt.Printf("Warning: failed to update key_object.go: %v\n", err)
 	} else {
 		fmt.Println("Updated key_object.go")
 	}
 	fmt.Println("\nFixing imports in entire project...")
-	if err := FixAllImports(project, sourceModule, targetModule); err != nil {
+	if err := fixAllImportsFunc(project, sourceModule, targetModule); err != nil {
 		fmt.Printf("Warning: failed to fix all imports: %v\n", err)
 	} else {
 		fmt.Println("Fixed all imports in project")
