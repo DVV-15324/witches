@@ -143,3 +143,26 @@ func TestShutdownServer_ShutdownSuccess(t *testing.T) {
 
 	shutdownServer(&http.Server{})
 }
+func TestListenAndServe(t *testing.T) {
+	server := &http.Server{
+		Addr: "127.0.0.1:0",
+	}
+
+	done := make(chan error, 1)
+
+	go func() {
+		done <- listenAndServe(server)
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+
+	err := server.Close()
+	assert.ErrorIs(t, err, nil)
+
+	select {
+	case err := <-done:
+		assert.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(time.Second):
+		t.Fatal("listenAndServe did not stop")
+	}
+}
