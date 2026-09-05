@@ -36,14 +36,9 @@ func (h *Helper) GetInfo(c *gin.Context) (ipAddress, userAgent, locale, timezone
 		tag, _ := language.MatchStrings(h.matcher, acceptLang)
 		base, _ := tag.Base()
 		region, _ := tag.Region()
-		if region == (language.Region{}) {
-			switch base.String() {
-			case "vi":
-				region = language.MustParseRegion("VN")
-			default:
-				region = language.MustParseRegion("US")
-			}
-		}
+
+		region = getRegion(base, region)
+
 		locale = base.String() + "-" + region.String()
 	} else {
 		locale = "en-US"
@@ -53,4 +48,16 @@ func (h *Helper) GetInfo(c *gin.Context) (ipAddress, userAgent, locale, timezone
 		timezone = "UTC"
 	}
 	return
+}
+func getRegion(base language.Base, region language.Region) language.Region {
+	if region == (language.Region{}) {
+		switch base.String() {
+		case "vi":
+			return language.MustParseRegion("VN")
+		default:
+			return language.MustParseRegion("US")
+		}
+	}
+
+	return region
 }
