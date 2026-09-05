@@ -230,3 +230,10 @@ func TestAddModule_UnsupportedDriver(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unsupported database")
 }
+func TestModuleConfig_GetProjectNameModule(t *testing.T) {
+	config := ModuleConfig{
+		ProjectName: "github.com/example/project",
+	}
+
+	assert.Equal(t, "github.com/example/project", config.GetProjectName())
+}
