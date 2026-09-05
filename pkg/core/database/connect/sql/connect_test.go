@@ -2,6 +2,8 @@ package sql
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,6 +17,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"gorm.io/gorm"
 )
 
 func TestMain(m *testing.M) {
@@ -105,6 +108,57 @@ func TestNewDatabaseInstance_WithPostgres(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestNewDatabaseInstance_WithPostgreSQLAlias(t *testing.T) {
+	connStr, cleanup := setupPostgresContainer(t)
+	defer cleanup()
+
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("postgresql", connStr)
+
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, instance)
+
+	defer func() {
+		_ = instance.Close()
+	}()
+}
+func TestNewDatabaseInstance_MySQL(t *testing.T) {
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("mysql", "invalid-dsn")
+
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	assert.Error(t, err)
+	assert.Nil(t, instance)
+}
+func TestNewDatabaseInstance_SQLServer(t *testing.T) {
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("sqlserver", "invalid-dsn")
+
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	assert.Error(t, err)
+	assert.Nil(t, instance)
+}
+func TestNewDatabaseInstance_MSSQL(t *testing.T) {
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("mssql", "invalid-dsn")
+
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	assert.Error(t, err)
+	assert.Nil(t, instance)
+}
 func TestNewDatabaseInstance_Success(t *testing.T) {
 	connStr, cleanupContainer := setupPostgresContainer(t)
 	defer cleanupContainer()
@@ -187,6 +241,14 @@ func TestNewDatabaseInstance_WithLogger(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestDatabaseInstance_Close_NilInstance(t *testing.T) {
+	var instance *DatabaseInstance
+
+	err := instance.Close()
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "database instance is nil")
+}
 func TestDatabaseInstance_Close_Error(t *testing.T) {
 	instance := &DatabaseInstance{
 		DB: nil,
@@ -195,7 +257,6 @@ func TestDatabaseInstance_Close_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "database instance is nil")
 }
-
 func TestNewDatabaseInstance_DefaultConfig(t *testing.T) {
 	connStr, cleanupContainer := setupPostgresContainer(t)
 	defer cleanupContainer()
@@ -331,4 +392,76 @@ func TestNewDatabaseInstance_NilLogger(t *testing.T) {
 
 	err = instance.Close()
 	assert.NoError(t, err)
+}
+func TestNewDatabaseInstance_GetSQLDBFail(t *testing.T) {
+	connStr, cleanupContainer := setupPostgresContainer(t)
+	defer cleanupContainer()
+
+	originalGetSQLDB := getSQLDB
+	defer func() {
+		getSQLDB = originalGetSQLDB
+	}()
+
+	getSQLDB = func(db *gorm.DB) (*sql.DB, error) {
+		return nil, errors.New("mock get sql.DB error")
+	}
+
+	logg, cleanupLogger := setupTestLogger(t)
+	defer cleanupLogger()
+
+	cfg := makeTestConfig("postgres", connStr)
+
+	instance, err := NewDatabaseInstance(cfg, logg)
+
+	assert.Error(t, err)
+	assert.Nil(t, instance)
+	assert.EqualError(
+		t,
+		err,
+		"failed to get sql.DB: mock get sql.DB error",
+	)
+}
+func TestDatabaseInstance_Close_GetSQLDBFail(t *testing.T) {
+	originalGetSQLDB := getSQLDB
+	defer func() {
+		getSQLDB = originalGetSQLDB
+	}()
+
+	getSQLDB = func(db *gorm.DB) (*sql.DB, error) {
+		return nil, errors.New("mock get sql.DB error")
+	}
+
+	instance := &DatabaseInstance{
+		DB: &gorm.DB{},
+	}
+
+	err := instance.Close()
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "mock get sql.DB error")
+}
+func TestDatabaseInstance_Close_CloseSQLDBFail(t *testing.T) {
+	originalGetSQLDB := getSQLDB
+	originalCloseSQLDB := closeSQLDB
+
+	defer func() {
+		getSQLDB = originalGetSQLDB
+		closeSQLDB = originalCloseSQLDB
+	}()
+
+	getSQLDB = func(db *gorm.DB) (*sql.DB, error) {
+		return &sql.DB{}, nil
+	}
+
+	closeSQLDB = func(db *sql.DB) error {
+		return errors.New("mock close error")
+	}
+
+	instance := &DatabaseInstance{
+		DB: &gorm.DB{},
+	}
+
+	err := instance.Close()
+
+	assert.EqualError(t, err, "mock close error")
 }
