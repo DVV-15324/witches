@@ -42,47 +42,27 @@ func TestShutdownServer(t *testing.T) {
 }
 
 func TestShutdownServer_ListenAndServeError(t *testing.T) {
-	originalListen := listenAndServe
-	originalNotify := notifySignal
-	originalShutdown := shutdownServerFunc
+	original := listenAndServe
 
-	t.Cleanup(func() {
-		listenAndServe = originalListen
-		notifySignal = originalNotify
-		shutdownServerFunc = originalShutdown
-	})
-
-	called := make(chan struct{})
+	done := make(chan struct{})
 
 	listenAndServe = func(server *http.Server) error {
-		close(called)
+		defer close(done)
 		return assert.AnError
 	}
 
-	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
-		c <- os.Interrupt
+	t.Cleanup(func() {
+		<-done
+		listenAndServe = original
+	})
+
+	notifySignal = func(ch chan<- os.Signal, sig ...os.Signal) {
+		ch <- os.Interrupt
 	}
 
-	shutdownServerFunc = func(
-		server *http.Server,
-		ctx context.Context,
-	) error {
-		return nil
-	}
+	ShutdownServer(context.Background(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}), "127.0.0.1", "0")
 
-	ShutdownServer(
-		context.Background(),
-		http.NewServeMux(),
-		"127.0.0.1",
-		"0",
-	)
-
-	select {
-	case <-called:
-		// OK
-	case <-time.After(time.Second):
-		t.Fatal("listenAndServe was not called")
-	}
+	<-done
 }
 
 func TestShutdownServerFunc(t *testing.T) {
