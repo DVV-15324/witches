@@ -1,5 +1,3 @@
-//go:build integration
-
 package utils
 
 import (
@@ -8,28 +6,137 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitMetric(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test")
+func resetPrometheusRegistry() {
+	prometheus.DefaultRegisterer = prometheus.NewRegistry()
+	prometheus.DefaultGatherer = prometheus.DefaultRegisterer.(prometheus.Gatherer)
+}
+func TestInstanceMetric_PortWithoutColon(t *testing.T) {
+	resetPrometheusRegistry()
+
+	original := listenAndServe
+	t.Cleanup(func() {
+		listenAndServe = original
+	})
+
+	called := make(chan string, 1)
+
+	listenAndServe = func(
+		addr string,
+		handler http.Handler,
+	) error {
+		called <- addr
+		return nil
 	}
 
 	gin.SetMode(gin.TestMode)
-	engine := gin.Default()
-	engine.GET("/test", func(c *gin.Context) {
-		c.String(200, "ok")
+	engine := gin.New()
+
+	got := InstanceMetric("8083", "localhost", engine)
+
+	assert.Same(t, engine, got)
+
+	select {
+	case addr := <-called:
+		assert.Equal(t, ":8083", addr)
+	case <-time.After(time.Second):
+		t.Fatal("ListenAndServe was not called")
+	}
+}
+
+func TestInstanceMetric_PortWithColon(t *testing.T) {
+	resetPrometheusRegistry()
+
+	original := listenAndServe
+	t.Cleanup(func() {
+		listenAndServe = original
 	})
 
-	port := "8083"
-	host := "localhost"
-	InstanceMetric(port, host, engine)
+	called := make(chan string, 1)
 
-	time.Sleep(200 * time.Millisecond)
+	listenAndServe = func(
+		addr string,
+		handler http.Handler,
+	) error {
+		called <- addr
+		return nil
+	}
 
-	resp, err := http.Get("http://localhost:8083/metrics")
-	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
-	resp.Body.Close()
+	engine := gin.New()
+
+	got := InstanceMetric(":8083", "localhost", engine)
+
+	assert.Same(t, engine, got)
+
+	select {
+	case addr := <-called:
+		assert.Equal(t, ":8083", addr)
+	case <-time.After(time.Second):
+		t.Fatal("ListenAndServe was not called")
+	}
+}
+
+func TestInstanceMetric_PortWithHost(t *testing.T) {
+	resetPrometheusRegistry()
+
+	original := listenAndServe
+	t.Cleanup(func() {
+		listenAndServe = original
+	})
+
+	called := make(chan string, 1)
+
+	listenAndServe = func(
+		addr string,
+		handler http.Handler,
+	) error {
+		called <- addr
+		return nil
+	}
+
+	engine := gin.New()
+
+	got := InstanceMetric("localhost:8083", "127.0.0.1", engine)
+
+	assert.Same(t, engine, got)
+
+	select {
+	case addr := <-called:
+		assert.Equal(t, "localhost:8083", addr)
+	case <-time.After(time.Second):
+		t.Fatal("ListenAndServe was not called")
+	}
+}
+
+func TestInstanceMetric_ListenAndServeError(t *testing.T) {
+	resetPrometheusRegistry()
+
+	original := listenAndServe
+	t.Cleanup(func() {
+		listenAndServe = original
+	})
+
+	done := make(chan struct{})
+
+	listenAndServe = func(
+		addr string,
+		handler http.Handler,
+	) error {
+		defer close(done)
+		return assert.AnError
+	}
+
+	engine := gin.New()
+
+	InstanceMetric("8083", "localhost", engine)
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("ListenAndServe was not called")
+	}
 }
