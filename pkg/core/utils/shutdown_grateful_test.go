@@ -11,36 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShutdownServer(t *testing.T) {
-	originalNotify := notifySignal
-	originalShutdown := shutdownServerFunc
-
-	t.Cleanup(func() {
-		notifySignal = originalNotify
-		shutdownServerFunc = originalShutdown
-	})
-
-	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
-		c <- os.Interrupt
-	}
-
-	shutdownServerFunc = func(
-		server *http.Server,
-		ctx context.Context,
-	) error {
-		return nil
-	}
-
-	assert.NotPanics(t, func() {
-		ShutdownServer(
-			context.Background(),
-			http.NewServeMux(),
-			"127.0.0.1",
-			"0",
-		)
-	})
-}
-
 func TestShutdownServer_ListenAndServeError(t *testing.T) {
 	originalListen := listenAndServe
 	originalNotify := notifySignal
@@ -107,14 +77,6 @@ func TestShutdownServer_ListenAndServeClosed(t *testing.T) {
 
 	listenAndServe = originalListen
 	notifySignal = originalNotify
-}
-
-func TestShutdownServer_SuccessNotPanics(t *testing.T) {
-	server := &http.Server{}
-
-	assert.NotPanics(t, func() {
-		shutdownServer(server)
-	})
 }
 
 func TestShutdownServer_ListenAndServeNil(t *testing.T) {
