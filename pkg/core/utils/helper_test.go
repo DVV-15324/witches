@@ -8,6 +8,7 @@ import (
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/text/language"
 )
 
 func TestNewHelper(t *testing.T) {
@@ -157,6 +158,76 @@ func TestHelper_GetInfo(t *testing.T) {
 			assert.Equal(t, tt.expectedUserAgent, userAgent, "UserAgent mismatch")
 			assert.Equal(t, tt.expectedLocale, locale, "Locale mismatch")
 			assert.Equal(t, tt.expectedTimezone, tz, "Timezone mismatch")
+		})
+	}
+}
+func TestHelper_GetInfo_RegionFallback(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name           string
+		acceptLanguage string
+		expectedLocale string
+	}{
+		{
+			name:           "Vietnamese fallback region",
+			acceptLanguage: "vi",
+			expectedLocale: "vi-VN",
+		},
+		{
+			name:           "Default fallback region",
+			acceptLanguage: "en",
+			expectedLocale: "en-US",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			helper := NewHelper(&utils.Config{
+				SupportedLanguages: []string{"vi", "en"},
+			})
+
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			c.Request = httptest.NewRequest("GET", "/", nil)
+			c.Request.Header.Set("Accept-Language", tt.acceptLanguage)
+
+			_, _, locale, _ := helper.GetInfo(c)
+
+			assert.Equal(t, tt.expectedLocale, locale)
+		})
+	}
+}
+func TestGetRegion(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     language.Base
+		region   language.Region
+		expected string
+	}{
+		{
+			name:     "Vietnamese without region",
+			base:     language.MustParseBase("vi"),
+			region:   language.Region{},
+			expected: "VN",
+		},
+		{
+			name:     "Other language without region",
+			base:     language.MustParseBase("en"),
+			region:   language.Region{},
+			expected: "US",
+		},
+		{
+			name:     "Existing region",
+			base:     language.MustParseBase("en"),
+			region:   language.MustParseRegion("GB"),
+			expected: "GB",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := getRegion(tt.base, tt.region)
+			assert.Equal(t, tt.expected, got.String())
 		})
 	}
 }
