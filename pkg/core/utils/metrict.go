@@ -13,7 +13,7 @@ import (
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 )
 
-var listenAndServe = http.ListenAndServe
+var listenAndServeMetrict = http.ListenAndServe
 
 func InstanceMetric(port string, host string, engine *gin.Engine) *gin.Engine {
 	if !strings.Contains(port, ":") && !strings.HasPrefix(port, ":") {
@@ -31,7 +31,7 @@ func InstanceMetric(port string, host string, engine *gin.Engine) *gin.Engine {
 	go func() {
 		log.Printf("Metrics server listening on http://%s", addr)
 
-		if err := listenAndServe(port, promhttp.Handler()); err != nil {
+		if err := listenAndServeMetrict(port, promhttp.Handler()); err != nil {
 			log.Printf("Metrics server error: %v", err)
 		}
 	}()
