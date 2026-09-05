@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -13,6 +14,14 @@ import (
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
+
+var getSQLDB = func(db *gorm.DB) (*sql.DB, error) {
+	return db.DB()
+}
+
+var closeSQLDB = func(db *sql.DB) error {
+	return db.Close()
+}
 
 type DatabaseInstance struct {
 	DB     *gorm.DB
@@ -52,7 +61,7 @@ func NewDatabaseInstance(
 		return nil, fmt.Errorf("failed to connect database: %v", err)
 	}
 
-	sqlDB, err := db.DB()
+	sqlDB, err := getSQLDB(db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sql.DB: %v", err)
 	}
@@ -94,11 +103,11 @@ func (d *DatabaseInstance) Close() error {
 	if d.DB == nil {
 		return fmt.Errorf("database instance is nil")
 	}
-	sqlDB, err := d.DB.DB()
+	sqlDB, err := getSQLDB(d.DB)
 	if err != nil {
 		return err
 	}
-	err = sqlDB.Close()
+	err = closeSQLDB(sqlDB)
 	if err != nil {
 		return err
 	}
