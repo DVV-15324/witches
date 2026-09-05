@@ -105,7 +105,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_utils.out \
             -timeout=60s \
-            ./pkg/core/utils
+            ./pkg/core/utils/...
 
       - name: Run easyjson tests
         run: |
@@ -114,7 +114,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_easyjson.out \
             -timeout=60s \
-            ./pkg/core/easyjson
+            ./pkg/core/easyjson/...
 
       - name: Run templates tests
         run: |
@@ -132,7 +132,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_cmd_run.out \
             -timeout=60s \
-            ./cmd/run
+            ./cmd/run/...
 
       - name: Run cmd database tests
         run: |
@@ -141,7 +141,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_cmd_database.out \
             -timeout=180s \
-            ./cmd/database
+            ./cmd/database/...
 
       - name: Run cmd migrate tests
         run: |
@@ -168,7 +168,7 @@ jobs:
             -covermode=atomic \
             -coverprofile=coverage_cmdutils.out \
             -timeout=60s \
-            ./cmd/utils
+            ./cmd/utils/...
 
       - name: Run integration tests
         run: |
