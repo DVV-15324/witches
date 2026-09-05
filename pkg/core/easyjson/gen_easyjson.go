@@ -138,7 +138,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		}
 
 		outputDirPath := filepath.Dir(outputPath)
-		if err := os.MkdirAll(outputDirPath, 0755); err != nil {
+		if err := mkdirAll(outputDirPath, 0755); err != nil {
 			fmt.Printf("  Warning: failed to create output dir: %v\n", err)
 			continue
 		}
