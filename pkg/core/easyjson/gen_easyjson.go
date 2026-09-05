@@ -11,6 +11,14 @@ import (
 	"strings"
 )
 
+var absPath = filepath.Abs
+var relPath = filepath.Rel
+var walkPath = filepath.Walk
+var mkdirAll = os.MkdirAll
+var readFile = os.ReadFile
+var writeFile = os.WriteFile
+var generateEasyJSONFunc = generateEasyJSON
+
 func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 	if input == "" {
 		return fmt.Errorf("input path is empty")
@@ -49,16 +57,16 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 	}
 
 	//  Tạo output directory cho file output
-	if err := os.MkdirAll(filepath.Dir(basePath), 0755); err != nil {
+	if err := mkdirAll(filepath.Dir(basePath), 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
-	absInput, err = filepath.Abs(input)
+	absInput, err = absPath(input)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
-	absOutput, err := filepath.Abs(basePath)
+	absOutput, err := absPath(basePath)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute output path: %v", err)
 	}
@@ -68,7 +76,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 	if isFile {
 		targetFiles = append(targetFiles, absInput)
 	} else {
-		err = filepath.Walk(absInput, func(path string, info os.FileInfo, err error) error {
+		err = walkPath(absInput, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return nil
 			}
@@ -122,7 +130,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 			//  Nếu input là file, output path là file output
 			outputPath = absOutput
 		} else {
-			relPath, err := filepath.Rel(absInput, path)
+			relPath, err := relPath(absInput, path)
 			if err != nil {
 				relPath = filepath.Base(path)
 			}
@@ -137,12 +145,12 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 
 		//  Chỉ copy file nếu outputPath khác input
 		if outputPath != path {
-			content, err := os.ReadFile(path)
+			content, err := readFile(path)
 			if err != nil {
 				fmt.Printf("  Warning: failed to read %s: %v\n", path, err)
 				continue
 			}
-			if err := os.WriteFile(outputPath, content, 0644); err != nil {
+			if err := writeFile(outputPath, content, 0644); err != nil {
 				fmt.Printf("  Warning: failed to write output file: %v\n", err)
 				continue
 			}
@@ -154,7 +162,7 @@ func GeneratorEasyJson(fset *token.FileSet, input string, output string) error {
 		tmpFile := strings.TrimSuffix(outputPath, ".go") + "_easyjson.go.tmp"
 		_ = os.Remove(tmpFile)
 
-		if err := generateEasyJSON(outputPath); err != nil {
+		if err := generateEasyJSONFunc(outputPath); err != nil {
 			fmt.Printf("  Warning: easyjson failed for %s: %v\n", path, err)
 			continue
 		}
