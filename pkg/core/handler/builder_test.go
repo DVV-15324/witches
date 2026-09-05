@@ -417,3 +417,57 @@ func TestSwaggerGenerator_Save_Error(t *testing.T) {
 	err := gen.Save("/invalid/path/swagger.json")
 	assert.Error(t, err)
 }
+func TestRouteBuilder_RateLimit_GeneratorNil(t *testing.T) {
+	b := &RouteBuilder{}
+
+	got := b.RateLimit(limiter.Rate{
+		Period: 1 * time.Minute,
+		Limit:  10,
+	})
+
+	assert.Same(t, b, got)
+}
+func TestRouteBuilder_RateLimit_StoreFactoryNil(t *testing.T) {
+	b := &RouteBuilder{
+		gen: &SwaggerGenerator{},
+	}
+
+	got := b.RateLimit(limiter.Rate{
+		Period: 1 * time.Minute,
+		Limit:  10,
+	})
+
+	assert.Same(t, b, got)
+	assert.Nil(t, b.rateLimit)
+}
+func TestRouteBuilder_RateLimit_InvalidGenerator(t *testing.T) {
+	tests := []struct {
+		name string
+		gen  *SwaggerGenerator
+	}{
+		{
+			name: "generator nil",
+			gen:  nil,
+		},
+		{
+			name: "store factory nil",
+			gen:  &SwaggerGenerator{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &RouteBuilder{
+				gen: tt.gen,
+			}
+
+			got := b.RateLimit(limiter.Rate{
+				Period: 1 * time.Minute,
+				Limit:  10,
+			})
+
+			assert.Same(t, b, got)
+			assert.Nil(t, b.rateLimit)
+		})
+	}
+}
