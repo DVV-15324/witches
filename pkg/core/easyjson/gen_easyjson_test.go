@@ -371,36 +371,45 @@ func TestGeneratorEasyJson_WalkError(t *testing.T) {
 	assert.EqualError(t, err, "error walking: mock walk error")
 }
 func TestGeneratorEasyJson_RelPathError(t *testing.T) {
-	old := relPath
-	defer func() { relPath = old }()
+	oldRelPath := relPath
+	t.Cleanup(func() {
+		relPath = oldRelPath
+	})
 
 	relPath = func(basepath, targpath string) (string, error) {
-		return "", errors.New("mock rel error")
+		return "", errors.New("mock rel path error")
 	}
+
+	inputDir := t.TempDir()
+	outputDir := filepath.Join(t.TempDir(), "output")
+
+	source := `
+package test
+
+type Request struct{}
+
+func (r *Request) GenEasyJson() {}
+`
+
+	inputFile := filepath.Join(inputDir, "request.go")
+	require.NoError(t, os.WriteFile(inputFile, []byte(source), 0644))
 
 	oldGenerate := generateEasyJSONFunc
-	defer func() { generateEasyJSONFunc = oldGenerate }()
+	t.Cleanup(func() {
+		generateEasyJSONFunc = oldGenerate
+	})
 
 	generateEasyJSONFunc = func(filePath string) error {
-		return errors.New("stop generation")
+		return nil
 	}
 
-	tmpDir := t.TempDir()
+	err := GeneratorEasyJson(token.NewFileSet(), inputDir, outputDir)
 
-	input := filepath.Join(tmpDir, "input")
-	require.NoError(t, os.MkdirAll(input, 0755))
+	require.NoError(t, err)
 
-	goFile := filepath.Join(input, "test.go")
-	require.NoError(t, os.WriteFile(
-		goFile,
-		[]byte(`package test`),
-		0644,
-	))
-
-	output := filepath.Join(tmpDir, "output")
-
-	err := GeneratorEasyJson(nil, input, output)
-
+	// filepath.Base(path) được dùng khi Rel fail
+	expected := filepath.Join(outputDir, "request.go")
+	_, err = os.Stat(expected)
 	assert.NoError(t, err)
 }
 func TestGeneratorEasyJson_CreateBaseOutputDirError(t *testing.T) {
@@ -467,61 +476,117 @@ func TestGeneratorEasyJson_OutputDirError(t *testing.T) {
 
 	assert.NoError(t, err)
 }
-func TestGeneratorEasyJson_ReadFileError(t *testing.T) {
-	oldRead := readFile
-	defer func() { readFile = oldRead }()
 
-	readFile = func(filename string) ([]byte, error) {
-		return nil, errors.New("mock read error")
+func TestGeneratorEasyJson_OutputDirMkdirError(t *testing.T) {
+	oldMkdirAll := mkdirAll
+	t.Cleanup(func() {
+		mkdirAll = oldMkdirAll
+	})
+
+	callCount := 0
+
+	mkdirAll = func(path string, perm os.FileMode) error {
+		callCount++
+
+		// Cho mkdirAll đầu tiên tạo basePath thành công,
+		// lần sau mới fail ở outputDirPath.
+		if callCount == 1 {
+			return os.MkdirAll(path, perm)
+		}
+
+		return errors.New("mock mkdir error")
 	}
 
-	tmpDir := t.TempDir()
+	inputDir := t.TempDir()
+	outputDir := filepath.Join(t.TempDir(), "output")
 
-	input := filepath.Join(tmpDir, "input")
-	require.NoError(t, os.MkdirAll(input, 0755))
+	source := `
+package test
 
-	goFile := filepath.Join(input, "test.go")
-	require.NoError(t, os.WriteFile(
-		goFile,
-		[]byte(`package test`),
-		0644,
-	))
+type Request struct{}
 
-	output := filepath.Join(tmpDir, "output")
-	require.NoError(t, os.MkdirAll(output, 0755))
+func (r *Request) GenEasyJson() {}
+`
 
-	err := GeneratorEasyJson(nil, input, output)
+	require.NoError(t,
+		os.WriteFile(
+			filepath.Join(inputDir, "request.go"),
+			[]byte(source),
+			0644,
+		),
+	)
 
-	assert.NoError(t, err)
+	err := GeneratorEasyJson(token.NewFileSet(), inputDir, outputDir)
+
+	require.NoError(t, err)
+}
+func TestGeneratorEasyJson_ReadFileError(t *testing.T) {
+	oldReadFile := readFile
+	t.Cleanup(func() {
+		readFile = oldReadFile
+	})
+
+	readFile = func(filename string) ([]byte, error) {
+		return nil, errors.New("mock read file error")
+	}
+
+	inputDir := t.TempDir()
+	outputDir := filepath.Join(t.TempDir(), "output")
+
+	source := `
+package test
+
+type Request struct{}
+
+func (r *Request) GenEasyJson() {}
+`
+
+	require.NoError(t,
+		os.WriteFile(
+			filepath.Join(inputDir, "request.go"),
+			[]byte(source),
+			0644,
+		),
+	)
+
+	err := GeneratorEasyJson(token.NewFileSet(), inputDir, outputDir)
+
+	require.NoError(t, err)
 }
 func TestGeneratorEasyJson_WriteFileError(t *testing.T) {
-	oldWrite := writeFile
-	defer func() { writeFile = oldWrite }()
+	oldWriteFile := writeFile
+	t.Cleanup(func() {
+		writeFile = oldWriteFile
+	})
 
 	writeFile = func(
 		filename string,
 		data []byte,
 		perm os.FileMode,
 	) error {
-		return errors.New("mock write error")
+		return errors.New("mock write file error")
 	}
 
-	tmpDir := t.TempDir()
+	inputDir := t.TempDir()
+	outputDir := filepath.Join(t.TempDir(), "output")
 
-	input := filepath.Join(tmpDir, "input")
-	require.NoError(t, os.MkdirAll(input, 0755))
+	source := `
+package test
 
-	goFile := filepath.Join(input, "test.go")
-	require.NoError(t, os.WriteFile(
-		goFile,
-		[]byte(`package test`),
-		0644,
-	))
+type Request struct{}
 
-	output := filepath.Join(tmpDir, "output")
-	require.NoError(t, os.MkdirAll(output, 0755))
+func (r *Request) GenEasyJson() {}
+`
 
-	err := GeneratorEasyJson(nil, input, output)
+	require.NoError(t,
+		os.WriteFile(
+			filepath.Join(inputDir, "request.go"),
+			[]byte(source),
+			0644,
+		),
+	)
 
-	assert.NoError(t, err)
+	err := GeneratorEasyJson(token.NewFileSet(), inputDir, outputDir)
+
+	require.NoError(t, err)
 }
