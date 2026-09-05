@@ -2,65 +2,102 @@ package utils
 
 import (
 	"context"
-	"github.com/DVV-15324/witches/cmd/utils"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	wcmd_utils "github.com/DVV-15324/witches/cmd/utils"
+	"github.com/stretchr/testify/assert"
 )
 
-func getTestConfigContext() *utils.Config {
-	return &utils.Config{
-		RequestKey: "request-context",
-	}
+func TestNewRequestContext(t *testing.T) {
+	reqCtx := NewRequestContext("user-123", "tid-456")
+
+	assert.Equal(t, "user-123", reqCtx.Sub)
+	assert.Equal(t, "tid-456", reqCtx.Tid)
 }
 
-func TestSaveAndGetRequestContext(t *testing.T) {
-	cfg := getTestConfigContext()
-	ctx := context.Background()
-	reqCtx := NewRequestContext("sub-123", "tid-456")
-	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+func TestNewRequestContextFull(t *testing.T) {
+	reqCtx := NewRequestContextFull("user-123", "tid-456")
 
-	retrieved := GetRequestContext(ctx, cfg)
-	assert.Equal(t, reqCtx.Sub, retrieved.Sub)
-	assert.Equal(t, reqCtx.Tid, retrieved.Tid)
+	assert.Equal(t, "user-123", reqCtx.Sub)
+	assert.Equal(t, "tid-456", reqCtx.Tid)
+}
+
+func TestSaveRequestContext(t *testing.T) {
+	cfg := &wcmd_utils.Config{
+		RequestKey: "request-context",
+	}
+
+	reqCtx := NewRequestContext("user-123", "tid-456")
+
+	ctx := SaveRequestContext(
+		context.Background(),
+		reqCtx,
+		cfg,
+	)
+
+	got := GetRequestContext(ctx, cfg)
+
+	assert.Equal(t, reqCtx, got)
+}
+
+func TestGetRequestContext(t *testing.T) {
+	cfg := &wcmd_utils.Config{
+		RequestKey: "request-context",
+	}
+
+	t.Run("nil value", func(t *testing.T) {
+		ctx := context.Background()
+
+		got := GetRequestContext(ctx, cfg)
+
+		assert.Equal(t, &RequestContext{}, got)
+	})
+
+	t.Run("invalid type", func(t *testing.T) {
+		ctx := context.WithValue(
+			context.Background(),
+			cfg.RequestKey,
+			"invalid-request-context",
+		)
+
+		got := GetRequestContext(ctx, cfg)
+
+		assert.Equal(t, &RequestContext{}, got)
+	})
+
+	t.Run("valid request context", func(t *testing.T) {
+		reqCtx := NewRequestContext("user-123", "tid-456")
+
+		ctx := context.WithValue(
+			context.Background(),
+			cfg.RequestKey,
+			reqCtx,
+		)
+
+		got := GetRequestContext(ctx, cfg)
+
+		assert.Equal(t, reqCtx, got)
+	})
 }
 
 func TestGetSub(t *testing.T) {
-	cfg := getTestConfigContext()
-	ctx := context.Background()
-	reqCtx := NewRequestContext("sub-123", "tid-456")
-	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+	cfg := &wcmd_utils.Config{
+		RequestKey: "request-context",
+	}
 
-	assert.Equal(t, "sub-123", GetSub(ctx, cfg))
+	reqCtx := NewRequestContext("user-123", "tid-456")
+	ctx := SaveRequestContext(context.Background(), reqCtx, cfg)
 
-	emptyCtx := context.Background()
-	assert.Empty(t, GetSub(emptyCtx, cfg))
+	assert.Equal(t, "user-123", GetSub(ctx, cfg))
 }
 
 func TestGetTid(t *testing.T) {
-	cfg := getTestConfigContext()
-	ctx := context.Background()
-	reqCtx := NewRequestContext("sub-123", "tid-456")
-	ctx = SaveRequestContext(ctx, reqCtx, cfg)
+	cfg := &wcmd_utils.Config{
+		RequestKey: "request-context",
+	}
+
+	reqCtx := NewRequestContext("user-123", "tid-456")
+	ctx := SaveRequestContext(context.Background(), reqCtx, cfg)
 
 	assert.Equal(t, "tid-456", GetTid(ctx, cfg))
-
-	emptyCtx := context.Background()
-	assert.Empty(t, GetTid(emptyCtx, cfg))
-}
-
-func TestGetRequestContext_WithInvalidType(t *testing.T) {
-	cfg := getTestConfigContext()
-	ctx := context.WithValue(context.Background(), cfg.RequestKey, "invalid-value")
-	retrieved := GetRequestContext(ctx, cfg)
-	assert.NotNil(t, retrieved)
-	assert.Empty(t, retrieved.Sub)
-	assert.Empty(t, retrieved.Tid)
-}
-
-func TestGetRequestContext_WithNil(t *testing.T) {
-	cfg := getTestConfigContext()
-	ctx := context.Background()
-	retrieved := GetRequestContext(ctx, cfg)
-	assert.NotNil(t, retrieved)
-	assert.Empty(t, retrieved.Sub)
 }
