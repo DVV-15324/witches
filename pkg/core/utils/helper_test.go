@@ -16,6 +16,7 @@ func TestNewHelper(t *testing.T) {
 		cfg    *utils.Config
 		expect int
 	}{
+
 		{
 			name: "with valid locales",
 			cfg: &utils.Config{
@@ -121,6 +122,30 @@ func TestHelper_GetInfo(t *testing.T) {
 			expectedUserAgent: "test-ua3",
 			expectedLocale:    "en-US",
 			expectedTimezone:  "Asia/Ho_Chi_Minh",
+		},
+		{
+			name: "with Accept-Language - vi without region",
+			setupContext: func() *gin.Context {
+				c, _ := gin.CreateTestContext(httptest.NewRecorder())
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.Header.Set("Accept-Language", "vi")
+				return c
+			},
+			expectedUserAgent: "",
+			expectedLocale:    "vi-VN",
+			expectedTimezone:  "UTC",
+		},
+		{
+			name: "with Accept-Language - en without region",
+			setupContext: func() *gin.Context {
+				c, _ := gin.CreateTestContext(httptest.NewRecorder())
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.Header.Set("Accept-Language", "en")
+				return c
+			},
+			expectedUserAgent: "",
+			expectedLocale:    "en-US",
+			expectedTimezone:  "UTC",
 		},
 	}
 
