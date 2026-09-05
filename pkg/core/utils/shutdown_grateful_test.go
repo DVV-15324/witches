@@ -42,7 +42,8 @@ func TestShutdownServer(t *testing.T) {
 }
 
 func TestShutdownServer_ListenAndServeError(t *testing.T) {
-	original := listenAndServe
+	originalListen := listenAndServe
+	originalNotify := notifySignal
 
 	done := make(chan struct{})
 
@@ -51,18 +52,23 @@ func TestShutdownServer_ListenAndServeError(t *testing.T) {
 		return assert.AnError
 	}
 
-	t.Cleanup(func() {
-		<-done
-		listenAndServe = original
-	})
-
 	notifySignal = func(ch chan<- os.Signal, sig ...os.Signal) {
 		ch <- os.Interrupt
 	}
 
-	ShutdownServer(context.Background(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}), "127.0.0.1", "0")
+	ShutdownServer(
+		context.Background(),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+		"127.0.0.1",
+		"0",
+	)
 
+	// đợi goroutine đọc listenAndServe xong.
 	<-done
+
+	// Sau đó mới restore global.
+	listenAndServe = originalListen
+	notifySignal = originalNotify
 }
 
 func TestShutdownServerFunc(t *testing.T) {
@@ -78,35 +84,29 @@ func TestShutdownServerFunc(t *testing.T) {
 func TestShutdownServer_ListenAndServeClosed(t *testing.T) {
 	originalListen := listenAndServe
 	originalNotify := notifySignal
-	originalShutdown := shutdownServerFunc
 
-	t.Cleanup(func() {
-		listenAndServe = originalListen
-		notifySignal = originalNotify
-		shutdownServerFunc = originalShutdown
-	})
+	done := make(chan struct{})
 
 	listenAndServe = func(server *http.Server) error {
+		defer close(done)
 		return http.ErrServerClosed
 	}
 
-	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
-		c <- os.Interrupt
-	}
-
-	shutdownServerFunc = func(
-		server *http.Server,
-		ctx context.Context,
-	) error {
-		return nil
+	notifySignal = func(ch chan<- os.Signal, sig ...os.Signal) {
+		ch <- os.Interrupt
 	}
 
 	ShutdownServer(
 		context.Background(),
-		http.NewServeMux(),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
 		"127.0.0.1",
 		"0",
 	)
+
+	<-done
+
+	listenAndServe = originalListen
+	notifySignal = originalNotify
 }
 
 func TestShutdownServer_SuccessNotPanics(t *testing.T) {
@@ -120,35 +120,29 @@ func TestShutdownServer_SuccessNotPanics(t *testing.T) {
 func TestShutdownServer_ListenAndServeNil(t *testing.T) {
 	originalListen := listenAndServe
 	originalNotify := notifySignal
-	originalShutdown := shutdownServerFunc
 
-	t.Cleanup(func() {
-		listenAndServe = originalListen
-		notifySignal = originalNotify
-		shutdownServerFunc = originalShutdown
-	})
+	done := make(chan struct{})
 
 	listenAndServe = func(server *http.Server) error {
+		defer close(done)
 		return nil
 	}
 
-	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
-		c <- os.Interrupt
-	}
-
-	shutdownServerFunc = func(
-		server *http.Server,
-		ctx context.Context,
-	) error {
-		return nil
+	notifySignal = func(ch chan<- os.Signal, sig ...os.Signal) {
+		ch <- os.Interrupt
 	}
 
 	ShutdownServer(
 		context.Background(),
-		http.NewServeMux(),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
 		"127.0.0.1",
 		"0",
 	)
+
+	<-done
+
+	listenAndServe = originalListen
+	notifySignal = originalNotify
 }
 func TestShutdownServer_Success(t *testing.T) {
 	server := &http.Server{}
