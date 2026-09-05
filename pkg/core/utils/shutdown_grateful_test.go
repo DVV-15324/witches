@@ -2,9 +2,11 @@ package utils
 
 import (
 	"context"
+
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -38,6 +40,143 @@ func TestShutdownServer(t *testing.T) {
 		)
 	})
 }
+
+func TestShutdownServer_ListenAndServeError(t *testing.T) {
+	originalListen := listenAndServe
+	originalNotify := notifySignal
+	originalShutdown := shutdownServerFunc
+
+	t.Cleanup(func() {
+		listenAndServe = originalListen
+		notifySignal = originalNotify
+		shutdownServerFunc = originalShutdown
+	})
+
+	called := make(chan struct{})
+
+	listenAndServe = func(server *http.Server) error {
+		close(called)
+		return assert.AnError
+	}
+
+	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
+		c <- os.Interrupt
+	}
+
+	shutdownServerFunc = func(
+		server *http.Server,
+		ctx context.Context,
+	) error {
+		return nil
+	}
+
+	ShutdownServer(
+		context.Background(),
+		http.NewServeMux(),
+		"127.0.0.1",
+		"0",
+	)
+
+	select {
+	case <-called:
+		// OK
+	case <-time.After(time.Second):
+		t.Fatal("listenAndServe was not called")
+	}
+}
+
+func TestShutdownServerFunc(t *testing.T) {
+	server := &http.Server{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err := shutdownServerFunc(server, ctx)
+
+	assert.NoError(t, err)
+}
+func TestShutdownServer_ListenAndServeClosed(t *testing.T) {
+	originalListen := listenAndServe
+	originalNotify := notifySignal
+	originalShutdown := shutdownServerFunc
+
+	t.Cleanup(func() {
+		listenAndServe = originalListen
+		notifySignal = originalNotify
+		shutdownServerFunc = originalShutdown
+	})
+
+	listenAndServe = func(server *http.Server) error {
+		return http.ErrServerClosed
+	}
+
+	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
+		c <- os.Interrupt
+	}
+
+	shutdownServerFunc = func(
+		server *http.Server,
+		ctx context.Context,
+	) error {
+		return nil
+	}
+
+	ShutdownServer(
+		context.Background(),
+		http.NewServeMux(),
+		"127.0.0.1",
+		"0",
+	)
+}
+
+func TestShutdownServer_SuccessNotPanics(t *testing.T) {
+	server := &http.Server{}
+
+	assert.NotPanics(t, func() {
+		shutdownServer(server)
+	})
+}
+
+func TestShutdownServer_ListenAndServeNil(t *testing.T) {
+	originalListen := listenAndServe
+	originalNotify := notifySignal
+	originalShutdown := shutdownServerFunc
+
+	t.Cleanup(func() {
+		listenAndServe = originalListen
+		notifySignal = originalNotify
+		shutdownServerFunc = originalShutdown
+	})
+
+	listenAndServe = func(server *http.Server) error {
+		return nil
+	}
+
+	notifySignal = func(c chan<- os.Signal, sig ...os.Signal) {
+		c <- os.Interrupt
+	}
+
+	shutdownServerFunc = func(
+		server *http.Server,
+		ctx context.Context,
+	) error {
+		return nil
+	}
+
+	ShutdownServer(
+		context.Background(),
+		http.NewServeMux(),
+		"127.0.0.1",
+		"0",
+	)
+}
+func TestShutdownServer_Success(t *testing.T) {
+	server := &http.Server{}
+
+	assert.NotPanics(t, func() {
+		shutdownServer(server)
+	})
+}
 func TestShutdownServer_ShutdownError(t *testing.T) {
 	original := shutdownServerFunc
 	t.Cleanup(func() {
@@ -51,12 +190,9 @@ func TestShutdownServer_ShutdownError(t *testing.T) {
 		return assert.AnError
 	}
 
-	server := &http.Server{}
-
-	shutdownServer(server)
+	shutdownServer(&http.Server{})
 }
-
-func TestShutdownServer_Success(t *testing.T) {
+func TestShutdownServer_ShutdownSuccess(t *testing.T) {
 	original := shutdownServerFunc
 	t.Cleanup(func() {
 		shutdownServerFunc = original
@@ -69,7 +205,5 @@ func TestShutdownServer_Success(t *testing.T) {
 		return nil
 	}
 
-	server := &http.Server{}
-
-	shutdownServer(server)
+	shutdownServer(&http.Server{})
 }
