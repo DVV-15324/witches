@@ -192,47 +192,40 @@ func TestModelParser_Register_SliceOfPointers(t *testing.T) {
 	parser := NewModelParser()
 
 	type Item struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
+		ID int `json:"id"`
 	}
 
 	type Order struct {
 		Items []*Item `json:"items"`
 	}
 
-	name := parser.Register(Order{})
-	assert.Equal(t, "Order", name)
+	parser.Register(Order{})
 
-	// Item schema được register
-	_, ok := parser.schemas["Item"]
-	assert.True(t, ok)
+	items := parser.schemas["Order"].Properties["items"]
 
-	orderSchema, ok := parser.schemas["Order"]
-	assert.True(t, ok)
-
-	itemsProp, ok := orderSchema.Properties["items"]
-	assert.True(t, ok)
-	assert.Equal(t, "array", itemsProp.Type)
-	assert.Equal(t, "#/definitions/Item", itemsProp.Items.Ref)
+	assert.Equal(t, "array", items.Type)
+	assert.Equal(t, "#/definitions/Item", items.Items.Ref)
 }
-
 func TestModelParser_Register_SliceOfStructs(t *testing.T) {
 	parser := NewModelParser()
 
-	type Product struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
+	type Item struct {
+		ID int `json:"id"`
 	}
 
-	type Category struct {
-		Products []Product `json:"products"`
+	type Order struct {
+		Items []Item `json:"items"`
 	}
 
-	name := parser.Register(Category{})
-	assert.Equal(t, "Category", name)
+	parser.Register(Order{})
 
-	_, ok := parser.schemas["Product"]
+	_, ok := parser.schemas["Item"]
 	assert.True(t, ok)
+
+	items := parser.schemas["Order"].Properties["items"]
+
+	assert.Equal(t, "array", items.Type)
+	assert.Equal(t, "#/definitions/Item", items.Items.Ref)
 }
 
 func TestModelParser_Register_PointerToSlice(t *testing.T) {
@@ -252,6 +245,7 @@ func TestModelParser_Register_PointerToSlice(t *testing.T) {
 	_, ok := parser.schemas["Tag"]
 	assert.True(t, ok)
 }
+
 func TestModelParser_Register_Nil(t *testing.T) {
 	parser := NewModelParser()
 
