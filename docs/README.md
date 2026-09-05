@@ -37,11 +37,9 @@
 
 | Feature | Description |
 |---------|-------------|
-| **JWT Auth** | Token-based authentication with Refresh Token rotation |
 | **Swagger** | Auto-generated API documentation |
 | **Migration** | Version control for database schema |
-| **Hash Utilities** | Secure password hashing |
-| **Redis Support** | Optional caching and session storage |
+| **Redis Support** | Optional caching |
 | **Rate Limiting** | Protect your APIs from abuse |
 | **GORM Support** | ORM for database operations |
 | **EasyJSON** | Automate JSON serialization code generation |
@@ -102,14 +100,16 @@ witches run
 | Command | Description |
 |---------|-------------|
 | `witches create <name>` | Create a new project |
-| `witches init` | Generate template files and structure |
+| `witches init captain` | Generate template files and structure |
+| `witches init member` | Generate template files and structure |
 | `witches install` | Install dependencies |
 | `witches run` | Start the server |
 | `witches migrate up` | Apply all migrations |
 | `witches migrate down` | Rollback last migration |
 | `witches database generate` | Generate database URL |
-|`witches add <your_domain>` | Add a new domain |
-|`witches rm  <your_domain>`| Remove a domain |
+|`witches add <your_module>` | Add a new module |
+|`witches rm  <your_module>`| Remove a module |
+|`witches link <module> <repo-url>` | Link module from GitHub repo |
 
 ---
 

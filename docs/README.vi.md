@@ -36,11 +36,9 @@
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| **Xác thực JWT** | Xác thực dựa trên token với cơ chế Refresh Token |
 | **Swagger** | Tự động tạo tài liệu API |
 | **Migration** | Quản lý phiên bản cơ sở dữ liệu |
-| **Hash Utilities** | Mã hóa mật khẩu an toàn |
-| **Hỗ trợ Redis** | Tùy chọn caching và lưu trữ session |
+| **Hỗ trợ Redis** | Tùy chọn caching|
 | **Giới hạn tốc độ** | Bảo vệ API khỏi bị lạm dụng |
 | **Hỗ trợ GORM** | ORM cho các thao tác cơ sở dữ liệu |
 | **EasyJSON** | Tự động tạo mã JSON serialization |
@@ -101,14 +99,16 @@ witches run
 | Câu lệnh | Mô tả |
 |----------|-------|
 | `witches create <name>` | Tạo dự án mới |
-| `witches init` | Tạo file template và cấu trúc |
+| `witches init captain` | Tạo file template và cấu trúc Captain |
+| `witches init member` | Tạo file template và cấu trúc Member |
 | `witches install` | Cài đặt dependencies |
 | `witches run` | Khởi động server |
 | `witches migrate up` | Chạy tất cả migrations |
 | `witches migrate down` | Rollback migration cuối cùng |
 | `witches database generate` | Tạo URL kết nối database |
-|`witches add <domain>`	| Thêm 1 domain mới |
-|`witches rm <domain>`	| Xóa 1 domain |
+|`witches add <your_module>` | Thêm 1 module mới |
+|`witches rm  <your_module>`| Xóa 1 module |
+|`witches link <module> <repo-url>`| Link module từ GitHub repo |
 ---
 
 ## Giấy phép
