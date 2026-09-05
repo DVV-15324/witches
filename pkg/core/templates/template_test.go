@@ -98,3 +98,10 @@ func TestCreateTemplateGoArc_MSSQL_Golden(t *testing.T) {
 	_, err = os.Stat("migrate/migrations/1_create_table.up.sql")
 	assert.NoError(t, err)
 }
+func TestModuleConfig_GetProjectNameTemplate(t *testing.T) {
+	config := TemplateConfig{
+		ProjectName: "github.com/example/project",
+	}
+
+	assert.Equal(t, "github.com/example/project", config.GetProjectName())
+}
