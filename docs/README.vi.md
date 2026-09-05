@@ -99,8 +99,6 @@ witches run
 | Câu lệnh | Mô tả |
 |----------|-------|
 | `witches create <name>` | Tạo dự án mới |
-| `witches init captain` | Tạo file template và cấu trúc Captain |
-| `witches init member` | Tạo file template và cấu trúc Member |
 | `witches install` | Cài đặt dependencies |
 | `witches run` | Khởi động server |
 | `witches migrate up` | Chạy tất cả migrations |

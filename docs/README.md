@@ -100,8 +100,6 @@ witches run
 | Command | Description |
 |---------|-------------|
 | `witches create <name>` | Create a new project |
-| `witches init captain` | Generate template files and structure |
-| `witches init member` | Generate template files and structure |
 | `witches install` | Install dependencies |
 | `witches run` | Start the server |
 | `witches migrate up` | Apply all migrations |
