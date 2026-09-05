@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -81,4 +82,104 @@ func TestTxManager_WithinTransaction_WithError(t *testing.T) {
 		return assert.AnError
 	})
 	assert.Error(t, err)
+}
+func TestTxManager_WithinTransaction_BeginError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	mock.ExpectQuery(`select sqlite_version\(\)`).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"sqlite_version"}).
+				AddRow("3.45.0"),
+		)
+
+	gormDB, err := gorm.Open(
+		sqlite.Dialector{Conn: db},
+		&gorm.Config{},
+	)
+	require.NoError(t, err)
+
+	mock.ExpectBegin().WillReturnError(assert.AnError)
+
+	txManager := NewTxManager(gormDB)
+
+	err = txManager.WithinTransaction(
+		context.Background(),
+		func(ctx context.Context) error {
+			t.Fatal("callback should not be called")
+			return nil
+		},
+	)
+
+	assert.ErrorIs(t, err, assert.AnError)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+func TestTxManager_WithinTransaction_RollbackError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	mock.ExpectQuery(`select sqlite_version\(\)`).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"sqlite_version"}).
+				AddRow("3.45.0"),
+		)
+
+	gormDB, err := gorm.Open(
+		sqlite.Dialector{Conn: db},
+		&gorm.Config{},
+	)
+	require.NoError(t, err)
+
+	mock.ExpectBegin()
+	mock.ExpectRollback().WillReturnError(gorm.ErrInvalidDB)
+
+	txManager := NewTxManager(gormDB)
+
+	err = txManager.WithinTransaction(
+		context.Background(),
+		func(ctx context.Context) error {
+			return assert.AnError
+		},
+	)
+
+	var txErr *TransactionError
+	require.ErrorAs(t, err, &txErr)
+
+	assert.Equal(t, assert.AnError, txErr.OriginalError)
+	assert.Equal(t, gorm.ErrInvalidDB, txErr.RollbackError)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+func TestTxManager_WithinTransaction_CommitError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	mock.ExpectQuery(`select sqlite_version\(\)`).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"sqlite_version"}).
+				AddRow("3.45.0"),
+		)
+
+	gormDB, err := gorm.Open(
+		sqlite.Dialector{Conn: db},
+		&gorm.Config{},
+	)
+	require.NoError(t, err)
+
+	mock.ExpectBegin()
+	mock.ExpectCommit().WillReturnError(gorm.ErrInvalidDB)
+
+	txManager := NewTxManager(gormDB)
+
+	err = txManager.WithinTransaction(
+		context.Background(),
+		func(ctx context.Context) error {
+			return nil
+		},
+	)
+
+	assert.ErrorIs(t, err, gorm.ErrInvalidDB)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
