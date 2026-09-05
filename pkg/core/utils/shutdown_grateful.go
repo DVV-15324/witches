@@ -10,8 +10,16 @@ import (
 	"time"
 )
 
+var listenAndServe = func(server *http.Server) error {
+	return server.ListenAndServe()
+}
+
 var notifySignal = signal.Notify
-var shutdownServerFunc = func(server *http.Server, ctx context.Context) error {
+
+var shutdownServerFunc = func(
+	server *http.Server,
+	ctx context.Context,
+) error {
 	return server.Shutdown(ctx)
 }
 
@@ -26,7 +34,7 @@ func ShutdownServer(ctx context.Context, engine http.Handler, host string, port 
 	go func() {
 		log.Printf("Server running on http://%s\n", addr)
 
-		if err := server.ListenAndServe(); err != nil &&
+		if err := listenAndServe(server); err != nil &&
 			err != http.ErrServerClosed {
 			log.Printf("listen: %s\n", err)
 		}
@@ -48,7 +56,7 @@ func shutdownServer(server *http.Server) {
 	)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := shutdownServerFunc(server, ctx); err != nil {
 		log.Printf("Server forced to shutdown: %v", err)
 		return
 	}
