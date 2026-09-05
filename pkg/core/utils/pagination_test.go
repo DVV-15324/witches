@@ -483,3 +483,10 @@ func TestPaginationRequest_GormScope_Normalize(t *testing.T) {
 	assert.Equal(t, "created_at", p.Sort)
 	assert.Equal(t, "desc", p.Order)
 }
+func TestPaginationRequest_TotalPages_InvalidLimit(t *testing.T) {
+	p := &PaginationRequest{
+		Limit: 0,
+	}
+
+	assert.Equal(t, 3, p.TotalPages(21))
+}
