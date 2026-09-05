@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -260,4 +261,457 @@ var (ObjectUser int64 = 1)
 	for b.Loop() {
 		_ = AddGoDomainFromLink(tmpDir, moduleName, "book", "https://github.com/owner/repo")
 	}
+}
+func resetAddGoDomainSeams(t *testing.T) {
+	t.Helper()
+
+	fetchTemplateFilesFromGitFunc = fetchTemplateFilesFromGit
+	getCurrentModuleFunc = GetCurrentModule
+	validateModuleStructureFunc = ValidateModuleStructure
+
+	mkdirAllFunc = os.MkdirAll
+	writeFileFunc = os.WriteFile
+	statFunc = os.Stat
+
+	addModuleFieldFunc = AddModuleField
+	addModuleInitFunc = AddModuleInit
+	addRouteRegistrationFunc = AddRouteRegistration
+	updateKeyObjectFunc = updateKeyObject
+	fixAllImportsFunc = FixAllImports
+
+	t.Cleanup(func() {
+		fetchTemplateFilesFromGitFunc = fetchTemplateFilesFromGit
+		getCurrentModuleFunc = GetCurrentModule
+		validateModuleStructureFunc = ValidateModuleStructure
+
+		mkdirAllFunc = os.MkdirAll
+		writeFileFunc = os.WriteFile
+		statFunc = os.Stat
+
+		addModuleFieldFunc = AddModuleField
+		addModuleInitFunc = AddModuleInit
+		addRouteRegistrationFunc = AddRouteRegistration
+		updateKeyObjectFunc = updateKeyObject
+		fixAllImportsFunc = FixAllImports
+	})
+}
+func TestAddGoDomainFromLink_GetCurrentModuleError(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "", errors.New("cannot read go.mod")
+	}
+
+	err := AddGoDomainFromLink(
+		t.TempDir(),
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to get target module")
+}
+func TestAddGoDomainFromLink_NoTemplateFiles(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{}, nil
+	}
+
+	err := AddGoDomainFromLink(
+		t.TempDir(),
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no files found")
+}
+func TestAddGoDomainFromLink_InvalidModuleStructure(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return errors.New("invalid structure")
+	}
+
+	err := AddGoDomainFromLink(
+		t.TempDir(),
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid module structure")
+}
+func TestAddGoDomainFromLink_SharedDomainMkdirError(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	mkdirAllFunc = func(string, os.FileMode) error {
+		return errors.New("mkdir shared domain failed")
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create shared domain directory")
+}
+func TestAddGoDomainFromLink_SkipUnknownTemplatePath(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"README.md": "ignored",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.NoError(t, err)
+}
+func TestAddGoDomainFromLink_InvalidPathStructure(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book": "invalid",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid path structure")
+}
+func TestAddGoDomainFromLink_WrongDomain(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/user/model.go": "package model",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "template belongs to another domain")
+}
+func TestAddGoDomainFromLink_TemplateParseError(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go.tmpl": "{{ if }}",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "parse template")
+}
+func TestAddGoDomainFromLink_TemplateExecuteError(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go.tmpl": "{{.DoesNotExist}}",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "execute template")
+}
+func TestAddGoDomainFromLink_NonTemplateFile(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model\n",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(
+		filepath.Join(project, "internal", "book", "model", "model.go"),
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "package model\n", string(content))
+}
+func TestAddGoDomainFromLink_WriteFileError(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model\n",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	writeFileFunc = func(
+		string,
+		[]byte,
+		os.FileMode,
+	) error {
+		return errors.New("write failed")
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to write file")
+}
+func TestAddGoDomainFromLink_ModulesFileNotFound(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model\n",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	// tránh các dependency cuối function
+	updateKeyObjectFunc = func(string, ModuleConfig) error {
+		return nil
+	}
+
+	fixAllImportsFunc = func(string, string, string) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.NoError(t, err)
+}
+func TestAddGoDomainFromLink_RoutersFileNotFound(t *testing.T) {
+	resetAddGoDomainSeams(t)
+
+	project := t.TempDir()
+
+	getCurrentModuleFunc = func(string) (string, error) {
+		return "github.com/example/project", nil
+	}
+
+	fetchTemplateFilesFromGitFunc = func(string, string) (map[string]string, error) {
+		return map[string]string{
+			"internal/book/model/model.go": "package model\n",
+		}, nil
+	}
+
+	validateModuleStructureFunc = func(
+		map[string]string,
+		ModuleConfig,
+	) error {
+		return nil
+	}
+
+	updateKeyObjectFunc = func(string, ModuleConfig) error {
+		return nil
+	}
+
+	fixAllImportsFunc = func(string, string, string) error {
+		return nil
+	}
+
+	err := AddGoDomainFromLink(
+		project,
+		"github.com/example/project",
+		"book",
+		"https://github.com/example/repo",
+	)
+
+	require.NoError(t, err)
 }
