@@ -195,3 +195,46 @@ func TestWriteSuccessWithPaginationAndLog(t *testing.T) {
 	assert.Equal(t, 10, response.Pagination.Limit)
 	assert.Equal(t, int64(100), response.Pagination.Total)
 }
+
+func TestAppError_Error_Nil(t *testing.T) {
+	errResp := NewAppError(
+		500,
+		nil,
+		time.Now(),
+	)
+
+	assert.Equal(t, "unknown error", errResp.Error())
+}
+
+func TestAppError_Error(t *testing.T) {
+	tests := []struct {
+		name    string
+		appErr  *AppError
+		wantMsg string
+	}{
+		{
+			name: "with error",
+			appErr: NewAppError(
+				404,
+				errors.New("Not Found"),
+				time.Now(),
+			),
+			wantMsg: "Not Found",
+		},
+		{
+			name: "nil error",
+			appErr: NewAppError(
+				500,
+				nil,
+				time.Now(),
+			),
+			wantMsg: "unknown error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.wantMsg, tt.appErr.Error())
+		})
+	}
+}
