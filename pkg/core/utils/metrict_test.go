@@ -25,7 +25,7 @@ func TestInstanceMetric_PortWithoutColon(t *testing.T) {
 
 	called := make(chan string, 1)
 
-	listenAndServe = func(
+	listenAndServeMetrict = func(
 		addr string,
 		handler http.Handler,
 	) error {
@@ -44,21 +44,21 @@ func TestInstanceMetric_PortWithoutColon(t *testing.T) {
 	case addr := <-called:
 		assert.Equal(t, ":8083", addr)
 	case <-time.After(time.Second):
-		t.Fatal("ListenAndServe was not called")
+		t.Fatal("listenAndServeMetrict was not called")
 	}
 }
 
 func TestInstanceMetric_PortWithColon(t *testing.T) {
 	resetPrometheusRegistry()
 
-	original := listenAndServe
+	original := listenAndServeMetrict
 	t.Cleanup(func() {
-		listenAndServe = original
+		listenAndServeMetrict = original
 	})
 
 	called := make(chan string, 1)
 
-	listenAndServe = func(
+	listenAndServeMetrict = func(
 		addr string,
 		handler http.Handler,
 	) error {
@@ -83,14 +83,14 @@ func TestInstanceMetric_PortWithColon(t *testing.T) {
 func TestInstanceMetric_PortWithHost(t *testing.T) {
 	resetPrometheusRegistry()
 
-	original := listenAndServe
+	original := listenAndServeMetrict
 	t.Cleanup(func() {
-		listenAndServe = original
+		listenAndServeMetrict = original
 	})
 
 	called := make(chan string, 1)
 
-	listenAndServe = func(
+	listenAndServeMetrict = func(
 		addr string,
 		handler http.Handler,
 	) error {
@@ -108,21 +108,21 @@ func TestInstanceMetric_PortWithHost(t *testing.T) {
 	case addr := <-called:
 		assert.Equal(t, "localhost:8083", addr)
 	case <-time.After(time.Second):
-		t.Fatal("ListenAndServe was not called")
+		t.Fatal("listenAndServeMetrict was not called")
 	}
 }
 
 func TestInstanceMetric_ListenAndServeError(t *testing.T) {
 	resetPrometheusRegistry()
 
-	original := listenAndServe
+	original := listenAndServeMetrict
 	t.Cleanup(func() {
-		listenAndServe = original
+		listenAndServeMetrict = original
 	})
 
 	done := make(chan struct{})
 
-	listenAndServe = func(
+	listenAndServeMetrict = func(
 		addr string,
 		handler http.Handler,
 	) error {
@@ -137,6 +137,6 @@ func TestInstanceMetric_ListenAndServeError(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(time.Second):
-		t.Fatal("ListenAndServe was not called")
+		t.Fatal("listenAndServeMetrict was not called")
 	}
 }
