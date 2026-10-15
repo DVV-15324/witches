@@ -1,0 +1,7 @@
+package utils
+
+var (
+	ObjectUser    int64 = 1
+	ObjectAuth    int64 = 2
+	ObjectRefresh int64 = 3
+)
