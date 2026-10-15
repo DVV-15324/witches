@@ -60,7 +60,14 @@ jobs:
 
       - name: Install gocovmerge
         run: |
-          go install github.com/wadey/gocovmerge@latest
+          # Thử fork shabbyrobe trước
+          if go install go.shabbyrobe.org/gocovmerge/cmd/gocovmerge@latest 2>/dev/null; then
+            echo "Installed gocovmerge (shabbyrobe fork)"
+            "$(go env GOPATH)/bin/gocovmerge" -h 2>&1 | head -3 || true
+          else
+            echo "Failed to install gocovmerge — will use awk fallback in merge step"
+            echo "USE_AWK_FALLBACK=1" >> $GITHUB_ENV
+          fi
 
       - name: Run DB connect tests
         run: |
@@ -198,14 +205,30 @@ jobs:
 
           if [ -z "$files" ]; then
             echo "ERROR: No coverage files found."
-            echo "Listing files:"
             ls -la coverage*.out || echo "No coverage files"
             exit 1
           fi
 
           echo ""
           echo "Merging files: $files"
-          "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
+
+          if [ "${USE_AWK_FALLBACK:-0}" = "1" ] || [ ! -x "$(go env GOPATH)/bin/gocovmerge" ]; then
+            echo ""
+            echo "Using awk fallback (no gocovmerge available)"
+            awk '
+              BEGIN { mode = "" }
+              /^mode:/ { if (mode == "") mode = $0; next }
+              NF == 3 { key = $1; stmts[key] = $2; counts[key] += $3 }
+              END {
+                print mode
+                for (key in counts) print key " " stmts[key] " " counts[key]
+              }
+            ' $files | (head -1; tail -n +2 | sort) > coverage_all.out
+          else
+            echo ""
+            echo "Using gocovmerge"
+            "$(go env GOPATH)/bin/gocovmerge" $files > coverage_all.out
+          fi
 
           echo ""
           echo "Coverage file generated:"
