@@ -14,9 +14,12 @@ import (
 )
 
 var githubAPIBase = "https://api.github.com"
+var httpDo = func(req *http.Request) (*http.Response, error) {
+	return http.DefaultClient.Do(req)
+}
 
 func TestAddGoDomainFromLink_Golden(t *testing.T) {
-	// Tạo mock GitHub API server
+
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.URL.Path == "/repos/owner/repo":
