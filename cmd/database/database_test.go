@@ -2,14 +2,13 @@ package database
 
 import (
 	"errors"
+	utils "github.com/DVV-15324/witches/cmd/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	utils "github.com/DVV-15324/witches/cmd/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateDBURL(t *testing.T) {
@@ -259,31 +258,22 @@ APP_PORT=8080
 }
 
 func TestWitchesDBURL_ReadFileError(t *testing.T) {
-	// Chỉ chạy trên Unix (Linux, macOS) vì Windows không hỗ trợ tốt quyền đọc/ghi file
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping on Windows: file permission handling differs")
 	}
 
-	// Lưu thư mục làm việc hiện tại để khôi phục sau
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 	defer func() {
 		_ = os.Chdir(origDir)
 	}()
-
-	// Tạo thư mục tạm và chuyển vào đó
 	tmpDir := t.TempDir()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-
-	// Tạo file witches.env với nội dung bất kỳ
 	initialContent := `APP_NAME=test
 DB_URL=mysql://root:secret@tcp(localhost:3306)/mydb`
 	err = os.WriteFile("witches.env", []byte(initialContent), 0644)
 	require.NoError(t, err)
-
-	// Thu hồi toàn bộ quyền đọc, ghi, thực thi cho file
-	// (trên Unix, owner vẫn có thể xoá file, nhưng không đọc/ghi được)
 	err = os.Chmod("witches.env", 0000)
 	require.NoError(t, err)
 
@@ -295,12 +285,8 @@ DB_URL=mysql://root:secret@tcp(localhost:3306)/mydb`
 		DBName:     "testdb",
 		DBPort:     3306,
 	}
-
-	// Gọi hàm cần test – kỳ vọng trả về lỗi vì không đọc được file
 	err = WitchesDBURL("mysql", config)
 	assert.Error(t, err, "Expected error when witches.env is not readable")
-
-	// (Tuỳ chọn) Kiểm tra thông báo lỗi có chứa từ khoá liên quan
 	assert.Contains(t, err.Error(), "read witches.env", "Error message should indicate read failure")
 }
 
