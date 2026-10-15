@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRemoveGoDomain_Golden(t *testing.T) {
+func TestRemoveGoModule_Golden(t *testing.T) {
 	tmpDir := t.TempDir()
 	moduleName := "github.com/example/project"
 
@@ -291,7 +291,7 @@ const (
 		),
 	)
 
-	err := RollbackDomain(tmpDir, moduleName, "book")
+	err := RemoveModule(tmpDir, moduleName, "book")
 	require.NoError(t, err)
 
 	_, err = os.Stat(filepath.Join(tmpDir, "internal", "book"))
@@ -317,11 +317,11 @@ const (
 			relPath,
 		)
 
-		assertGolden(t, "remove_domain", string(actual), relPath)
+		assertGolden(t, "remove_module", string(actual), relPath)
 	}
 }
-func TestRollbackDomain_WarningBranches(t *testing.T) {
-	t.Run("rollbackKeyObject error", func(t *testing.T) {
+func TestRemoveModule_WarningBranches(t *testing.T) {
+	t.Run("removeKeyObject error", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		moduleName := "github.com/example/project"
 
@@ -380,14 +380,14 @@ func initModule(modules *Modules) {
 			0644,
 		))
 
-		err := RollbackDomain(tmpDir, moduleName, "book")
+		err := RemoveModule(tmpDir, moduleName, "book")
 
-		// RollbackDomain vẫn thành công vì rollbackKeyObject
+		// RemoveModule vẫn thành công vì removeKeyObject
 		// chỉ warning chứ không return error.
 		require.NoError(t, err)
 	})
 
-	t.Run("rollbackModuleField error", func(t *testing.T) {
+	t.Run("removeModuleField error", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		moduleName := "github.com/example/project"
 
@@ -427,11 +427,11 @@ func initModule(modules interface{}) {}
 			0644,
 		))
 
-		err := RollbackDomain(tmpDir, moduleName, "book")
+		err := RemoveModule(tmpDir, moduleName, "book")
 		require.NoError(t, err)
 	})
 
-	t.Run("rollbackModuleInit error", func(t *testing.T) {
+	t.Run("removeModuleInit error", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		moduleName := "github.com/example/project"
 
@@ -473,11 +473,11 @@ func initModule(modules interface{}) {}
 			0644,
 		))
 
-		err := RollbackDomain(tmpDir, moduleName, "book")
+		err := RemoveModule(tmpDir, moduleName, "book")
 		require.NoError(t, err)
 	})
 
-	t.Run("rollbackRouteRegistration error", func(t *testing.T) {
+	t.Run("removeRouteRegistration error", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		moduleName := "github.com/example/project"
 
@@ -513,11 +513,11 @@ type Modules struct{}
 			0644,
 		))
 
-		err := RollbackDomain(tmpDir, moduleName, "book")
+		err := RemoveModule(tmpDir, moduleName, "book")
 		require.NoError(t, err)
 	})
 }
-func TestRollbackDomain_RemoveAllError(t *testing.T) {
+func TestRemoveModule_RemoveAllError(t *testing.T) {
 	original := removeAll
 	defer func() {
 		removeAll = original
@@ -527,15 +527,15 @@ func TestRollbackDomain_RemoveAllError(t *testing.T) {
 		return errors.New("remove all failed")
 	}
 
-	err := RollbackDomain(t.TempDir(), "github.com/example/project", "book")
+	err := RemoveModule(t.TempDir(), "github.com/example/project", "book")
 
 	require.EqualError(
 		t,
 		err,
-		"failed to remove domain directory: remove all failed",
+		"failed to remove module directory: remove all failed",
 	)
 }
-func TestRollbackDomain_RemoveSharedFileError(t *testing.T) {
+func TestRemoveModule_RemoveSharedFileError(t *testing.T) {
 	originalRemove := remove
 	defer func() {
 		remove = originalRemove
@@ -547,7 +547,7 @@ func TestRollbackDomain_RemoveSharedFileError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	err := RollbackDomain(
+	err := RemoveModule(
 		tmpDir,
 		"github.com/example/project",
 		"book",
@@ -559,7 +559,7 @@ func TestRollbackDomain_RemoveSharedFileError(t *testing.T) {
 		"failed to remove shared domain file: remove failed",
 	)
 }
-func TestRollbackDomain_SharedFileNotExist(t *testing.T) {
+func TestRemoveModule_SharedFileNotExist(t *testing.T) {
 	originalRemove := remove
 	defer func() {
 		remove = originalRemove
@@ -571,7 +571,7 @@ func TestRollbackDomain_SharedFileNotExist(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	err := RollbackDomain(
+	err := RemoveModule(
 		tmpDir,
 		"github.com/example/project",
 		"book",
