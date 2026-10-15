@@ -14,14 +14,10 @@ var readFileWitchesDBURL = os.ReadFile
 func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 	currentPath := utils.GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
-
-	// Đọc file env hiện tại
 	content, err := readFileWitchesDBURL(envPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("read witches.env: %v", err)
 	}
-
-	// Tạo DB_URL mới
 	DB_URL, err := GenerateDBURL(DB_DRIVER,
 		config.DBUser, config.DBPassword,
 		config.DBHost, config.DBName, config.DBPort)
@@ -29,36 +25,26 @@ func WitchesDBURL(DB_DRIVER string, config *utils.Config) error {
 		return err
 	}
 	config.DBUrl = DB_URL
-
-	// Nếu file chưa tồn tại, tạo mới từ CreateContent()
 	if len(content) == 0 {
 		content = []byte(utils.CreateContent())
 	}
-
-	// Chỉ update DB_URL trong content (giữ nguyên comment và key khác)
 	lines := strings.Split(string(content), "\n")
 	found := false
 	for i, line := range lines {
-		// Chỉ update dòng KHÔNG comment và bắt đầu bằng DB_URL=
 		if strings.HasPrefix(line, "DB_URL=") {
 			lines[i] = "DB_URL=" + DB_URL
 			found = true
 			break
 		}
 	}
-
-	// Nếu chưa có DB_URL (không comment), thêm vào cuối
 	if !found {
 		lines = append(lines, "DB_URL="+DB_URL)
 	}
 
 	newContent := strings.Join(lines, "\n")
-
-	// Ghi lại file
 	if err := os.WriteFile(envPath, []byte(newContent), 0644); err != nil {
 		return fmt.Errorf("write witches.env: %v", err)
 	}
-
 	log.Printf("Info: successfully updated DB_URL in witches.env")
 	fmt.Printf("\nNext steps:\n")
 	fmt.Print("  witches init\n")
