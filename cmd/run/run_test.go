@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/DVV-15324/witches/cmd/utils"
@@ -508,7 +509,15 @@ func TestWitchesAdd_AddModuleFail(t *testing.T) {
 	)
 }
 
-func TestWitchesRollback_Success(t *testing.T) {
+func skipConfirmRemove(t *testing.T) {
+	t.Helper()
+	prev := skipConfirmWitchesRemove
+	skipConfirmWitchesRemove = true
+	t.Cleanup(func() { skipConfirmWitchesRemove = prev })
+}
+
+func TestWitchesRemove_Success(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
@@ -518,25 +527,27 @@ func TestWitchesRollback_Success(t *testing.T) {
 	os.MkdirAll("internal/book", 0755)
 	os.MkdirAll("cmd/server/routers", 0755)
 
-	err := WitchesRollback("book")
+	err := WitchesRemove("book")
 	assert.NoError(t, err)
 
 	_, err = os.Stat("internal/book")
 	assert.Error(t, err)
 }
 
-func TestWitchesRollback_NoGoMod(t *testing.T) {
+func TestWitchesRemove_NoGoMod(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
 	os.Chdir(tmpDir)
 
-	err := WitchesRollback("book")
+	err := WitchesRemove("book")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "go.mod not found")
 }
 
-func TestWitchesRollback_DomainNotExists(t *testing.T) {
+func TestWitchesRemove_DomainNotExists(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
@@ -544,11 +555,13 @@ func TestWitchesRollback_DomainNotExists(t *testing.T) {
 
 	os.WriteFile("go.mod", []byte("module test"), 0644)
 
-	err := WitchesRollback("book")
+	err := WitchesRemove("book")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
-func TestWitchesRollback_StatGoModFail(t *testing.T) {
+
+func TestWitchesRemove_StatGoModFail(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 
 	origWd, err := os.Getwd()
@@ -557,25 +570,21 @@ func TestWitchesRollback_StatGoModFail(t *testing.T) {
 
 	assert.NoError(t, os.Chdir(tmpDir))
 
-	originalStat := statWitchesRollback
-	defer func() {
-		statWitchesRollback = originalStat
-	}()
+	originalStat := statWitchesRemove
+	defer func() { statWitchesRemove = originalStat }()
 
-	statWitchesRollback = func(path string) (os.FileInfo, error) {
+	statWitchesRemove = func(path string) (os.FileInfo, error) {
 		return nil, errors.New("mock stat error")
 	}
 
-	err = WitchesRollback("book")
+	err = WitchesRemove("book")
 
 	assert.Error(t, err)
-	assert.EqualError(
-		t,
-		err,
-		"stat go.mod: mock stat error",
-	)
+	assert.EqualError(t, err, "stat go.mod: mock stat error")
 }
-func TestWitchesRollback_GetWorkingDirectoryFail(t *testing.T) {
+
+func TestWitchesRemove_GetWorkingDirectoryFail(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 
 	origWd, err := os.Getwd()
@@ -583,37 +592,24 @@ func TestWitchesRollback_GetWorkingDirectoryFail(t *testing.T) {
 	defer os.Chdir(origWd)
 
 	assert.NoError(t, os.Chdir(tmpDir))
+	assert.NoError(t, os.WriteFile("go.mod", []byte("module test"), 0644))
+	assert.NoError(t, os.MkdirAll(filepath.Join("internal", "book"), 0755))
 
-	assert.NoError(t, os.WriteFile(
-		"go.mod",
-		[]byte("module test"),
-		0644,
-	))
+	originalGetwd := getwdWitchesRemove
+	defer func() { getwdWitchesRemove = originalGetwd }()
 
-	assert.NoError(t, os.MkdirAll(
-		filepath.Join("internal", "book"),
-		0755,
-	))
-
-	originalGetwd := getwdWitchesRollback
-	defer func() {
-		getwdWitchesRollback = originalGetwd
-	}()
-
-	getwdWitchesRollback = func() (string, error) {
+	getwdWitchesRemove = func() (string, error) {
 		return "", errors.New("mock getwd error")
 	}
 
-	err = WitchesRollback("book")
+	err = WitchesRemove("book")
 
 	assert.Error(t, err)
-	assert.EqualError(
-		t,
-		err,
-		"get working directory: mock getwd error",
-	)
+	assert.EqualError(t, err, "get working directory: mock getwd error")
 }
-func TestWitchesRollback_RollbackDomainFail(t *testing.T) {
+
+func TestWitchesRemove_RollbackDomainFail(t *testing.T) {
+	skipConfirmRemove(t)
 	tmpDir := t.TempDir()
 
 	origWd, err := os.Getwd()
@@ -621,39 +617,59 @@ func TestWitchesRollback_RollbackDomainFail(t *testing.T) {
 	defer os.Chdir(origWd)
 
 	assert.NoError(t, os.Chdir(tmpDir))
+	assert.NoError(t, os.WriteFile("go.mod", []byte("module test"), 0644))
+	assert.NoError(t, os.MkdirAll(filepath.Join("internal", "book"), 0755))
 
-	assert.NoError(t, os.WriteFile(
-		"go.mod",
-		[]byte("module test"),
-		0644,
-	))
+	originalLink := linkWitchesRemove
+	defer func() { linkWitchesRemove = originalLink }()
 
-	assert.NoError(t, os.MkdirAll(
-		filepath.Join("internal", "book"),
-		0755,
-	))
-
-	originalLink := linkWitchesRollback
-	defer func() {
-		linkWitchesRollback = originalLink
-	}()
-
-	linkWitchesRollback = func(
-		projectPath string,
-		moduleName string,
-		domainName string,
-	) error {
+	linkWitchesRemove = func(projectPath, moduleName, domainName string) error {
 		return errors.New("mock rollback error")
 	}
 
-	err = WitchesRollback("book")
+	err = WitchesRemove("book")
 
 	assert.Error(t, err)
-	assert.EqualError(
-		t,
-		err,
-		"rollback domain: mock rollback error",
-	)
+	assert.EqualError(t, err, "remove module: mock rollback error")
+}
+
+func TestWitchesRemove_Cancelled(t *testing.T) {
+	// mock stdin trả về "n"
+	prevReader := stdinWitchesRemove
+	stdinWitchesRemove = strings.NewReader("n\n")
+	defer func() { stdinWitchesRemove = prevReader }()
+
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+	os.MkdirAll("internal/book", 0755)
+
+	err := WitchesRemove("book")
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "remove cancelled")
+}
+
+func TestWitchesRemove_Confirmed(t *testing.T) {
+	prevReader := stdinWitchesRemove
+	stdinWitchesRemove = strings.NewReader("yes\n")
+	defer func() { stdinWitchesRemove = prevReader }()
+
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+	os.MkdirAll("internal/book", 0755)
+	os.MkdirAll("cmd/server/routers", 0755)
+
+	err := WitchesRemove("book")
+
+	assert.NoError(t, err)
 }
 func TestWitchesLink_Success(t *testing.T) {
 	if testing.Short() {
@@ -1390,7 +1406,10 @@ var (ObjectDefault int64 = 0)`), 0644)
 	_, err = os.Stat("internal/user/module.go")
 	assert.NoError(t, err)
 }
-func TestWitchesRollback_FullStructure(t *testing.T) {
+func TestWitchesRemove_FullStructure(t *testing.T) {
+	prev := skipConfirmWitchesRemove
+	skipConfirmWitchesRemove = true
+	defer func() { skipConfirmWitchesRemove = prev }()
 	tmpDir := t.TempDir()
 	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
@@ -1415,12 +1434,27 @@ func SetupRoutes() error { return nil }`), 0644)
 	os.WriteFile("internal/shared/utils/key_object.go", []byte(`package utils
 var (ObjectDefault int64 = 0)`), 0644)
 
-	err := WitchesRollback("book")
+	err := WitchesRemove("book")
 	assert.NoError(t, err)
 
 	_, err = os.Stat("internal/book")
 	assert.Error(t, err)
 }
+
+type errorReader struct{}
+
+func (errorReader) Read(p []byte) (int, error) {
+	return 0, errors.New("mock read error")
+}
+
+func TestConfirmRemove_ReadError(t *testing.T) {
+	prevReader := stdinWitchesRemove
+	stdinWitchesRemove = errorReader{}
+	defer func() { stdinWitchesRemove = prevReader }()
+
+	assert.False(t, confirmRemove("book"))
+}
+
 func TestRemoveEasyJSONFiles_WithError(t *testing.T) {
 	tmpDir := t.TempDir()
 
