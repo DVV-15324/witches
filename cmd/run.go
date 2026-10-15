@@ -46,7 +46,7 @@ var removeCmd = &cobra.Command{
 	Use:  "rm",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		run.WitchesRollback(args[0])
+		run.WitchesRemove(args[0])
 	},
 }
 var linkCmd = &cobra.Command{
