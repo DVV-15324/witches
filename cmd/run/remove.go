@@ -1,19 +1,24 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
-var statWitchesRollback = os.Stat
-var getwdWitchesRollback = os.Getwd
-var linkWitchesRollback = templates.RollbackDomain
+var statWitchesRemove = os.Stat
+var getwdWitchesRemove = os.Getwd
+var linkWitchesRemove = templates.RemoveModule
+var stdinWitchesRemove io.Reader = os.Stdin
+var skipConfirmWitchesRemove = false
 
-func WitchesRollback(domainName string) error {
-	_, err := statWitchesRollback("go.mod")
+func WitchesRemove(moduleName string) error {
+	_, err := statWitchesRemove("go.mod")
 	if os.IsNotExist(err) {
 		return fmt.Errorf("go.mod not found")
 	}
@@ -21,19 +26,37 @@ func WitchesRollback(domainName string) error {
 		return fmt.Errorf("stat go.mod: %w", err)
 	}
 
-	domainPath := filepath.Join("internal", domainName)
-	if _, err := os.Stat(domainPath); os.IsNotExist(err) {
-		return fmt.Errorf("domain '%s' not found", domainName)
+	modulePath := filepath.Join("internal", moduleName)
+	if _, err := statWitchesRemove(modulePath); os.IsNotExist(err) {
+		return fmt.Errorf("module '%s' not found", moduleName)
 	}
 
-	projectPath, err := getwdWitchesRollback()
+	// Confirmation prompt (skippable in tests)
+	if !skipConfirmWitchesRemove && !confirmRemove(moduleName) {
+		return fmt.Errorf("remove cancelled")
+	}
+
+	projectPath, err := getwdWitchesRemove()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
 	}
 
-	moduleName := filepath.Base(projectPath)
-	if err := linkWitchesRollback(projectPath, moduleName, domainName); err != nil {
-		return fmt.Errorf("rollback domain: %w", err)
+	projectName := filepath.Base(projectPath)
+	if err := linkWitchesRemove(projectPath, projectName, moduleName); err != nil {
+		return fmt.Errorf("remove module: %w", err)
 	}
 	return nil
+}
+
+func confirmRemove(moduleName string) bool {
+	fmt.Printf("Are you sure you want to remove module '%s'? This cannot be undone. [y/N]: ", moduleName)
+
+	reader := bufio.NewReader(stdinWitchesRemove)
+	response, err := reader.ReadString('\n')
+	if err != nil && err != io.EOF {
+		return false
+	}
+
+	response = strings.ToLower(strings.TrimSpace(response))
+	return response == "y" || response == "yes"
 }
