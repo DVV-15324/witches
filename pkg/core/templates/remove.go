@@ -22,22 +22,22 @@ var (
 	stat      = os.Stat
 )
 
-func RollbackDomain(project string, moduleName string, domainName string) error {
-	domainName = strings.TrimSpace(domainName)
-	domainName = strings.ReplaceAll(domainName, " ", "")
-	domainName = strings.ToLower(domainName)
-	domainNameCap := cases.Title(language.English).String(domainName)
-	domainNameCap = strings.ReplaceAll(domainNameCap, " ", "")
+func RemoveModule(project string, projectName string, moduleName string) error {
+	moduleName = strings.TrimSpace(moduleName)
+	moduleName = strings.ReplaceAll(moduleName, " ", "")
+	moduleName = strings.ToLower(moduleName)
+	moduleNameCap := cases.Title(language.English).String(moduleName)
+	moduleNameCap = strings.ReplaceAll(moduleNameCap, " ", "")
 
-	fmt.Printf("Rolling back domain '%s' ...\n", domainName)
+	fmt.Printf("Removing module '%s' ...\n", moduleName)
 
-	domainDir := filepath.Join(project, "internal", domainName)
-	if err := removeAll(domainDir); err != nil {
-		return fmt.Errorf("failed to remove domain directory: %v", err)
+	moduleDir := filepath.Join(project, "internal", moduleName)
+	if err := removeAll(moduleDir); err != nil {
+		return fmt.Errorf("failed to remove module directory: %v", err)
 	}
-	fmt.Printf("Removed directory: %s\n", domainDir)
+	fmt.Printf("Removed directory: %s\n", moduleDir)
 
-	sharedFile := filepath.Join(project, "internal", "shared", "domain", domainName+".go")
+	sharedFile := filepath.Join(project, "internal", "shared", "domain", moduleName+".go")
 	if err := remove(sharedFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove shared domain file: %v", err)
 	}
@@ -46,37 +46,37 @@ func RollbackDomain(project string, moduleName string, domainName string) error 
 	}
 
 	keyFile := filepath.Join(project, "internal", "shared", "utils", "key_object.go")
-	if err := rollbackKeyObject(keyFile, domainNameCap); err != nil {
-		fmt.Printf("Warning: failed to rollback key_object.go: %v\n", err)
+	if err := removeKeyObject(keyFile, moduleNameCap); err != nil {
+		fmt.Printf("Warning: failed to remove key_object.go: %v\n", err)
 	} else {
-		fmt.Println("Rolled back key_object.go")
+		fmt.Println("Removed key_object.go")
 	}
 
 	modulesPath := filepath.Join(project, "cmd", "server", "routers", "modules.go")
-	if err := rollbackModuleField(modulesPath, domainName, domainNameCap, moduleName); err != nil {
-		fmt.Printf("Warning: failed to rollback modules.go (field): %v\n", err)
+	if err := removeModuleField(modulesPath, moduleName, moduleNameCap, projectName); err != nil {
+		fmt.Printf("Warning: failed to remove modules.go (field): %v\n", err)
 	} else {
-		fmt.Println("Rolled back modules.go: removed import and field")
+		fmt.Println("Removed modules.go: removed import and field")
 	}
 
-	if err := rollbackModuleInit(modulesPath, domainName, domainNameCap); err != nil {
-		fmt.Printf("Warning: failed to rollback modules.go (init): %v\n", err)
+	if err := removeModuleInit(modulesPath, moduleName, moduleNameCap); err != nil {
+		fmt.Printf("Warning: failed to remove modules.go (init): %v\n", err)
 	} else {
-		fmt.Println("Rolled back modules.go: removed initialization")
+		fmt.Println("Removed modules.go: removed initialization")
 	}
 
 	routersPath := filepath.Join(project, "cmd", "server", "routers", "routers.go")
-	if err := rollbackRouteRegistration(routersPath, domainName, domainNameCap); err != nil {
-		fmt.Printf("Warning: failed to rollback routers.go: %v\n", err)
+	if err := removeRouteRegistration(routersPath, moduleName, moduleNameCap); err != nil {
+		fmt.Printf("Warning: failed to remove routers.go: %v\n", err)
 	} else {
-		fmt.Println("Rolled back routers.go: removed route registration")
+		fmt.Println("Removed routers.go: removed route registration")
 	}
 
-	fmt.Printf("Domain '%s' rolled back successfully!\n", domainName)
+	fmt.Printf("Module '%s' removed successfully!\n", moduleName)
 	return nil
 }
 
-func rollbackKeyObject(filePath, domainCap string) error {
+func removeKeyObject(filePath, moduleCap string) error {
 	src, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func rollbackKeyObject(filePath, domainCap string) error {
 			if !ok || len(vs.Names) != 1 {
 				continue
 			}
-			if vs.Names[0].Name == "Object"+domainCap {
+			if vs.Names[0].Name == "Object"+moduleCap {
 				targetDecl = decl
 				targetIndex = idx
 				return false
@@ -112,7 +112,7 @@ func rollbackKeyObject(filePath, domainCap string) error {
 	})
 
 	if targetDecl == nil {
-		return fmt.Errorf("Object%s not found", domainCap)
+		return fmt.Errorf("Object%s not found", moduleCap)
 	}
 
 	targetDecl.Specs = append(targetDecl.Specs[:targetIndex], targetDecl.Specs[targetIndex+1:]...)
@@ -135,14 +135,14 @@ func rollbackKeyObject(filePath, domainCap string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
+func removeModuleField(filePath, module, moduleCap, projectName string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return err
 	}
 
-	importPath := fmt.Sprintf("%s/internal/%s", moduleName, domain)
+	importPath := fmt.Sprintf("%s/internal/%s", projectName, module)
 
 	var importDecl *ast.GenDecl
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -196,7 +196,7 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 
 	var newFields []*ast.Field
 	for _, field := range targetStruct.Fields.List {
-		if len(field.Names) > 0 && field.Names[0].Name == domainCap {
+		if len(field.Names) > 0 && field.Names[0].Name == moduleCap {
 			continue
 		}
 		newFields = append(newFields, field)
@@ -210,7 +210,7 @@ func rollbackModuleField(filePath, domain, domainCap, moduleName string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-func rollbackModuleInit(filePath, domain, domainCap string) error {
+func removeModuleInit(filePath, module, moduleCap string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -248,7 +248,7 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 	for _, stmt := range targetFunc.Body.List {
 		if assign, ok := stmt.(*ast.AssignStmt); ok {
 			if len(assign.Lhs) > 0 {
-				if ident, ok := assign.Lhs[0].(*ast.Ident); ok && ident.Name == domain+"Module" {
+				if ident, ok := assign.Lhs[0].(*ast.Ident); ok && ident.Name == module+"Module" {
 					continue
 				}
 			}
@@ -298,7 +298,7 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 		var newElts []ast.Expr
 		for _, elt := range compLit.Elts {
 			if kv, ok := elt.(*ast.KeyValueExpr); ok {
-				if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == domainCap {
+				if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == moduleCap {
 					continue
 				}
 			}
@@ -314,7 +314,7 @@ func rollbackModuleInit(filePath, domain, domainCap string) error {
 	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
-func rollbackRouteRegistration(filePath, domain, domainCap string) error {
+func removeRouteRegistration(filePath, module, moduleCap string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -346,7 +346,7 @@ func rollbackRouteRegistration(filePath, domain, domainCap string) error {
 
 					if sel.Sel.Name == "AddTag" && len(call.Args) > 0 {
 						if lit, ok := call.Args[0].(*ast.BasicLit); ok {
-							if lit.Value == strconv.Quote(domain) {
+							if lit.Value == strconv.Quote(module) {
 								shouldRemove = true
 							}
 						}
@@ -354,7 +354,7 @@ func rollbackRouteRegistration(filePath, domain, domainCap string) error {
 
 					if sel.Sel.Name == "RegisterPublicRoutes" || sel.Sel.Name == "RegisterProtectedRoutes" {
 						if innerSel, ok := sel.X.(*ast.SelectorExpr); ok {
-							if innerSel.Sel.Name == domainCap {
+							if innerSel.Sel.Name == moduleCap {
 								shouldRemove = true
 							}
 						}
