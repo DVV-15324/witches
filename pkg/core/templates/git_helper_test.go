@@ -1,6 +1,8 @@
 package template
 
 import (
+	//"errors"
+	//"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -8,44 +10,120 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// ==================== TEST doGET ====================
-
 func TestDoGET_Success(t *testing.T) {
-	// Tạo mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "success"}`))
+		w.Write([]byte(`{"ok":true}`))
 	}))
 	defer server.Close()
 
 	resp, err := doGET(server.URL)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	resp.Body.Close()
 }
 
-func TestDoGET_Error(t *testing.T) {
-	_, err := doGET("http://invalid-url-12345.local")
-	assert.Error(t, err)
+func TestDoGET_SetsDefaultHeaders(t *testing.T) {
+	t.Setenv("GITHUB_TOKEN", "")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "application/vnd.github+json", r.Header.Get("Accept"))
+		assert.Equal(t, "2022-11-28", r.Header.Get("X-GitHub-Api-Version"))
+		assert.Empty(t, r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	resp, err := doGET(server.URL)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-func TestDoGET_Non200Status(t *testing.T) {
+func TestDoGET_WithToken(t *testing.T) {
+	t.Setenv("GITHUB_TOKEN", "ghp_test_token_abc")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "Bearer ghp_test_token_abc", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	resp, err := doGET(server.URL)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestDoGET_InvalidURL(t *testing.T) {
+	_, err := doGET("http://example.com/\x7f")
+	require.Error(t, err)
+}
+
+func TestDoGET_ConnectionError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	url := server.URL
+	server.Close() // đóng ngay
+
+	_, err := doGET(url)
+	require.Error(t, err)
+}
+
+func TestDoGET_Non2xx_404(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`not found`))
+		w.Write([]byte(`{"message":"Not Found"}`))
 	}))
 	defer server.Close()
 
 	_, err := doGET(server.URL)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "status 404")
+	assert.Contains(t, err.Error(), `{"message":"Not Found"}`)
 }
 
-// ==================== TEST fetchRawContent ====================
+func TestDoGET_Non2xx_403RateLimit(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"API rate limit exceeded"}`))
+	}))
+	defer server.Close()
 
+	_, err := doGET(server.URL)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "status 403")
+	assert.Contains(t, err.Error(), "API rate limit exceeded")
+}
+
+func TestDoGET_Non2xx_500(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("server error"))
+	}))
+	defer server.Close()
+
+	_, err := doGET(server.URL)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "status 500")
+}
+
+func TestDoGET_Non2xx_TrimsBodyWhitespace(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("  \n  server error \n\n  "))
+	}))
+	defer server.Close()
+
+	_, err := doGET(server.URL)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "status 500: server error")
+}
 func TestFetchRawContent_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
