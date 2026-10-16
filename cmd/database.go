@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	cmd_database "github.com/DVV-15324/witches/cmd/database"
 	utils "github.com/DVV-15324/witches/cmd/utils"
 	"github.com/spf13/cobra"
@@ -16,6 +19,9 @@ var generateCmd = &cobra.Command{
 	Short: "Generate DB_URL from witches.env",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := utils.PreloadNotDBURL()
-		_ = cmd_database.WitchesDBURL(cfg.DBDriver, cfg)
+		if err := cmd_database.WitchesDBURL(cfg.DBDriver, cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	},
 }
