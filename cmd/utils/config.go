@@ -78,6 +78,7 @@ func PreloadNotDBURL() *Config {
 	envPath := filepath.Join(currentPath, "witches.env")
 	if err := godotenv.Load(envPath); err != nil {
 		log.Println("Error: not found witches.env, using default values")
+		os.Exit(1)
 	}
 
 	cfg := DefaultConfig()
