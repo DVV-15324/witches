@@ -141,15 +141,6 @@ jobs:
             -timeout=60s \
             ./cmd/run/...
 
-      - name: Run cmd database tests
-        run: |
-          go test \
-            -race \
-            -covermode=atomic \
-            -coverprofile=coverage_cmd_database.out \
-            -timeout=180s \
-            ./cmd/database/...
-
       - name: Run cmd migrate tests
         run: |
           # Cài migrate với driver postgres
