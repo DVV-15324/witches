@@ -27,7 +27,7 @@ var migrateDropCmd = &cobra.Command{
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
 		migratePath := utils.GetMigrationsURL(args[1])
-		cmd_migrate.WitchesMigrateDrop(cfg.DBUrl, cfg.DBDriver, migratePath)
+		cmd_migrate.WitchesMigrateDrop(cfg, migratePath)
 		return nil
 	},
 }
@@ -47,7 +47,7 @@ var migrateUpCmd = &cobra.Command{
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
 		migratePath := utils.GetMigrationsURL(args[1])
-		cmd_migrate.WitchesMigrateUp(cfg.DBUrl, cfg.DBDriver, migratePath)
+		cmd_migrate.WitchesMigrateUp(cfg, migratePath)
 		return nil
 	},
 }
@@ -67,7 +67,7 @@ var migrateDownCmd = &cobra.Command{
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
 		migratePath := utils.GetMigrationsURL(args[1])
-		cmd_migrate.WitchesMigrateDown(cfg.DBUrl, cfg.DBDriver, migratePath)
+		cmd_migrate.WitchesMigrateDown(cfg, migratePath)
 		return nil
 	},
 }
@@ -87,7 +87,7 @@ var migrateVersionCmd = &cobra.Command{
 			return fmt.Errorf("invalid ENV: %s", cfg.Env)
 		}
 		migratePath := utils.GetMigrationsURL(args[1])
-		cmd_migrate.WitchesMigrateForce(cfg.DBUrl, cfg.DBDriver, migratePath, args[0])
+		cmd_migrate.WitchesMigrateForce(cfg, migratePath, args[0])
 		return nil
 	},
 }
@@ -97,6 +97,6 @@ var migrateForceCmd = &cobra.Command{
 		cfg := utils.Load()
 
 		migratePath := utils.GetMigrationsURL(args[1])
-		cmd_migrate.WitchesMigrateVersion(cfg.DBUrl, cfg.DBDriver, migratePath)
+		cmd_migrate.WitchesMigrateVersion(cfg, migratePath)
 	},
 }
