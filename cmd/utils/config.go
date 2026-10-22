@@ -45,9 +45,6 @@ type Config struct {
 	Modules            map[string]map[string]string // cfg.Modules["book"]["KEY"] in module.env
 }
 
-func LoadDbUrl(cfg *Config) {
-	cfg.DBUrl = os.Getenv("DB_URL")
-}
 func LoadModule(modulePath string, cfg *Config) {
 	envPath := filepath.Join(modulePath, "module.env")
 	if m, err := godotenv.Read(envPath); err == nil {
@@ -59,21 +56,6 @@ func LoadModule(modulePath string, cfg *Config) {
 }
 
 func Load() *Config {
-	cfg := PreloadNotDBURL()
-	LoadDbUrl(cfg)
-
-	// Đọc tất cả folder trong internal/
-	entries, _ := os.ReadDir("internal")
-	for _, entry := range entries {
-		if entry.IsDir() {
-			modulePath := filepath.Join("internal", entry.Name())
-			LoadModule(modulePath, cfg)
-		}
-	}
-	return cfg
-}
-
-func PreloadNotDBURL() *Config {
 	currentPath := GetCurrentPath()
 	envPath := filepath.Join(currentPath, "witches.env")
 	if err := godotenv.Load(envPath); err != nil {
@@ -177,6 +159,14 @@ func PreloadNotDBURL() *Config {
 			if !isKnownKey(k) {
 				cfg.Others[k] = v
 			}
+		}
+	}
+	// Đọc tất cả folder trong internal/
+	entries, _ := os.ReadDir("internal")
+	for _, entry := range entries {
+		if entry.IsDir() {
+			modulePath := filepath.Join("internal", entry.Name())
+			LoadModule(modulePath, cfg)
 		}
 	}
 	return cfg
