@@ -10,8 +10,7 @@ var initCmd = &cobra.Command{
 	Use:  "init",
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
 		run.WitchesInit(cfg.DBDriver)
 	},
 }
