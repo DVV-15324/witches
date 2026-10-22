@@ -26,8 +26,8 @@ var installCmd = &cobra.Command{
 	Use:  "install",
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
+
 		run.WitchesInstall(cfg.DBDriver)
 	},
 }
@@ -36,8 +36,8 @@ var addCmd = &cobra.Command{
 	Use:  "add",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
+
 		domainName := args[0]
 		run.WitchesAdd(domainName, cfg.DBDriver)
 	},
