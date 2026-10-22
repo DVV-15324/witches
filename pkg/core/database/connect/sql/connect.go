@@ -41,12 +41,23 @@ func NewDatabaseInstance(
 	var dialector gorm.Dialector
 	switch cfg.DBDriver {
 	case "mysql":
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 		dialector = mysql.Open(dsn)
+
 	case "postgres", "postgresql":
+		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
 		dialector = postgres.Open(dsn)
+
 	case "sqlserver", "mssql":
+		dsn = fmt.Sprintf("sqlserver://%s:%s@%s:%d?database=%s",
+			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 		dialector = sqlserver.Open(dsn)
+
 	default:
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 		dialector = mysql.Open(dsn)
 	}
 
