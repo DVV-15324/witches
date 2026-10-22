@@ -15,9 +15,6 @@ func TestRootCmd(t *testing.T) {
 }
 
 func TestExecute(t *testing.T) {
-	// Test with no args
-	// This is tricky to test because it calls os.Exit
-	// We can test the command exists
 	assert.NotNil(t, rootCmd)
 }
 
