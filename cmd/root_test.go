@@ -32,7 +32,6 @@ func TestInitCommands(t *testing.T) {
 	}
 
 	assert.Contains(t, commandNames, "create")
-	assert.Contains(t, commandNames, "database")
 	assert.Contains(t, commandNames, "install")
 	assert.Contains(t, commandNames, "init")
 	assert.Contains(t, commandNames, "add")
@@ -40,29 +39,6 @@ func TestInitCommands(t *testing.T) {
 	assert.Contains(t, commandNames, "migrate")
 }
 
-// Sửa: dùng *cobra.Command thay vì Command
-func TestDatabaseSubCommands(t *testing.T) {
-	var dbCmd *cobra.Command
-	for _, cmd := range rootCmd.Commands() {
-		if cmd.Use == "database" {
-			dbCmd = cmd
-			break
-		}
-	}
-
-	assert.NotNil(t, dbCmd)
-
-	subCommands := dbCmd.Commands()
-	assert.Greater(t, len(subCommands), 0)
-
-	subNames := make([]string, len(subCommands))
-	for i, cmd := range subCommands {
-		subNames[i] = cmd.Use
-	}
-	assert.Contains(t, subNames, "generate")
-}
-
-// Sửa: dùng *cobra.Command thay vì Command
 func TestMigrateSubCommands(t *testing.T) {
 	var migrateCmd *cobra.Command
 	for _, cmd := range rootCmd.Commands() {
