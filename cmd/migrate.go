@@ -16,8 +16,7 @@ var migrateCmd = &cobra.Command{
 var migrateDropCmd = &cobra.Command{
 	Use: "drop",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
 		switch cfg.Env {
 		case "development", "test":
 		case "production":
@@ -36,8 +35,7 @@ var migrateDropCmd = &cobra.Command{
 var migrateUpCmd = &cobra.Command{
 	Use: "up",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
 
 		switch cfg.Env {
 		case "development", "test":
@@ -57,8 +55,8 @@ var migrateUpCmd = &cobra.Command{
 var migrateDownCmd = &cobra.Command{
 	Use: "down",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
+
 		switch cfg.Env {
 		case "development", "test":
 		case "production":
@@ -77,8 +75,8 @@ var migrateDownCmd = &cobra.Command{
 var migrateVersionCmd = &cobra.Command{
 	Use: "force",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
+
 		switch cfg.Env {
 		case "development", "test":
 		case "production":
@@ -96,8 +94,8 @@ var migrateVersionCmd = &cobra.Command{
 var migrateForceCmd = &cobra.Command{
 	Use: "version",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := utils.PreloadNotDBURL()
-		utils.LoadDbUrl(cfg)
+		cfg := utils.Load()
+
 		migratePath := utils.GetMigrationsURL(args[1])
 		cmd_migrate.WitchesMigrateVersion(cfg.DBUrl, cfg.DBDriver, migratePath)
 	},
