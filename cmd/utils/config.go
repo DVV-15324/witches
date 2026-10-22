@@ -30,7 +30,6 @@ type Config struct {
 	DBUser             string
 	DBName             string
 	DBPassword         string
-	DBUrl              string
 	MaxOpenConns       int64
 	MaxIdleConns       int64
 	ConnMaxLifetime    int64
