@@ -8,8 +8,8 @@ import (
 	utils "github.com/DVV-15324/witches/cmd/utils"
 )
 
-func WitchesMigrateVersion(DB_URL string, DB_DRIVER string, migrationPath string) error {
-	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
+func WitchesMigrateVersion(cfg *utils.Config, migrationPath string) error {
+	fullDBURL := utils.BuildDatabaseURL(cfg)
 	cmd := exec.Command(
 		"migrate",
 		"-path", migrationPath,
