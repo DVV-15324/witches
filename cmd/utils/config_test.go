@@ -36,11 +36,16 @@ func TestGetEnvAsInt64(t *testing.T) {
 	}
 }
 
-func TestPreloadNotDBURL(t *testing.T) {
+func TestLoadWithEnv(t *testing.T) {
 	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(originalDir)
+	os.Chdir(tmpDir) // Đổi thư mục hiện tại sang tmpDir để Load() đọc file ở đây
+
 	envContent := `APP_PORT=9090
 APP_HOST=127.0.0.1
-APP_ENV=development
+ENV=development
 METRIC_PORT=9091
 UID_BITS=26
 REQUEST_KEY=custom_key
@@ -69,15 +74,10 @@ RATE_LIMIT_MAX=200
 CUSTOM_KEY=custom_value`
 
 	envPath := filepath.Join(tmpDir, "witches.env")
-	err := os.WriteFile(envPath, []byte(envContent), 0644)
+	err = os.WriteFile(envPath, []byte(envContent), 0644)
 	require.NoError(t, err)
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	defer os.Chdir(originalDir)
-	os.Chdir(tmpDir)
-
-	cfg := PreloadNotDBURL()
+	cfg := Load()
 
 	assert.Equal(t, int64(9090), cfg.Port)
 	assert.Equal(t, "127.0.0.1", cfg.Host)
@@ -110,17 +110,6 @@ CUSTOM_KEY=custom_value`
 	assert.Equal(t, "custom_value", cfg.Others["CUSTOM_KEY"])
 }
 
-func TestLoadDbUrl(t *testing.T) {
-	_ = os.Setenv("DB_URL", "postgres://admin:securepass@db.example.com:5432/prod_db")
-	defer func() {
-		_ = os.Unsetenv("DB_URL")
-	}()
-
-	cfg := &Config{}
-	LoadDbUrl(cfg)
-	assert.Equal(t, "postgres://admin:securepass@db.example.com:5432/prod_db", cfg.DBUrl)
-}
-
 func TestLoadModule(t *testing.T) {
 	tmpDir := t.TempDir()
 	modulePath := filepath.Join(tmpDir, "internal", "book")
@@ -149,7 +138,6 @@ func TestLoadModule_NoEnvFile(t *testing.T) {
 	cfg := &Config{}
 	LoadModule(modulePath, cfg)
 
-	// Không panic, Domains vẫn nil
 	assert.Nil(t, cfg.Modules)
 }
 
@@ -161,8 +149,7 @@ func TestLoad(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	// Tạo witches.env
-	envContent := `APP_PORT=9090
-DB_URL=postgres://user:pass@localhost:5432/db`
+	envContent := `APP_PORT=9090`
 	err = os.WriteFile("witches.env", []byte(envContent), 0644)
 	require.NoError(t, err)
 
@@ -182,13 +169,10 @@ DB_URL=postgres://user:pass@localhost:5432/db`
 	cfg := Load()
 
 	assert.Equal(t, int64(9090), cfg.Port)
-	assert.Equal(t, "postgres://user:pass@localhost:5432/db", cfg.DBUrl)
 	assert.NotNil(t, cfg.Modules)
 
-	// Debug: in ra tất cả keys
 	t.Logf("Domains keys: %v", getKeys(cfg.Modules))
 
-	// Tìm key chứa "book" trong path
 	var foundKey string
 	for k := range cfg.Modules {
 		if strings.Contains(k, "book") {
@@ -200,12 +184,10 @@ DB_URL=postgres://user:pass@localhost:5432/db`
 	if foundKey != "" {
 		assert.Equal(t, "book_value", cfg.Modules[foundKey]["BOOK_KEY"])
 	} else {
-		// Nếu không tìm thấy, dùng bookDir làm key
 		assert.Equal(t, "book_value", cfg.Modules[bookDir]["BOOK_KEY"])
 	}
 }
 
-// Helper function
 func getKeys(m map[string]map[string]string) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -213,6 +195,7 @@ func getKeys(m map[string]map[string]string) []string {
 	}
 	return keys
 }
+
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
 
@@ -290,99 +273,63 @@ func TestSplitAndTrim(t *testing.T) {
 		})
 	}
 }
-func TestPreloadNotDBURL_NoWitchesEnv(t *testing.T) {
+
+func TestLoad_NoWitchesEnv(t *testing.T) {
 	tmpDir := t.TempDir()
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+	os.Chdir(tmpDir) // Vào thư mục rỗng, ko có file env
 
-	originalGetwd := getwdUtils
-	defer func() {
-		getwdUtils = originalGetwd
-	}()
-
-	getwdUtils = func() (string, error) {
-		return tmpDir, nil
-	}
-
-	// Clear environment variables that can override DefaultConfig()
+	// Clear environment variables
 	t.Setenv("APP_PORT", "")
 	t.Setenv("APP_HOST", "")
 	t.Setenv("ENV", "")
 
-	cfg := PreloadNotDBURL()
+	cfg := Load()
 
 	assert.NotNil(t, cfg)
 	assert.Equal(t, int64(8080), cfg.Port)
 	assert.Equal(t, "localhost", cfg.Host)
 	assert.Equal(t, "development", cfg.Env)
 }
-func TestPreloadNotDBURL_ValidEnv(t *testing.T) {
+
+func TestLoad_ValidEnv(t *testing.T) {
 	tmpDir := t.TempDir()
-
-	originalGetwd := getwdUtils
-	defer func() {
-		getwdUtils = originalGetwd
-	}()
-
-	getwdUtils = func() (string, error) {
-		return tmpDir, nil
-	}
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+	os.Chdir(tmpDir)
 
 	t.Setenv("ENV", "production")
 
-	cfg := PreloadNotDBURL()
+	cfg := Load()
 
 	assert.Equal(t, "production", cfg.Env)
 }
-func TestPreloadNotDBURL_InvalidEnv(t *testing.T) {
+
+func TestLoad_InvalidEnv(t *testing.T) {
 	tmpDir := t.TempDir()
-
-	originalGetwd := getwdUtils
-	defer func() {
-		getwdUtils = originalGetwd
-	}()
-
-	getwdUtils = func() (string, error) {
-		return tmpDir, nil
-	}
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+	os.Chdir(tmpDir)
 
 	t.Setenv("ENV", "invalid-env")
 
-	cfg := PreloadNotDBURL()
+	cfg := Load()
 
-	// Không nhận ENV không hợp lệ,
-	// giữ nguyên giá trị default.
 	assert.Equal(t, "development", cfg.Env)
 }
+
 func TestIsValidEnv(t *testing.T) {
 	tests := []struct {
 		name string
 		env  string
 		want bool
 	}{
-		{
-			name: "development",
-			env:  "development",
-			want: true,
-		},
-		{
-			name: "test",
-			env:  "test",
-			want: true,
-		},
-		{
-			name: "production",
-			env:  "production",
-			want: true,
-		},
-		{
-			name: "invalid",
-			env:  "staging",
-			want: false,
-		},
-		{
-			name: "empty",
-			env:  "",
-			want: false,
-		},
+		{"development", "development", true},
+		{"test", "test", true},
+		{"production", "production", true},
+		{"invalid", "staging", false},
+		{"empty", "", false},
 	}
 
 	for _, tt := range tests {
