@@ -60,7 +60,6 @@ func NewDatabaseInstance(
 			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 		dialector = mysql.Open(dsn)
 	}
-
 	gormCfg := &gorm.Config{
 		Logger:                 gormLogger.LogMode(gormlogger.Info),
 		SkipDefaultTransaction: true,
