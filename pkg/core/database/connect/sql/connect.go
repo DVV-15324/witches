@@ -36,7 +36,7 @@ func NewDatabaseInstance(
 
 	gormLogger := logger.NewGormLogger(log, cfg)
 
-	dsn := cfg.DBUrl
+	dsn := ""
 
 	var dialector gorm.Dialector
 	switch cfg.DBDriver {
