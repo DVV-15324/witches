@@ -26,8 +26,6 @@ func init() {
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 	// Scaffold
 	rootCmd.AddCommand(createCmd)
-	rootCmd.AddCommand(databaseCmd)
-	databaseCmd.AddCommand(generateCmd)
 
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(initCmd)
