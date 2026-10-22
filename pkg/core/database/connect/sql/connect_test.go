@@ -4,11 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os"
-	"path/filepath"
-	"testing"
-	"time"
-
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/DVV-15324/witches/pkg/core/response/logger"
 	_ "github.com/lib/pq"
@@ -18,6 +13,13 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"gorm.io/gorm"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
@@ -77,6 +79,15 @@ func setupTestLogger(tb testing.TB) (*logger.ModelLogger, func()) {
 func makeTestConfig(driver, dsn string) *utils.Config {
 	cfg := utils.DefaultConfig()
 	cfg.DBDriver = driver
+	u, err := url.Parse(dsn)
+	if err == nil {
+		cfg.DBHost = u.Hostname()
+		port, _ := strconv.Atoi(u.Port())
+		cfg.DBPort = int64(port)
+		cfg.DBUser = u.User.Username()
+		cfg.DBPassword, _ = u.User.Password()
+		cfg.DBName = strings.TrimPrefix(u.Path, "/")
+	}
 	cfg.DBUrl = dsn
 	cfg.MaxOpenConns = 10
 	cfg.MaxIdleConns = 5
@@ -339,17 +350,17 @@ func TestNewDatabaseInstance_WithSQLServer(t *testing.T) {
 }
 
 func TestNewDatabaseInstance_DefaultDriver(t *testing.T) {
-	connStr, cleanupContainer := setupPostgresContainer(t)
-	defer cleanupContainer()
-
 	logg, cleanupLogger := setupTestLogger(t)
 	defer cleanupLogger()
 
-	cfg := makeTestConfig("unknown_driver", connStr)
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "unknown_driver"
+	cfg.DBHost = "localhost"
+	cfg.DBPort = 3306
+
 	instance, err := NewDatabaseInstance(cfg, logg)
 
-	// unknown_driver sẽ fallback về mysql, nhưng dsn là postgres
-	// Nên sẽ fail
+	// Không có MySQL chạy ở port 3306 nên chắc chắn sẽ lỗi
 	assert.Error(t, err)
 	assert.Nil(t, instance)
 }
