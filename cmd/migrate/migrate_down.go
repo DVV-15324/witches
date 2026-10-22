@@ -7,8 +7,8 @@ import (
 	"os/exec"
 )
 
-func WitchesMigrateDown(DB_URL string, DB_DRIVER string, migrationPath string) error {
-	fullDBURL := utils.BuildDatabaseURL(DB_DRIVER, DB_URL)
+func WitchesMigrateDown(cfg *utils.Config, migrationPath string) error {
+	fullDBURL := utils.BuildDatabaseURL(cfg)
 	cmd := exec.Command(
 		"migrate",
 		"-path", migrationPath,
