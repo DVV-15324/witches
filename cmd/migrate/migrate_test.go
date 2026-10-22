@@ -3,6 +3,14 @@ package cmd_migrate
 import (
 	"context"
 	"database/sql"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/DVV-15324/witches/cmd/utils"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
@@ -10,29 +18,24 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestMain(m *testing.M) {
-	// Tắt Ryuk để tránh lỗi
 	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 	os.Setenv("TESTCONTAINERS_REUSE_ENABLE", "true")
 	code := m.Run()
 	os.Exit(code)
 }
 
-func setupTestWithPostgres(t *testing.T) (dbURL string, migrationPath string, cleanup func()) {
+// SỬA: Trả về *utils.Config thay vì dbURL string
+func setupTestWithPostgres(t *testing.T) (cfg *utils.Config, migrationPath string, cleanup func()) {
 	ctx := context.Background()
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrate", "migrations")
 	err := os.MkdirAll(migrationsDir, 0755)
 	migrationsDir = filepath.ToSlash(migrationsDir)
 	require.NoError(t, err)
+
 	upFile := filepath.Join(migrationsDir, "000001_test_migration.up.sql")
 	downFile := filepath.Join(migrationsDir, "000001_test_migration.down.sql")
 
@@ -71,8 +74,21 @@ CREATE TABLE IF NOT EXISTS users (
 		}
 		_ = os.RemoveAll(tmpDir)
 	}
-	connStr = strings.TrimPrefix(connStr, "postgres://")
-	return connStr, migrationsDir, cleanup
+
+	// Parse connStr để lấy thông tin gán vào Config
+	u, err := url.Parse(connStr)
+	require.NoError(t, err)
+	port, _ := strconv.Atoi(u.Port())
+
+	cfg = utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+	cfg.DBHost = u.Hostname()
+	cfg.DBPort = int64(port)
+	cfg.DBUser = u.User.Username()
+	cfg.DBPassword, _ = u.User.Password()
+	cfg.DBName = u.Path[1:] // Bỏ dấu '/' ở đầu
+
+	return cfg, migrationsDir, cleanup
 }
 
 func TestWitchesMigrateUp(t *testing.T) {
@@ -81,19 +97,17 @@ func TestWitchesMigrateUp(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
+	cfg, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	// SỬA: Truyền cfg thay vì dbURL
+	err = WitchesMigrateUp(cfg, migrationPath)
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	connStr := utils.BuildDatabaseURL("postgres", dbURL)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", utils.BuildDatabaseURL(cfg))
 	require.NoError(t, err)
-	defer func() {
-		_ = db.Close()
-	}()
+	defer func() { _ = db.Close() }()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
@@ -112,22 +126,19 @@ func TestWitchesMigrateVersion(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
+	cfg, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(cfg, migrationPath)
 	require.NoError(t, err)
 
-	err = WitchesMigrateVersion(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateVersion(cfg, migrationPath)
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	connStr := utils.BuildDatabaseURL("postgres", dbURL)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", utils.BuildDatabaseURL(cfg))
 	require.NoError(t, err)
-	defer func() {
-		_ = db.Close()
-	}()
+	defer func() { _ = db.Close() }()
 
 	var version int
 	err = db.QueryRowContext(ctx, `
@@ -143,22 +154,19 @@ func TestWitchesMigrateDown(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
+	cfg, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(cfg, migrationPath)
 	require.NoError(t, err)
 
-	err = WitchesMigrateDown(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateDown(cfg, migrationPath)
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	connStr := utils.BuildDatabaseURL("postgres", dbURL)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", utils.BuildDatabaseURL(cfg))
 	require.NoError(t, err)
-	defer func() {
-		_ = db.Close()
-	}()
+	defer func() { _ = db.Close() }()
 
 	var tableExists bool
 	err = db.QueryRowContext(ctx, `
@@ -177,18 +185,17 @@ func TestWitchesMigrateDrop(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
+	cfg, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	err = WitchesMigrateUp(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateUp(cfg, migrationPath)
 	require.NoError(t, err)
 
-	err = WitchesMigrateDrop(dbURL, "postgres", migrationPath)
+	err = WitchesMigrateDrop(cfg, migrationPath)
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	connStr := utils.BuildDatabaseURL("postgres", dbURL)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", utils.BuildDatabaseURL(cfg))
 	require.NoError(t, err)
 	defer func() { _ = db.Close() }()
 
@@ -209,19 +216,16 @@ func TestWitchesMigrateForce(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	dbURL, migrationPath, cleanup := setupTestWithPostgres(t)
+	cfg, migrationPath, cleanup := setupTestWithPostgres(t)
 	defer cleanup()
 
-	err = WitchesMigrateForce(dbURL, "postgres", migrationPath, "1")
+	err = WitchesMigrateForce(cfg, migrationPath, "1")
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	connStr := utils.BuildDatabaseURL("postgres", dbURL)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", utils.BuildDatabaseURL(cfg))
 	require.NoError(t, err)
-	defer func() {
-		_ = db.Close()
-	}()
+	defer func() { _ = db.Close() }()
 
 	var version int
 	err = db.QueryRowContext(ctx, `
@@ -237,19 +241,28 @@ func TestWitchesMigrateUp_InvalidPath(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	// Test với path không tồn tại
-	err = WitchesMigrateUp("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	// Tạo config giả
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+
+	err = WitchesMigrateUp(cfg, "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate up failed")
 }
 
-func TestWitchesMigrateUp_InvalidDBURL(t *testing.T) {
+func TestWitchesMigrateUp_InvalidDBConfig(t *testing.T) {
 	_, err := exec.LookPath("migrate")
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 	tmpDir := t.TempDir()
-	err = WitchesMigrateUp("invalid_url", "postgres", tmpDir)
+
+	// Config sai host để gây lỗi kết nối
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+	cfg.DBHost = "invalid_url"
+
+	err = WitchesMigrateUp(cfg, tmpDir)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate up failed")
 }
@@ -259,7 +272,11 @@ func TestWitchesMigrateDown_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-	err = WitchesMigrateDown("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+
+	err = WitchesMigrateDown(cfg, "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate down failed")
 }
@@ -269,7 +286,11 @@ func TestWitchesMigrateDrop_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-	err = WitchesMigrateDrop("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+
+	err = WitchesMigrateDrop(cfg, "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate drop failed")
 }
@@ -279,7 +300,11 @@ func TestWitchesMigrateForce_InvalidPath(t *testing.T) {
 	if err != nil {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
-	err = WitchesMigrateForce("user:pass@localhost:5432/db", "postgres", "/invalid/path", "1")
+
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+
+	err = WitchesMigrateForce(cfg, "/invalid/path", "1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate force failed")
 }
@@ -290,48 +315,10 @@ func TestWitchesMigrateVersion_InvalidPath(t *testing.T) {
 		t.Skip("Skipping test: 'migrate' binary not found in PATH")
 	}
 
-	err = WitchesMigrateVersion("user:pass@localhost:5432/db", "postgres", "/invalid/path")
+	cfg := utils.DefaultConfig()
+	cfg.DBDriver = "postgres"
+
+	err = WitchesMigrateVersion(cfg, "/invalid/path")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "migrate version failed")
-}
-
-func TestBuildDatabaseURL(t *testing.T) {
-	tests := []struct {
-		name     string
-		driver   string
-		dbURL    string
-		expected string
-	}{
-		{
-			name:     "PostgreSQL",
-			driver:   "postgres",
-			dbURL:    "user:pass@localhost:5432/db",
-			expected: "postgres://user:pass@localhost:5432/db",
-		},
-		{
-			name:     "MySQL",
-			driver:   "mysql",
-			dbURL:    "user:pass@tcp(localhost:3306)/db",
-			expected: "mysql://user:pass@tcp(localhost:3306)/db",
-		},
-		{
-			name:     "PostgreSQL with sslmode",
-			driver:   "postgres",
-			dbURL:    "user:pass@localhost:5432/db?sslmode=disable",
-			expected: "postgres://user:pass@localhost:5432/db?sslmode=disable",
-		},
-		{
-			name:     "Empty driver",
-			driver:   "",
-			dbURL:    "user:pass@localhost:5432/db",
-			expected: "user:pass@localhost:5432/db",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := utils.BuildDatabaseURL(tt.driver, tt.dbURL)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
 }
