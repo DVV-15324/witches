@@ -88,7 +88,6 @@ func makeTestConfig(driver, dsn string) *utils.Config {
 		cfg.DBPassword, _ = u.User.Password()
 		cfg.DBName = strings.TrimPrefix(u.Path, "/")
 	}
-	cfg.DBUrl = dsn
 	cfg.MaxOpenConns = 10
 	cfg.MaxIdleConns = 5
 	cfg.ConnMaxLifetime = 30 * 60
