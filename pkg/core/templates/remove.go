@@ -37,7 +37,7 @@ func RemoveModule(project string, projectName string, moduleName string) error {
 	}
 	fmt.Printf("Removed directory: %s\n", moduleDir)
 
-	sharedFile := filepath.Join(project, "internal", "shared", "domain", moduleName+".go")
+	sharedFile := filepath.Join(project, "pkg", "shared", "domain", moduleName+".go")
 	if err := remove(sharedFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove shared domain file: %v", err)
 	}
