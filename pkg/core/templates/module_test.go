@@ -64,7 +64,7 @@ func TestAddDomain_Golden(t *testing.T) {
 	// Tạo các thư mục cần thiết
 	dirs := []string{
 		"cmd/server/routers",
-		"internal/shared/domain",
+		"pkg/shared/domain",
 		"internal/shared/utils",
 	}
 	for _, dir := range dirs {
@@ -128,7 +128,7 @@ var (
 		"internal/book/usecase/usecase.go",
 		"internal/book/migrate/migrations/1_create_table.up.sql",
 		"internal/book/migrate/migrations/1_drop_table.down.sql",
-		"internal/shared/domain/book.go",
+		"pkg/shared/domain/book.go",
 	}
 
 	for _, relPath := range expectedFiles {
