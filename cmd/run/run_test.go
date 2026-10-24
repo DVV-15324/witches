@@ -469,44 +469,41 @@ func TestWitchesAdd_GetWorkingDirectoryFail(t *testing.T) {
 
 func TestWitchesAdd_AddModuleFail(t *testing.T) {
 	tmpDir := t.TempDir()
-
-	origWd, err := os.Getwd()
-	assert.NoError(t, err)
-
+	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
 
-	err = os.Chdir(tmpDir)
-	assert.NoError(t, err)
-
-	err = os.WriteFile(
-		filepath.Join(tmpDir, "go.mod"),
-		[]byte("module test"),
-		0644,
-	)
-	assert.NoError(t, err)
+	os.WriteFile("go.mod", []byte("module test"), 0644)
 
 	originalAddModule := addModule
-	defer func() {
-		addModule = originalAddModule
-	}()
+	defer func() { addModule = originalAddModule }()
 
-	addModule = func(
-		projectPath string,
-		projectName string,
-		moduleName string,
-		DBdriver string,
-	) error {
+	addModule = func(projectPath, projectName, moduleName, DBdriver string) error {
 		return errors.New("mock add module error")
 	}
 
-	err = WitchesAdd("user", "postgres")
-
+	err := WitchesAdd("user", "postgres")
 	assert.Error(t, err)
-	assert.EqualError(
-		t,
-		err,
-		"add module: mock add module error",
-	)
+	assert.EqualError(t, err, "add module: mock add module error")
+}
+func TestWitchesAdd_GetModuleNameFail(t *testing.T) {
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+
+	originalGetModuleName := getModuleNameAdd
+	defer func() { getModuleNameAdd = originalGetModuleName }()
+
+	getModuleNameAdd = func() (string, error) {
+		return "", errors.New("mock get module name error")
+	}
+
+	err := WitchesAdd("user", "postgres")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "get module name: mock get module name error")
 }
 
 func skipConfirmRemove(t *testing.T) {
@@ -755,46 +752,43 @@ func TestWitchesLink_GetWorkingDirectoryFail(t *testing.T) {
 
 func TestWitchesLink_LinkDomainFail(t *testing.T) {
 	tmpDir := t.TempDir()
-
-	origWd, err := os.Getwd()
-	assert.NoError(t, err)
+	origWd, _ := os.Getwd()
 	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
 
-	err = os.Chdir(tmpDir)
-	assert.NoError(t, err)
-
-	err = os.WriteFile(
-		"go.mod",
-		[]byte("module captain"),
-		0644,
-	)
-	assert.NoError(t, err)
+	os.WriteFile("go.mod", []byte("module captain"), 0644)
 
 	originalLink := linkWitchesLink
-	defer func() {
-		linkWitchesLink = originalLink
-	}()
+	defer func() { linkWitchesLink = originalLink }()
 
-	linkWitchesLink = func(
-		projectPath string,
-		moduleName string,
-		domainName string,
-		repoURL string,
-	) error {
+	linkWitchesLink = func(projectPath, moduleName, domainName, repoURL string) error {
 		return errors.New("mock link domain error")
 	}
 
-	err = WitchesLink(
-		"book",
-		"https://github.com/DVV-15324/witches-book.git",
-	)
-
+	err := WitchesLink("book", "https://github.com/DVV-15324/witches-book.git")
 	assert.Error(t, err)
-	assert.EqualError(
-		t,
-		err,
-		"link domain: mock link domain error",
-	)
+	assert.EqualError(t, err, "link domain: mock link domain error")
+}
+
+func TestWitchesLink_GetModuleNameFail(t *testing.T) {
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module captain"), 0644)
+
+	originalGetModuleName := getModuleNameLink
+	defer func() { getModuleNameLink = originalGetModuleName }()
+
+	// Mock hàm lấy module name để giả lập lỗi
+	getModuleNameLink = func() (string, error) {
+		return "", errors.New("mock get module name error")
+	}
+
+	err := WitchesLink("book", "https://github.com/DVV-15324/witches-book.git")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "get module name: mock get module name error")
 }
 
 func TestWitchesLink_StatGoModFail(t *testing.T) {
