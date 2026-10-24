@@ -1,19 +1,38 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func Cors(cfg *utils.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+		origin := c.Request.Header.Get("Origin")
+		// Kiểm tra xem Origin này có được phép không
+		isAllowed := false
 
-		allowOrigin := cfg.CorsAllowOrigins
-		if allowOrigin == "" {
-			allowOrigin = "*"
+		// Nếu cấu hình trong .env là "*", tự động cho phép tất cả các port localhost
+		if cfg.CorsAllowOrigins == "*" || cfg.CorsAllowOrigins == "" {
+			isAllowed = true
+		} else {
+			// 2. Nếu cấu hình cụ thể, tách chuỗi bằng dấu phẩy và check xem có khớp không
+			allowedOrigins := strings.Split(cfg.CorsAllowOrigins, ",")
+			for _, allowed := range allowedOrigins {
+				if strings.TrimSpace(allowed) == origin {
+					isAllowed = true
+					break
+				}
+			}
 		}
-		c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+
+		if isAllowed && origin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Writer.Header().Add("Vary", "Origin")
+		}
+
+		c.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 
 		allowMethods := cfg.CorsAllowMethods
 		if allowMethods == "" {

@@ -2,13 +2,24 @@ package utils
 
 import (
 	"fmt"
+	"net"
+	"net/url"
 )
 
 func BuildDatabaseURL(cfg *Config) string {
 	switch cfg.DBDriver {
 	case "postgres", "postgresql":
-		return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		u := &url.URL{
+			Scheme: "postgres",
+			User:   url.UserPassword(cfg.DBUser, cfg.DBPassword),
+			Host:   net.JoinHostPort(cfg.DBHost, fmt.Sprint(cfg.DBPort)),
+			Path:   "/" + cfg.DBName,
+		}
+		q := u.Query()
+		q.Set("sslmode", "disable")
+		u.RawQuery = q.Encode()
+		return u.String()
+
 	case "mysql":
 		return fmt.Sprintf("mysql://%s:%s@tcp(%s:%d)/%s",
 			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
