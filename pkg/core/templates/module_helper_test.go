@@ -13,8 +13,6 @@ import (
 //go:embed module/shared/domain/domain.go.tmpl
 var testFS embed.FS
 
-// ==================== TEST generateSharedDomain ====================
-
 func TestGenerateSharedDomain_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -26,7 +24,7 @@ func TestGenerateSharedDomain_Success(t *testing.T) {
 	err := generateSharedDomain(tmpDir, config, testFS)
 	assert.NoError(t, err)
 
-	destFile := filepath.Join(tmpDir, "internal", "shared", "domain", "book.go")
+	destFile := filepath.Join(tmpDir, "pkg", "shared", "domain", "book.go")
 	content, err := os.ReadFile(destFile)
 	require.NoError(t, err)
 	assert.NotEmpty(t, content)
@@ -47,8 +45,6 @@ func TestGenerateSharedDomain_TemplateNotFound(t *testing.T) {
 	//  Sửa: error message thực tế
 	assert.Contains(t, err.Error(), "template module/shared/domain/domain.go.tmpl not found")
 }
-
-// ==================== TEST updateKeyObject ====================
 
 func TestUpdateKeyObject_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -118,8 +114,6 @@ func TestUpdateKeyObject_FileNotExist(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// ==================== TEST AddModuleField ====================
-
 func TestAddModuleField_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "modules.go")
@@ -186,8 +180,6 @@ type Modules struct {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "field Book already exists")
 }
-
-// ==================== TEST AddModuleInit ====================
 
 func TestAddModuleInit_Success(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -312,8 +304,6 @@ func initModule(gen *SwaggerGenerator, modules *Modules) error {
 	require.NoError(t, err)
 	assert.Contains(t, string(newContent), `gen.AddTag("book", "Book endpoints")`)
 }
-
-// ==================== BENCHMARK ====================
 
 func BenchmarkAddModuleField(b *testing.B) {
 	tmpDir := b.TempDir()
