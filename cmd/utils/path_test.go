@@ -80,15 +80,11 @@ func TestGetMigrationsURL_DomainNotExists(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	// Domain chưa tồn tại, sẽ tự tạo
 	url := GetMigrationsURL("newdomain")
 	assert.NotEmpty(t, url)
 
-	// SỬA: Kiểm tra đường dẫn đúng
 	expected := filepath.ToSlash(filepath.Join(tmpDir, "internal", "newdomain", "migrate", "migrations"))
 	assert.Equal(t, expected, url)
-
-	// Kiểm tra thư mục đã được tạo
 	_, err = os.Stat(filepath.Join(tmpDir, "internal", "newdomain", "migrate", "migrations"))
 	assert.NoError(t, err, "Directory should be created")
 }
@@ -96,4 +92,44 @@ func TestGetMigrationsURL_DomainNotExists(t *testing.T) {
 func TestGetFrameworkPath(t *testing.T) {
 	path := GetFrameworkPath()
 	assert.NotEmpty(t, path)
+}
+
+func TestGetModuleName_Success(t *testing.T) {
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module backend\n\ngo 1.21"), 0644)
+	name, err := GetModuleName()
+	assert.NoError(t, err)
+	assert.Equal(t, "backend", name)
+
+	os.WriteFile("go.mod", []byte("module github.com/DVV-15324/iot-e2e/backend\n\ngo 1.21"), 0644)
+	name, err = GetModuleName()
+	assert.NoError(t, err)
+	assert.Equal(t, "github.com/DVV-15324/iot-e2e/backend", name)
+}
+
+func TestGetModuleName_FileNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	_, err := GetModuleName()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot read go.mod")
+}
+
+func TestGetModuleName_InvalidContent(t *testing.T) {
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("go 1.21\nrequire something"), 0644)
+	_, err := GetModuleName()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "module name not found in go.mod")
 }
