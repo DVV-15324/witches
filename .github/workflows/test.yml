@@ -124,6 +124,8 @@ jobs:
             ./pkg/core/easyjson/...
 
       - name: Run templates tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           go test \
             -race \
