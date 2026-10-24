@@ -36,7 +36,7 @@ func TestAddGoDomainFromLink_Golden(t *testing.T) {
 					{"path": "internal/book/usecase/usecase.go", "type": "blob"},
 					{"path": "internal/book/migrate/migrations/1_create_table.up.sql", "type": "blob"},
 					{"path": "internal/book/migrate/migrations/1_drop_table.down.sql", "type": "blob"},
-					{"path": "internal/shared/domain/book.go", "type": "blob"}
+					{"path": "pkg/shared/domain/book.go", "type": "blob"}
 				]
 			}`))
 		case strings.Contains(r.URL.Path, "/raw.githubusercontent.com/owner/repo/main/internal/"):
@@ -156,7 +156,7 @@ var (
 		"internal/book/usecase/usecase.go",
 		"internal/book/migrate/migrations/1_create_table.up.sql",
 		"internal/book/migrate/migrations/1_drop_table.down.sql",
-		"internal/shared/domain/book.go",
+		"pkg/shared/domain/book.go",
 		"cmd/server/routers/modules.go",
 		"cmd/server/routers/routers.go",
 		"internal/shared/utils/key_object.go",
