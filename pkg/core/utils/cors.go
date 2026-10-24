@@ -1,23 +1,19 @@
 package utils
 
 import (
-	"strings"
-
 	"github.com/DVV-15324/witches/cmd/utils"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func Cors(cfg *utils.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		// Kiểm tra xem Origin này có được phép không
 		isAllowed := false
 
-		// Nếu cấu hình trong .env là "*", tự động cho phép tất cả các port localhost
 		if cfg.CorsAllowOrigins == "*" || cfg.CorsAllowOrigins == "" {
 			isAllowed = true
 		} else {
-			// 2. Nếu cấu hình cụ thể, tách chuỗi bằng dấu phẩy và check xem có khớp không
 			allowedOrigins := strings.Split(cfg.CorsAllowOrigins, ",")
 			for _, allowed := range allowedOrigins {
 				if strings.TrimSpace(allowed) == origin {
@@ -30,6 +26,9 @@ func Cors(cfg *utils.Config) gin.HandlerFunc {
 		if isAllowed && origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			c.Writer.Header().Add("Vary", "Origin")
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Writer.Header().Set("Access-Control-Max-Age", "43200")
+			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, X-Request-ID")
 		}
 
 		c.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
@@ -42,11 +41,9 @@ func Cors(cfg *utils.Config) gin.HandlerFunc {
 
 		allowHeaders := cfg.CorsAllowHeaders
 		if allowHeaders == "" {
-			allowHeaders = "Content-Type, Authorization"
+			allowHeaders = "Content-Type, Authorization, X-Client-Platform"
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Headers", allowHeaders)
-
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
