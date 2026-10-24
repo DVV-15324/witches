@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
+	domainBook "github.com/DVV-15324/witches-book/pkg/shared/domain"
 	w_resp "github.com/DVV-15324/witches/pkg/core/response"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
 	"github.com/example/project/cmd/server/core"
-	domainBook "github.com/example/project/internal/shared/domain"
 )
 
 type IBookUsecase interface {
