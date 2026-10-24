@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -57,4 +59,20 @@ func GetMigrationsURL(pathM string) string {
 		os.MkdirAll(path, 0755)
 		return filepath.ToSlash(path)
 	}
+}
+
+func GetModuleName() (string, error) {
+	data, err := os.ReadFile("go.mod")
+	if err != nil {
+		return "", fmt.Errorf("cannot read go.mod: %w", err)
+	}
+
+	re := regexp.MustCompile(`(?m)^module\s+([^\s]+)`)
+	matches := re.FindStringSubmatch(string(data))
+
+	if len(matches) > 1 {
+		return strings.TrimSpace(matches[1]), nil
+	}
+
+	return "", fmt.Errorf("module name not found in go.mod")
 }
