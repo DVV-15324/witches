@@ -179,7 +179,7 @@ func fetchTemplateFilesFromGit(repoURL string, targetDomain string) (map[string]
 		}
 
 		if !shouldFetch {
-			sharedDomainPath := fmt.Sprintf("pkg/shared/domain/%s.go", targetDomain)
+			sharedDomainPath := fmt.Sprintf("internal/shared/domain/%s.go", targetDomain)
 			if item.Path == sharedDomainPath {
 				shouldFetch = true
 				fileKey = item.Path
