@@ -61,7 +61,7 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 	fmt.Println("Writing files to disk...")
 	baseDir := filepath.Join(project, "internal", config.Name)
 	const prefix = "internal/"
-	sharedDomainDir := filepath.Join(project, "pkg", "shared", "domain")
+	sharedDomainDir := filepath.Join(project, "internal", "shared", "domain")
 	if err := mkdirAllFunc(sharedDomainDir, 0755); err != nil {
 		return fmt.Errorf("failed to create shared domain directory: %w", err)
 	}
@@ -71,10 +71,10 @@ func AddGoDomainFromLink(project, moduleName, domainName, repoURL string) error 
 		var isSharedDomain bool
 		var isMigration bool
 		fmt.Printf("  Processing: %s\n", tmplPath)
-		if strings.HasPrefix(tmplPath, "pkg/shared/domain/") {
+		if strings.HasPrefix(tmplPath, "internal/shared/domain/") {
 			isSharedDomain = true
 			fileName := filepath.Base(tmplPath)
-			relPath = filepath.Join("pkg", "shared", "domain", fileName)
+			relPath = filepath.Join("internal", "shared", "domain", fileName)
 			destPath = filepath.Join(project, relPath)
 		} else if strings.HasPrefix(tmplPath, prefix) {
 			relPath = strings.TrimPrefix(tmplPath, prefix)
