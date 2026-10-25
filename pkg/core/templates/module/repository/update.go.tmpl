@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"{{.ProjectName}}/internal/{{.Name}}/mapping"
-	domain{{.NameCap}} "{{.ProjectName}}/pkg/shared/domain"
+	domain{{.NameCap}} "{{.ProjectName}}/internal/shared/domain"
 )
 
 func (r *{{.NameCap}}Repository) Update(ctx context.Context, e *domain{{.NameCap}}.{{.NameCap}}, id int) error {
