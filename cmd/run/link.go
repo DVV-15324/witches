@@ -11,7 +11,7 @@ import (
 var statWitchesLink = os.Stat
 var getwdWitchesLink = os.Getwd
 var linkWitchesLink = templates.AddGoDomainFromLink
-var getModuleNameLink = cmd_utils.GetModuleName
+var getModuleNameLink = cmd_utils.GetModuleGoName
 
 func WitchesLink(domainName, repoURL string) error {
 	_, err := statWitchesLink("go.mod")
