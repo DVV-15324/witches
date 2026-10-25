@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	domainBook "github.com/DVV-15324/witches-book/pkg/shared/domain"
 	w_utils "github.com/DVV-15324/witches/pkg/core/utils"
+	domainBook "github.com/example/project/internal/shared/domain"
 )
 
 type IBookRepository interface {
