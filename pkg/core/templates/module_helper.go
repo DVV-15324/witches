@@ -16,7 +16,7 @@ import (
 )
 
 func generateSharedDomain(projectPath string, config ModuleConfig, templateFs embed.FS) error {
-	sharedDomainDir := filepath.Join(projectPath, "pkg", "shared", "domain")
+	sharedDomainDir := filepath.Join(projectPath, "internal", "shared", "domain")
 	if err := os.MkdirAll(sharedDomainDir, 0755); err != nil {
 		return err
 	}
