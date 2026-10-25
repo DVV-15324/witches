@@ -668,6 +668,31 @@ func TestWitchesRemove_Confirmed(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func TestWitchesRemove_GetModuleNameFail(t *testing.T) {
+	skipConfirmRemove(t)
+
+	tmpDir := t.TempDir()
+	origWd, _ := os.Getwd()
+	defer os.Chdir(origWd)
+	os.Chdir(tmpDir)
+
+	os.WriteFile("go.mod", []byte("module test"), 0644)
+	os.MkdirAll("internal/book", 0755)
+
+	originalGetModuleName := getModuleNameRemove
+	defer func() { getModuleNameRemove = originalGetModuleName }()
+
+	getModuleNameRemove = func() (string, error) {
+		return "", errors.New("mock get module name error")
+	}
+
+	err := WitchesRemove("book")
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "get module name: mock get module name error")
+}
+
 func TestWitchesLink_Success(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
