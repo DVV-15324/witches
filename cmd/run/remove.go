@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	cmd_utils "github.com/DVV-15324/witches/cmd/utils"
 	templates "github.com/DVV-15324/witches/pkg/core/templates"
 )
 
@@ -16,6 +17,7 @@ var getwdWitchesRemove = os.Getwd
 var linkWitchesRemove = templates.RemoveModule
 var stdinWitchesRemove io.Reader = os.Stdin
 var skipConfirmWitchesRemove = false
+var getModuleNameRemove = cmd_utils.GetModuleGoName
 
 func WitchesRemove(moduleName string) error {
 	_, err := statWitchesRemove("go.mod")
@@ -41,7 +43,12 @@ func WitchesRemove(moduleName string) error {
 		return fmt.Errorf("get working directory: %w", err)
 	}
 
-	projectName := filepath.Base(projectPath)
+	projectName, err := getModuleNameRemove()
+
+	if err != nil {
+		return fmt.Errorf("get module name: %w", err)
+	}
+
 	if err := linkWitchesRemove(projectPath, projectName, moduleName); err != nil {
 		return fmt.Errorf("remove module: %w", err)
 	}
