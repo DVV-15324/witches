@@ -101,12 +101,12 @@ func TestGetModuleName_Success(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	os.WriteFile("go.mod", []byte("module backend\n\ngo 1.21"), 0644)
-	name, err := GetModuleName()
+	name, err := GetModuleGoName()
 	assert.NoError(t, err)
 	assert.Equal(t, "backend", name)
 
 	os.WriteFile("go.mod", []byte("module github.com/DVV-15324/iot-e2e/backend\n\ngo 1.21"), 0644)
-	name, err = GetModuleName()
+	name, err = GetModuleGoName()
 	assert.NoError(t, err)
 	assert.Equal(t, "github.com/DVV-15324/iot-e2e/backend", name)
 }
@@ -117,7 +117,7 @@ func TestGetModuleName_FileNotFound(t *testing.T) {
 	defer os.Chdir(origWd)
 	os.Chdir(tmpDir)
 
-	_, err := GetModuleName()
+	_, err := GetModuleGoName()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot read go.mod")
 }
@@ -129,7 +129,7 @@ func TestGetModuleName_InvalidContent(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	os.WriteFile("go.mod", []byte("go 1.21\nrequire something"), 0644)
-	_, err := GetModuleName()
+	_, err := GetModuleGoName()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "module name not found in go.mod")
 }
