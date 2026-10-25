@@ -61,7 +61,7 @@ func GetMigrationsURL(pathM string) string {
 	}
 }
 
-func GetModuleName() (string, error) {
+func GetModuleGoName() (string, error) {
 	data, err := os.ReadFile("go.mod")
 	if err != nil {
 		return "", fmt.Errorf("cannot read go.mod: %w", err)
