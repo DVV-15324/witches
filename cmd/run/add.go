@@ -10,7 +10,7 @@ import (
 
 var getwdWitchesAdd = os.Getwd
 var addModule = templates.AddModule
-var getModuleNameAdd = cmd_utils.GetModuleName
+var getModuleNameAdd = cmd_utils.GetModuleGoName
 
 func WitchesAdd(moduleName string, DBdriver string) error {
 	if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
