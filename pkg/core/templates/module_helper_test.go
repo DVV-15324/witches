@@ -24,7 +24,7 @@ func TestGenerateSharedDomain_Success(t *testing.T) {
 	err := generateSharedDomain(tmpDir, config, testFS)
 	assert.NoError(t, err)
 
-	destFile := filepath.Join(tmpDir, "pkg", "shared", "domain", "book.go")
+	destFile := filepath.Join(tmpDir, "internal", "shared", "domain", "book.go")
 	content, err := os.ReadFile(destFile)
 	require.NoError(t, err)
 	assert.NotEmpty(t, content)
