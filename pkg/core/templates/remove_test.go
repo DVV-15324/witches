@@ -297,7 +297,7 @@ const (
 	_, err = os.Stat(filepath.Join(tmpDir, "internal", "book"))
 	assert.True(t, os.IsNotExist(err), "book directory should be removed")
 
-	_, err = os.Stat(filepath.Join(tmpDir, "pkg", "shared", "domain", "book.go"))
+	_, err = os.Stat(filepath.Join(tmpDir, "internal", "shared", "domain", "book.go"))
 	assert.True(t, os.IsNotExist(err), "shared domain file should be removed")
 
 	expectedFiles := []string{
