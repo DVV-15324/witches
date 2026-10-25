@@ -248,7 +248,7 @@ func TestFetchTemplateFilesFromGit_Success(t *testing.T) {
 				"tree": [
 					{"path": "internal/book/module.go", "type": "blob"},
 					{"path": "internal/book/handler/handler.go", "type": "blob"},
-					{"path": "pkg/shared/domain/book.go", "type": "blob"},
+					{"path": "internal/shared/domain/book.go", "type": "blob"},
 					{"path": "README.md", "type": "blob"}
 				]
 			}`))
