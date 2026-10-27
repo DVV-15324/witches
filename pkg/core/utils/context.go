@@ -6,8 +6,9 @@ import (
 )
 
 type RequestContext struct {
-	Tid string
-	Sub string
+	Tid   string
+	Sub   string
+	RQCxt interface{}
 }
 
 func NewRequestContext(sub, tid string) *RequestContext {
@@ -17,11 +18,18 @@ func NewRequestContext(sub, tid string) *RequestContext {
 	}
 }
 
-func NewRequestContextFull(sub, tid string) *RequestContext {
-	return &RequestContext{
-		Sub: sub,
-		Tid: tid,
+func (r *RequestContext) SetExtra(v interface{}) {
+	r.RQCxt = v
+}
+
+func GetExtra[T any](ctx context.Context, cfg *wcmd_utils.Config) (T, bool) {
+	var zero T
+	r := GetRequestContext(ctx, cfg)
+	if r.RQCxt == nil {
+		return zero, false
 	}
+	v, ok := r.RQCxt.(T)
+	return v, ok
 }
 
 func SaveRequestContext(ctx context.Context, reqCtx *RequestContext, cfg *wcmd_utils.Config) context.Context {
