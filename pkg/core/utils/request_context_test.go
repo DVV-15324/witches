@@ -14,14 +14,70 @@ func TestNewRequestContext(t *testing.T) {
 	assert.Equal(t, "user-123", reqCtx.Sub)
 	assert.Equal(t, "tid-456", reqCtx.Tid)
 }
+func TestSetExtra(t *testing.T) {
+	reqCtx := NewRequestContext("user-123", "tid-456")
 
-func TestNewRequestContextFull(t *testing.T) {
-	reqCtx := NewRequestContextFull("user-123", "tid-456")
+	type myExtra struct {
+		TenantID string
+	}
 
-	assert.Equal(t, "user-123", reqCtx.Sub)
-	assert.Equal(t, "tid-456", reqCtx.Tid)
+	reqCtx.SetExtra(&myExtra{TenantID: "tenant-1"})
+
+	got, ok := reqCtx.RQCxt.(*myExtra)
+	assert.True(t, ok)
+	assert.Equal(t, "tenant-1", got.TenantID)
 }
 
+func TestGetExtra(t *testing.T) {
+	cfg := &wcmd_utils.Config{
+		RequestKey: "request-context",
+	}
+
+	type myExtra struct {
+		TenantID string
+	}
+
+	t.Run("nil RQCxt", func(t *testing.T) {
+		reqCtx := NewRequestContext("user-123", "tid-456")
+		ctx := SaveRequestContext(context.Background(), reqCtx, cfg)
+
+		got, ok := GetExtra[*myExtra](ctx, cfg)
+
+		assert.False(t, ok)
+		assert.Nil(t, got)
+	})
+
+	t.Run("wrong type", func(t *testing.T) {
+		reqCtx := NewRequestContext("user-123", "tid-456")
+		reqCtx.SetExtra("not-a-struct")
+		ctx := SaveRequestContext(context.Background(), reqCtx, cfg)
+
+		got, ok := GetExtra[*myExtra](ctx, cfg)
+
+		assert.False(t, ok)
+		assert.Nil(t, got)
+	})
+
+	t.Run("valid type", func(t *testing.T) {
+		reqCtx := NewRequestContext("user-123", "tid-456")
+		reqCtx.SetExtra(&myExtra{TenantID: "tenant-1"})
+		ctx := SaveRequestContext(context.Background(), reqCtx, cfg)
+
+		got, ok := GetExtra[*myExtra](ctx, cfg)
+
+		assert.True(t, ok)
+		assert.Equal(t, "tenant-1", got.TenantID)
+	})
+
+	t.Run("no request context in ctx", func(t *testing.T) {
+		ctx := context.Background()
+
+		got, ok := GetExtra[*myExtra](ctx, cfg)
+
+		assert.False(t, ok)
+		assert.Nil(t, got)
+	})
+}
 func TestSaveRequestContext(t *testing.T) {
 	cfg := &wcmd_utils.Config{
 		RequestKey: "request-context",
