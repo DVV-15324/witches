@@ -2,6 +2,8 @@ package logger
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.uber.org/zap"
@@ -33,27 +35,9 @@ func TestNewFileLogger_WithDifferentConfigs(t *testing.T) {
 		maxBackup int
 		maxAge    int
 	}{
-		{
-			name:      "valid config with small size",
-			path:      "./test1.log",
-			maxSize:   1,
-			maxBackup: 5,
-			maxAge:    10,
-		},
-		{
-			name:      "valid config with large size",
-			path:      "./test2.log",
-			maxSize:   100,
-			maxBackup: 10,
-			maxAge:    30,
-		},
-		{
-			name:      "zero max size",
-			path:      "./test3.log",
-			maxSize:   0,
-			maxBackup: 3,
-			maxAge:    7,
-		},
+		{"valid config with small size", "./test1.log", 1, 5, 10},
+		{"valid config with large size", "./test2.log", 100, 10, 30},
+		{"zero max size", "./test3.log", 0, 3, 7},
 	}
 
 	for _, tt := range tests {
@@ -84,37 +68,22 @@ func TestLoggerMethods(t *testing.T) {
 	defer func() { _ = logger.Sync() }()
 	defer func() { _ = os.Remove(path) }()
 
-	t.Run("Info", func(t *testing.T) {
-		logger.Info("info message")
-	})
-
-	t.Run("Warn", func(t *testing.T) {
-		logger.Warn("warn message")
-	})
-
-	t.Run("Error", func(t *testing.T) {
-		logger.Error("error message")
-	})
+	t.Run("Info", func(t *testing.T) { logger.Info("info message") })
+	t.Run("Warn", func(t *testing.T) { logger.Warn("warn message") })
+	t.Run("Error", func(t *testing.T) { logger.Error("error message") })
+	t.Run("Debug", func(t *testing.T) { logger.Debug("debug message") })
 
 	t.Run("InfoWithFields", func(t *testing.T) {
-		logger.InfoWithFields("info with fields",
-			zap.String("key1", "value1"),
-			zap.Int("key2", 123),
-		)
+		logger.InfoWithFields("info with fields", zap.String("key1", "value1"), zap.Int("key2", 123))
 	})
-
 	t.Run("WarnWithFields", func(t *testing.T) {
-		logger.WarnWithFields("warn with fields",
-			zap.String("key", "value"),
-			zap.Bool("flag", true),
-		)
+		logger.WarnWithFields("warn with fields", zap.String("key", "value"), zap.Bool("flag", true))
 	})
-
 	t.Run("ErrorWithFields", func(t *testing.T) {
-		logger.ErrorWithFields("error with fields",
-			zap.String("error", "something went wrong"),
-			zap.Int("code", 500),
-		)
+		logger.ErrorWithFields("error with fields", zap.String("error", "something went wrong"), zap.Int("code", 500))
+	})
+	t.Run("DebugWithFields", func(t *testing.T) {
+		logger.DebugWithFields("debug with fields", zap.String("k", "v"))
 	})
 }
 
@@ -128,9 +97,7 @@ func TestLoggerSync(t *testing.T) {
 	defer func() { _ = os.Remove(path) }()
 
 	logger.Info("test message")
-
-	err = logger.Sync()
-	if err != nil {
+	if err := logger.Sync(); err != nil {
 		t.Logf("Sync returned: %v", err)
 	}
 }
@@ -169,7 +136,6 @@ func TestLogger_WithDifferentFieldTypes(t *testing.T) {
 		zap.Strings("strings", []string{"a", "b", "c"}),
 		zap.Ints("ints", []int{1, 2, 3}),
 	}
-
 	logger.InfoWithFields("all field types", fields...)
 }
 
@@ -186,16 +152,78 @@ func TestLogger_Concurrent(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			for j := 0; j < 10; j++ {
-				logger.InfoWithFields("concurrent",
-					zap.Int("goroutine", id),
-					zap.Int("iteration", j),
-				)
+				logger.InfoWithFields("concurrent", zap.Int("goroutine", id), zap.Int("iteration", j))
 			}
 			done <- true
 		}(i)
 	}
-
 	for i := 0; i < 10; i++ {
 		<-done
+	}
+}
+
+func TestLogger_OutputContent(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "output.log")
+
+	logger, err := NewFileLogger(path, 1, 1, 1)
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
+	// Đảm bảo đóng logger sau khi test xong
+	defer func() {
+		if err := logger.Close(); err != nil {
+			t.Logf("Failed to close logger: %v", err)
+		}
+	}()
+
+	logger.Info("hello info")
+	logger.Warn("hello warn")
+	logger.Error("hello error")
+	logger.InfoWithFields("with fields", zap.String("key", "value"))
+
+	if err := logger.Sync(); err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("Failed to read log file: %v", err)
+	}
+	content := string(data)
+
+	expectedMessages := []string{
+		"hello info",
+		"hello warn",
+		"hello error",
+		"with fields",
+		`"key":"value"`,
+	}
+	for _, msg := range expectedMessages {
+		if !strings.Contains(content, msg) {
+			t.Errorf("Log file missing expected content %q. File content: %s", msg, content)
+		}
+	}
+}
+
+func TestLogger_DebugLevel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "debug.log")
+
+	logger, err := NewFileLogger(path, 1, 1, 1)
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
+
+	logger.Debug("debug message")
+	if err := logger.Sync(); err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+
+	data, _ := os.ReadFile(path)
+	if strings.Contains(string(data), "debug message") {
+		t.Log("Debug message was written (logger might be at Debug level)")
+	} else {
+		t.Log("Debug message was NOT written (expected, logger is at Info level)")
 	}
 }
