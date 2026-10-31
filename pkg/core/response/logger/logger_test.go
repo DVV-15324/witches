@@ -1,12 +1,11 @@
 package logger
 
 import (
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"go.uber.org/zap"
 )
 
 func TestLogger_File(t *testing.T) {
