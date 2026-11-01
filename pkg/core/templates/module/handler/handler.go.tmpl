@@ -16,7 +16,7 @@ type I{{.NameCap}}Usecase interface {
 }
 type {{.NameCap}}Handler struct {
 	core    *core.CoreServices
-	usecase IBookUsecase
+	usecase I{{.NameCap}}Usecase
 }
 
 // New{{.NameCap}}Handler - Constructor
