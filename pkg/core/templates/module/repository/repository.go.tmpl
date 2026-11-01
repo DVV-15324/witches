@@ -17,7 +17,7 @@ func New{{.NameCap}}Repository(core *core.CoreServices) *{{.NameCap}}Repository 
 	}
 }
 
-func (a *BookRepository) getDB(ctx context.Context) *gorm.DB {
+func (a *{{.NameCap}}Repository) getDB(ctx context.Context) *gorm.DB {
 	tx, err := u_tx.GetTxFromContext(ctx)
 	if err == nil {
 		return tx // Dùng transaction
