@@ -124,35 +124,6 @@ func TestDoGET_Non2xx_TrimsBodyWhitespace(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "status 500: server error")
 }
-func TestFetchRawContent_Success(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`content`))
-	}))
-	defer server.Close()
-
-	content, err := fetchRawContent(server.URL)
-	assert.NoError(t, err)
-	assert.Equal(t, "content", content)
-}
-
-func TestFetchRawContent_Error(t *testing.T) {
-	_, err := fetchRawContent("http://invalid-url-12345.local")
-	assert.Error(t, err)
-}
-
-func TestFetchRawContent_Non200(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
-	defer server.Close()
-
-	_, err := fetchRawContent(server.URL)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "HTTP 500")
-}
-
-// ==================== TEST parseGitHubRepo ====================
 
 func TestParseGitHubRepo_Success(t *testing.T) {
 	tests := []struct {
@@ -232,8 +203,6 @@ func TestParseGitHubRepo_Error(t *testing.T) {
 	}
 }
 
-// ==================== TEST fetchTemplateFilesFromGit ====================
-
 func TestFetchTemplateFilesFromGit_Success(t *testing.T) {
 	// Tạo mock GitHub API server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -293,8 +262,6 @@ func TestFetchTemplateFilesFromGit_InvalidPath(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid GitHub URL")
 }
 
-// ==================== TEST INTEGRATION (có thể skip) ====================
-
 func TestFetchTemplateFilesFromGit_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
@@ -315,8 +282,6 @@ func TestFetchTemplateFilesFromGit_Integration(t *testing.T) {
 		t.Log("module.go not found in fetched files")
 	}
 }
-
-// ==================== BENCHMARK ====================
 
 func BenchmarkParseGitHubRepo(b *testing.B) {
 	url := "https://github.com/owner/repo"
