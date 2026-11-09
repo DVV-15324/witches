@@ -49,7 +49,7 @@ func NewCoreServices(cfg *wcmd_utils.Config) *CoreServices {
 	}
 
 	// Redis
-	address := fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort)
+	redisClient, err := w_redis.NewRedisClient(address, cfg.RedisPassword, 0)
 	redisClient, err := w_redis.NewRedisClient(address, cfg.RedisPassword)
 	if err != nil {
 		log.Printf("Warning: Redis connection failed: %v", err)
