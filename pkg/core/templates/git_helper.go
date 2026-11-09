@@ -1,6 +1,7 @@
 package template
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,13 @@ import (
 	"os"
 	"strings"
 )
+
+type githubContent struct {
+	Type     string `json:"type"`
+	Encoding string `json:"encoding"`
+	Content  string `json:"content"`
+	Size     int    `json:"size"`
+}
 
 func doGET(rawURL string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, rawURL, nil)
@@ -42,29 +50,35 @@ func doGET(rawURL string) (*http.Response, error) {
 	return resp, nil
 }
 
-func fetchRawContent(rawURL string) (string, error) {
-	resp, err := http.Get(rawURL)
+func fetchFileViaAPI(owner, repo, branch, path string) (string, error) {
+	apiURL := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+		owner, repo, path, branch,
+	)
+	resp, err := doGET(apiURL)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf(
-			"HTTP %d when fetching %s",
-			resp.StatusCode,
-			rawURL,
-		)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
+	var c githubContent
+	if err := json.NewDecoder(resp.Body).Decode(&c); err != nil {
 		return "", err
 	}
-
-	return string(body), nil
+	if c.Type != "file" {
+		return "", fmt.Errorf("not a file: %s (type=%s)", path, c.Type)
+	}
+	if c.Encoding != "base64" {
+		return "", fmt.Errorf("unexpected encoding %q for %s", c.Encoding, path)
+	}
+	// Contents API chèn \n mỗi 60 ký tự base64, phải strip trước khi decode.
+	clean := strings.NewReplacer("\n", "", "\r", "").Replace(c.Content)
+	raw, err := base64.StdEncoding.DecodeString(clean)
+	if err != nil {
+		return "", fmt.Errorf("decode base64 for %s: %w", path, err)
+	}
+	return string(raw), nil
 }
-
 func parseGitHubRepo(repoURL string) (owner, repo string, err error) {
 	repoURL = strings.TrimSpace(repoURL)
 
@@ -191,8 +205,7 @@ func fetchTemplateFilesFromGit(repoURL string, targetDomain string) (map[string]
 			continue
 		}
 
-		rawURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", owner, repo, branch, item.Path)
-		content, err := fetchRawContent(rawURL)
+		content, err := fetchFileViaAPI(owner, repo, branch, item.Path)
 		if err != nil {
 			return nil, fmt.Errorf("fetch %s: %w", item.Path, err)
 		}
