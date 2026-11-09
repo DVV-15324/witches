@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -120,9 +121,9 @@ func TestDoGET_Non2xx(t *testing.T) {
 }
 
 func TestFetchFileViaAPI_Success(t *testing.T) {
-	// Mock một response base64 có chèn \n (giống thật từ GitHub)
 	content := "package book\n"
 	encoded := base64.StdEncoding.EncodeToString([]byte(content))
+	// Giả lập GitHub API chèn \n và \r\n vào base64
 	encodedWithNewlines := encoded[:5] + "\n" + encoded[5:] + "\r\n"
 
 	oldTransport := http.DefaultClient.Transport
@@ -130,8 +131,16 @@ func TestFetchFileViaAPI_Success(t *testing.T) {
 
 	http.DefaultClient.Transport = &mockTransport{
 		handler: func(req *http.Request) (*http.Response, error) {
-			body := fmt.Sprintf(`{"type": "file", "encoding": "base64", "content": "%s"}`, encodedWithNewlines)
-			return mockHTTPResponse(http.StatusOK, body), nil
+			// SỬA Ở ĐÂY: Dùng json.Marshal thay vì fmt.Sprintf để tự động escape \n
+			mockData := githubContent{
+				Type:     "file",
+				Encoding: "base64",
+				Content:  encodedWithNewlines,
+			}
+			bodyBytes, err := json.Marshal(mockData)
+			require.NoError(t, err)
+
+			return mockHTTPResponse(http.StatusOK, string(bodyBytes)), nil
 		},
 	}
 
