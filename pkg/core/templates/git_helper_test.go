@@ -1,17 +1,34 @@
 package template
 
 import (
-	//"errors"
-	//"io"
+	"encoding/base64"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
-
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type mockTransport struct {
+	handler func(req *http.Request) (*http.Response, error)
+}
+
+func (t *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return t.handler(req)
+}
+
+// mockHTTPResponse tạo nhanh một response giả lập
+func mockHTTPResponse(status int, body string) *http.Response {
+	return &http.Response{
+		StatusCode: status,
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Header:     make(http.Header),
+	}
+}
 
 func TestDoGET_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -75,54 +92,109 @@ func TestDoGET_ConnectionError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestDoGET_Non2xx_404(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message":"Not Found"}`))
-	}))
-	defer server.Close()
+func TestDoGET_Non2xx(t *testing.T) {
+	tests := []struct {
+		status int
+		body   string
+		errMsg string
+	}{
+		{http.StatusNotFound, `{"message":"Not Found"}`, "status 404"},
+		{http.StatusForbidden, `{"message":"API rate limit exceeded"}`, "status 403"},
+		{http.StatusInternalServerError, "  \n  server error \n\n  ", "status 500: server error"},
+	}
 
-	_, err := doGET(server.URL)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "status 404")
-	assert.Contains(t, err.Error(), `{"message":"Not Found"}`)
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("status_%d", tt.status), func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.status)
+				w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			_, err := doGET(server.URL)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tt.errMsg)
+			assert.Contains(t, err.Error(), strings.TrimSpace(tt.body))
+		})
+	}
 }
 
-func TestDoGET_Non2xx_403RateLimit(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"message":"API rate limit exceeded"}`))
-	}))
-	defer server.Close()
+func TestFetchFileViaAPI_Success(t *testing.T) {
+	// Mock một response base64 có chèn \n (giống thật từ GitHub)
+	content := "package book\n"
+	encoded := base64.StdEncoding.EncodeToString([]byte(content))
+	encodedWithNewlines := encoded[:5] + "\n" + encoded[5:] + "\r\n"
 
-	_, err := doGET(server.URL)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "status 403")
-	assert.Contains(t, err.Error(), "API rate limit exceeded")
+	oldTransport := http.DefaultClient.Transport
+	defer func() { http.DefaultClient.Transport = oldTransport }()
+
+	http.DefaultClient.Transport = &mockTransport{
+		handler: func(req *http.Request) (*http.Response, error) {
+			body := fmt.Sprintf(`{"type": "file", "encoding": "base64", "content": "%s"}`, encodedWithNewlines)
+			return mockHTTPResponse(http.StatusOK, body), nil
+		},
+	}
+
+	result, err := fetchFileViaAPI("owner", "repo", "main", "internal/book/module.go")
+	require.NoError(t, err)
+	assert.Equal(t, content, result)
 }
 
-func TestDoGET_Non2xx_500(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("server error"))
-	}))
-	defer server.Close()
+func TestFetchFileViaAPI_Errors(t *testing.T) {
+	tests := []struct {
+		name     string
+		mockBody string
+		status   int
+		errMsg   string
+	}{
+		{
+			name:     "API returns error status",
+			status:   http.StatusNotFound,
+			mockBody: `{"message":"Not Found"}`,
+			errMsg:   "status 404",
+		},
+		{
+			name:     "invalid JSON response",
+			status:   http.StatusOK,
+			mockBody: `{"type": "file", "encoding": `, // cố tình hỏng JSON
+			errMsg:   "unexpected EOF",
+		},
+		{
+			name:     "not a file",
+			status:   http.StatusOK,
+			mockBody: `{"type": "dir", "encoding": "base64", "content": ""}`,
+			errMsg:   "not a file: internal/book (type=dir)",
+		},
+		{
+			name:     "wrong encoding",
+			status:   http.StatusOK,
+			mockBody: `{"type": "file", "encoding": "utf-8", "content": ""}`,
+			errMsg:   `unexpected encoding "utf-8"`,
+		},
+		{
+			name:     "invalid base64",
+			status:   http.StatusOK,
+			mockBody: `{"type": "file", "encoding": "base64", "content": "invalid_base64!!!"}`,
+			errMsg:   "decode base64",
+		},
+	}
 
-	_, err := doGET(server.URL)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "status 500")
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldTransport := http.DefaultClient.Transport
+			defer func() { http.DefaultClient.Transport = oldTransport }()
 
-func TestDoGET_Non2xx_TrimsBodyWhitespace(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("  \n  server error \n\n  "))
-	}))
-	defer server.Close()
+			http.DefaultClient.Transport = &mockTransport{
+				handler: func(req *http.Request) (*http.Response, error) {
+					return mockHTTPResponse(tt.status, tt.mockBody), nil
+				},
+			}
 
-	_, err := doGET(server.URL)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "status 500: server error")
+			_, err := fetchFileViaAPI("owner", "repo", "main", "internal/book")
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tt.errMsg)
+		})
+	}
 }
 
 func TestParseGitHubRepo_Success(t *testing.T) {
@@ -132,24 +204,9 @@ func TestParseGitHubRepo_Success(t *testing.T) {
 		owner string
 		repo  string
 	}{
-		{
-			name:  "https URL",
-			url:   "https://github.com/owner/repo",
-			owner: "owner",
-			repo:  "repo",
-		},
-		{
-			name:  "with .git suffix",
-			url:   "https://github.com/owner/repo.git",
-			owner: "owner",
-			repo:  "repo",
-		},
-		{
-			name:  "without protocol",
-			url:   "github.com/owner/repo",
-			owner: "owner",
-			repo:  "repo",
-		},
+		{"https URL", "https://github.com/owner/repo", "owner", "repo"},
+		{"with .git suffix", "https://github.com/owner/repo.git", "owner", "repo"},
+		{"without protocol", "github.com/owner/repo", "owner", "repo"},
 	}
 
 	for _, tt := range tests {
@@ -161,37 +218,18 @@ func TestParseGitHubRepo_Success(t *testing.T) {
 		})
 	}
 }
+
 func TestParseGitHubRepo_Error(t *testing.T) {
 	tests := []struct {
 		name string
 		url  string
 		err  string
 	}{
-		{
-			name: "invalid URL",
-			url:  "://invalid",
-			err:  "invalid repository URL",
-		},
-		{
-			name: "not github",
-			url:  "https://gitlab.com/owner/repo",
-			err:  "must be hosted on github.com",
-		},
-		{
-			name: "invalid path - single part",
-			url:  "https://github.com/owner",
-			err:  "invalid GitHub URL",
-		},
-		{
-			name: "empty owner",
-			url:  "https://github.com//repo",
-			err:  "owner is empty",
-		},
-		{
-			name: "empty repo",
-			url:  "https://github.com/owner/",
-			err:  "repo is empty",
-		},
+		{"invalid URL", "://invalid", "invalid repository URL"},
+		{"not github", "https://gitlab.com/owner/repo", "must be hosted on github.com"},
+		{"invalid path - single part", "https://github.com/owner", "invalid GitHub URL"},
+		{"empty owner", "https://github.com//repo", "owner is empty"},
+		{"empty repo", "https://github.com/owner/", "repo is empty"},
 	}
 
 	for _, tt := range tests {
@@ -204,43 +242,82 @@ func TestParseGitHubRepo_Error(t *testing.T) {
 }
 
 func TestFetchTemplateFilesFromGit_Success(t *testing.T) {
-	// Tạo mock GitHub API server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/repos/owner/repo" {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"default_branch": "main"}`))
-			return
-		}
-		if r.URL.Path == "/repos/owner/repo/git/trees/main" {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
-				"tree": [
-					{"path": "internal/book/module.go", "type": "blob"},
-					{"path": "internal/book/handler/handler.go", "type": "blob"},
-					{"path": "internal/shared/domain/book.go", "type": "blob"},
-					{"path": "README.md", "type": "blob"}
-				]
-			}`))
-			return
-		}
-		// Raw content requests
-		if strings.HasPrefix(r.URL.Path, "/owner/repo/main/internal/") {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`package book`))
-			return
-		}
-		w.WriteHeader(http.StatusNotFound)
-	}))
-	defer server.Close()
+	fileContent := "package book"
+	encodedContent := base64.StdEncoding.EncodeToString([]byte(fileContent))
 
-	// Mock GitHub API URL bằng cách override
-	// Vì code dùng github.com cố định, test này sẽ skip
-	t.Skip("Skipping: requires mocking github.com API")
+	oldTransport := http.DefaultClient.Transport
+	defer func() { http.DefaultClient.Transport = oldTransport }()
+
+	http.DefaultClient.Transport = &mockTransport{
+		handler: func(req *http.Request) (*http.Response, error) {
+			path := req.URL.Path
+			switch {
+			case path == "/repos/owner/repo":
+				return mockHTTPResponse(http.StatusOK, `{"default_branch": "main"}`), nil
+			case path == "/repos/owner/repo/git/trees/main":
+				treeBody := `{
+					"tree": [
+						{"path": "internal/book/module.go", "type": "blob"},
+						{"path": "internal/book/handler/handler.go", "type": "blob"},
+						{"path": "internal/shared/domain/book.go", "type": "blob"},
+						{"path": "internal/other/file.go", "type": "blob"},
+						{"path": "internal/book/empty_dir", "type": "tree"},
+						{"path": "README.md", "type": "blob"}
+					]
+				}`
+				return mockHTTPResponse(http.StatusOK, treeBody), nil
+			case strings.HasPrefix(path, "/repos/owner/repo/contents/internal/book/"),
+				strings.HasPrefix(path, "/repos/owner/repo/contents/internal/shared/domain/book.go"):
+				body := fmt.Sprintf(`{"type": "file", "encoding": "base64", "content": "%s"}`, encodedContent)
+				return mockHTTPResponse(http.StatusOK, body), nil
+			}
+			return mockHTTPResponse(http.StatusNotFound, `{"message": "Not Found"}`), nil
+		},
+	}
+
+	files, err := fetchTemplateFilesFromGit("https://github.com/owner/repo", "book")
+	require.NoError(t, err)
+
+	// Phải có 3 file: module.go, handler.go và shared/domain/book.go
+	assert.Len(t, files, 3)
+	assert.Equal(t, fileContent, files["internal/book/module.go"])
+	assert.Equal(t, fileContent, files["internal/book/handler/handler.go"])
+	assert.Equal(t, fileContent, files["internal/shared/domain/book.go"])
+
+	// Không lấy file của internal/other và README.md
+	_, ok := files["internal/other/file.go"]
+	assert.False(t, ok)
 }
+
+func TestFetchTemplateFilesFromGit_FetchFileError(t *testing.T) {
+	oldTransport := http.DefaultClient.Transport
+	defer func() { http.DefaultClient.Transport = oldTransport }()
+
+	http.DefaultClient.Transport = &mockTransport{
+		handler: func(req *http.Request) (*http.Response, error) {
+			path := req.URL.Path
+			switch {
+			case path == "/repos/owner/repo":
+				return mockHTTPResponse(http.StatusOK, `{"default_branch": "main"}`), nil
+			case path == "/repos/owner/repo/git/trees/main":
+				treeBody := `{"tree": [{"path": "internal/book/module.go", "type": "blob"}]}`
+				return mockHTTPResponse(http.StatusOK, treeBody), nil
+			default:
+				// Trả về 500 cho request lấy content
+				return mockHTTPResponse(http.StatusInternalServerError, `server error`), nil
+			}
+		},
+	}
+
+	_, err := fetchTemplateFilesFromGit("https://github.com/owner/repo", "book")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "fetch internal/book/module.go: GET")
+	assert.Contains(t, err.Error(), "status 500")
+}
+
 func TestFetchTemplateFilesFromGit_InvalidRepo(t *testing.T) {
 	_, err := fetchTemplateFilesFromGit("invalid", "book")
 	assert.Error(t, err)
-	// Sửa: lỗi từ parseGitHubRepo với "invalid" là "must be hosted on github.com"
 	assert.Contains(t, err.Error(), "must be hosted on github.com")
 }
 
@@ -260,27 +337,6 @@ func TestFetchTemplateFilesFromGit_InvalidPath(t *testing.T) {
 	_, err := fetchTemplateFilesFromGit("https://github.com/owner", "book")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid GitHub URL")
-}
-
-func TestFetchTemplateFilesFromGit_Integration(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
-
-	// Test với repo thật
-	files, err := fetchTemplateFilesFromGit("https://github.com/DVV-15324/witches-book", "book")
-	if err != nil {
-		t.Logf("Integration test failed: %v", err)
-		t.Skip("Skipping due to network/github API issues")
-	}
-
-	assert.NotEmpty(t, files)
-
-	// Kiểm tra có file module.go
-	_, ok := files["internal/book/module.go"]
-	if !ok {
-		t.Log("module.go not found in fetched files")
-	}
 }
 
 func BenchmarkParseGitHubRepo(b *testing.B) {
