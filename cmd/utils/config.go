@@ -59,7 +59,7 @@ func Load() *Config {
 	envPath := filepath.Join(currentPath, "witches.env")
 	if err := godotenv.Load(envPath); err != nil {
 		if err2 := godotenv.Load(filepath.Join(currentPath, ".env")); err2 != nil {
-			log.Println("Info: Không tìm thấy file env. Tự động dùng biến môi trường OS (Docker).")
+			log.Println("Info: Env file not found. Using OS environment variables (Docker mode).")
 		}
 	}
 
