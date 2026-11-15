@@ -53,8 +53,8 @@ func WriteSuccessWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_u
 		Message:   "Success",
 		Timestamp: time.Now(),
 	}
-	tid := utils.GetTid(c, config)
-	sub := utils.GetSub(c, config)
+	tid := utils.GetTid(c.Request.Context(), config)
+	sub := utils.GetSub(c.Request.Context(), config)
 	log.InfoWithFields("API response success",
 		zap.String("trace_id(tid)", tid),
 		zap.String("subject(sub)", sub),
@@ -74,8 +74,8 @@ func WriteSuccessWithPaginationAndLog(c *gin.Context, log *logger.ModelLogger, c
 		Message:    "Success",
 		Timestamp:  time.Now(),
 	}
-	tid := utils.GetTid(c, config)
-	sub := utils.GetSub(c, config)
+	tid := utils.GetTid(c.Request.Context(), config)
+	sub := utils.GetSub(c.Request.Context(), config)
 
 	log.InfoWithFields("API response success with pagination",
 		zap.String("trace_id(tid)", tid),
@@ -103,8 +103,8 @@ func WriteErrorWithLog(c *gin.Context, log *logger.ModelLogger, config *wcmd_uti
 		Message:   re.AError.Error(),
 		Timestamp: re.TimeStamp,
 	}
-	tid := utils.GetTid(c, config)
-	sub := utils.GetSub(c, config)
+	tid := utils.GetTid(c.Request.Context(), config)
+	sub := utils.GetSub(c.Request.Context(), config)
 
 	log.ErrorWithFields("API error",
 		zap.String("trace_id(tid)", tid),

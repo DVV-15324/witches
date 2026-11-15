@@ -22,6 +22,7 @@ func (r *RequestContext) SetExtra(v interface{}) {
 	r.RQCxt = v
 }
 
+// c.Request.Context()
 func GetExtra[T any](ctx context.Context, cfg *wcmd_utils.Config) (T, bool) {
 	var zero T
 	r := GetRequestContext(ctx, cfg)
@@ -36,6 +37,7 @@ func SaveRequestContext(ctx context.Context, reqCtx *RequestContext, cfg *wcmd_u
 	return context.WithValue(ctx, cfg.RequestKey, reqCtx)
 }
 
+// c.Request.Context()
 func GetRequestContext(ctx context.Context, cfg *wcmd_utils.Config) *RequestContext {
 	val := ctx.Value(cfg.RequestKey)
 	if val == nil {
@@ -48,11 +50,13 @@ func GetRequestContext(ctx context.Context, cfg *wcmd_utils.Config) *RequestCont
 	return r
 }
 
+// c.Request.Context()
 func GetSub(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Sub
 }
 
+// c.Request.Context()
 func GetTid(ctx context.Context, cfg *wcmd_utils.Config) string {
 	reqCtx := GetRequestContext(ctx, cfg)
 	return reqCtx.Tid
