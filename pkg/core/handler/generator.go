@@ -188,7 +188,18 @@ func (g *SwaggerGenerator) PATCH(path string) *RouteBuilder {
 		},
 	}
 }
-
+func (g *SwaggerGenerator) ANY(path string) *RouteBuilder {
+	return &RouteBuilder{
+		gen:    g,
+		method: "any",
+		path:   path,
+		op: Operation{
+			Consumes:  []string{"application/json"},
+			Produces:  []string{"application/json"},
+			Responses: make(map[string]Response),
+		},
+	}
+}
 func (g *SwaggerGenerator) OPTIONS(path string) *RouteBuilder {
 	return &RouteBuilder{
 		gen:    g,
