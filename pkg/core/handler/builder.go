@@ -178,6 +178,8 @@ func (b *RouteBuilder) Build() {
 		b.gen.engine.DELETE(fullPath, handlers...)
 	case "patch":
 		b.gen.engine.PATCH(fullPath, handlers...)
+	case "any":
+		b.gen.engine.Any(fullPath, handlers...)
 	case "options":
 		b.gen.engine.OPTIONS(fullPath, handlers...)
 	}
