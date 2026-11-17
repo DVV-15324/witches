@@ -471,3 +471,41 @@ func TestRouteBuilder_RateLimit_InvalidGenerator(t *testing.T) {
 		})
 	}
 }
+
+func TestRouteBuilder_Build_ANY(t *testing.T) {
+	gen, engine := setupTest()
+
+	builder := gen.ANY("/any").
+		Handler(func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"method": c.Request.Method,
+			})
+		})
+
+	builder.Build()
+
+	methods := []string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodDelete,
+		http.MethodPatch,
+		http.MethodOptions,
+	}
+
+	for _, method := range methods {
+		t.Run(method, func(t *testing.T) {
+			req := httptest.NewRequest(
+				method,
+				"/api/v1/any",
+				nil,
+			)
+
+			w := httptest.NewRecorder()
+			engine.ServeHTTP(w, req)
+
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Contains(t, w.Body.String(), method)
+		})
+	}
+}
